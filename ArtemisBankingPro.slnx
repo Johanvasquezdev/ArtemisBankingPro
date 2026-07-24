@@ -1,0 +1,24 @@
+<Solution>
+  <Folder Name="/Api/">
+    <Project Path="ArtemisBankingPro.API/ABP.API.csproj" />
+  </Folder>
+  <Folder Name="/Core/">
+    <Project Path="ArtemisBankingPro.Core.Application/ABP.Core.Application.csproj" />
+    <Project Path="ArtemisBankingPro/ABP.Core.Domain.csproj" />
+  </Folder>
+  <Folder Name="/Functions/">
+    <Project Path="ArtemisFunctions/ABP.Functions.csproj" Id="70f1d06a-b421-4baf-ac7d-4012a1382d4d" />
+  </Folder>
+  <Folder Name="/Infraestructure/">
+    <Project Path="ArtemisBankingPro.Infraestructure.identity/ABP.Infraestructure.identity.csproj" />
+    <Project Path="ArtemisBankingPro.Infraestructure.Persistence/ABP.Infraestructure.Persistence.csproj" />
+    <Project Path="ArtemisBankingPro.Infraestructure.Shared/ABP.Infraestructure.Shared.csproj" />
+  </Folder>
+  <Folder Name="/Tests/">
+    <Project Path="ABP.Integration.Tests/ABP.Integration.Tests.csproj" Id="5491af82-f26b-4b60-a019-ff42c5eb9e28" />
+    <Project Path="ABP.Tests/ABP.Unit.Tests.csproj" />
+  </Folder>
+  <Folder Name="/Web/">
+    <Project Path="ArtemisBankingProApp/ArtemisBankingPro.csproj" />
+  </Folder>
+</Solution>
