@@ -1,24 +1,28 @@
 <Solution>
-  <Folder Name="/Api/">
-    <Project Path="ArtemisBankingPro.API/ABP.API.csproj" />
+  <Folder Name="/Presentation/">
+    <Folder Name="/Presentation/Api/">
+      <Project Path="Presentation/Api/ABP.API/ABP.API.csproj" />
+    </Folder>
+    <Folder Name="/Presentation/Functions/">
+      <Project Path="Presentation/Functions/ABP.Functions/ABP.Functions.csproj" />
+    </Folder>
+    <Folder Name="/Presentation/Web/">
+      <Project Path="Presentation/Web/ArtemisBankingPro/ArtemisBankingPro.csproj" />
+    </Folder>
   </Folder>
-  <Folder Name="/Core/">
-    <Project Path="ArtemisBankingPro.Core.Application/ABP.Core.Application.csproj" />
-    <Project Path="ArtemisBankingPro/ABP.Core.Domain.csproj" />
-  </Folder>
-  <Folder Name="/Functions/">
-    <Project Path="ArtemisFunctions/ABP.Functions.csproj" Id="70f1d06a-b421-4baf-ac7d-4012a1382d4d" />
-  </Folder>
-  <Folder Name="/Infraestructure/">
-    <Project Path="ArtemisBankingPro.Infraestructure.identity/ABP.Infraestructure.identity.csproj" />
-    <Project Path="ArtemisBankingPro.Infraestructure.Persistence/ABP.Infraestructure.Persistence.csproj" />
-    <Project Path="ArtemisBankingPro.Infraestructure.Shared/ABP.Infraestructure.Shared.csproj" />
+  <Folder Name="/Source/">
+    <Folder Name="/Source/Core/">
+      <Project Path="Source/Core/ABP.Core.Application/ABP.Core.Application.csproj" />
+      <Project Path="Source/Core/ABP.Core.Domain/ABP.Core.Domain.csproj" />
+    </Folder>
+    <Folder Name="/Source/Infraestructure/">
+      <Project Path="Source/Infraestructure/ABP.Infraestructure.identity/ABP.Infraestructure.identity.csproj" />
+      <Project Path="Source/Infraestructure/ABP.Infraestructure.Persistence/ABP.Infraestructure.Persistence.csproj" />
+      <Project Path="Source/Infraestructure/ABP.Infraestructure.Shared/ABP.Infraestructure.Shared.csproj" />
+    </Folder>
   </Folder>
   <Folder Name="/Tests/">
-    <Project Path="ABP.Integration.Tests/ABP.Integration.Tests.csproj" Id="5491af82-f26b-4b60-a019-ff42c5eb9e28" />
-    <Project Path="ABP.Tests/ABP.Unit.Tests.csproj" />
-  </Folder>
-  <Folder Name="/Web/">
-    <Project Path="ArtemisBankingProApp/ArtemisBankingPro.csproj" />
+    <Project Path="Tests/ABP.Integration.Tests/ABP.Integration.Tests.csproj" />
+    <Project Path="Tests/ABP.Unit.Tests/ABP.Unit.Tests.csproj" />
   </Folder>
 </Solution>
