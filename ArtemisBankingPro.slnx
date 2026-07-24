@@ -1,15 +1,4 @@
 <Solution>
-  <Folder Name="/Presentation/">
-    <Folder Name="/Presentation/Api/">
-      <Project Path="Presentation/Api/ABP.API/ABP.API.csproj" />
-    </Folder>
-    <Folder Name="/Presentation/Functions/">
-      <Project Path="Presentation/Functions/ABP.Functions/ABP.Functions.csproj" />
-    </Folder>
-    <Folder Name="/Presentation/Web/">
-      <Project Path="Presentation/Web/ArtemisBankingPro/ArtemisBankingPro.csproj" />
-    </Folder>
-  </Folder>
   <Folder Name="/Source/">
     <Folder Name="/Source/Core/">
       <Project Path="Source/Core/ABP.Core.Application/ABP.Core.Application.csproj" />
@@ -20,9 +9,20 @@
       <Project Path="Source/Infraestructure/ABP.Infraestructure.Persistence/ABP.Infraestructure.Persistence.csproj" />
       <Project Path="Source/Infraestructure/ABP.Infraestructure.Shared/ABP.Infraestructure.Shared.csproj" />
     </Folder>
-  </Folder>
-  <Folder Name="/Tests/">
-    <Project Path="Tests/ABP.Integration.Tests/ABP.Integration.Tests.csproj" />
-    <Project Path="Tests/ABP.Unit.Tests/ABP.Unit.Tests.csproj" />
+    <Folder Name="/Source/Presentation/">
+      <Folder Name="/Source/Presentation/Api/">
+        <Project Path="Source/Presentation/Api/ABP.API/ABP.API.csproj" />
+      </Folder>
+      <Folder Name="/Source/Presentation/Functions/">
+        <Project Path="Source/Presentation/Functions/ABP.Functions/ABP.Functions.csproj" />
+      </Folder>
+      <Folder Name="/Source/Presentation/Web/">
+        <Project Path="Source/Presentation/Web/ArtemisBankingPro/ArtemisBankingPro.csproj" />
+      </Folder>
+    </Folder>
+    <Folder Name="/Source/Tests/">
+      <Project Path="Source/Tests/ABP.Integration.Tests/ABP.Integration.Tests.csproj" />
+      <Project Path="Source/Tests/ABP.Unit.Tests/ABP.Unit.Tests.csproj" />
+    </Folder>
   </Folder>
 </Solution>
