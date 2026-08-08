@@ -29,7 +29,7 @@ namespace ABP.Infraestructure.identity
             else
             {
                 services.AddDbContext<IdentityContext>(options =>
-                    options.UseMySQL(config.GetConnectionString("IdentityConnection")!));
+                    options.UseNpgsql(config.GetConnectionString("IdentityConnection")!));
             }
             #endregion
 

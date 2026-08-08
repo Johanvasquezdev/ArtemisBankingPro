@@ -18,7 +18,6 @@ namespace ABP.API.Controllers.v1
         /// </summary>
         /// <response code="204">Cuenta activada exitosamente.</response>
         /// <response code="400">El token es inválido o está vacío.</response>
-        [Authorize]
         [HttpPost("confirm")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -80,7 +79,6 @@ namespace ABP.API.Controllers.v1
         /// <summary>
         /// Solicita un token para restablecer la contraseña de un usuario.
         /// </summary>
-        [Authorize]
         [HttpPost("get-reset-token")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -101,7 +99,6 @@ namespace ABP.API.Controllers.v1
         /// <summary>
         /// Cambia la contraseña del usuario utilizando un token de validación.
         /// </summary>
-        [Authorize]
         [HttpPost("reset-password")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]

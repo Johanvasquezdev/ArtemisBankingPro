@@ -35,7 +35,7 @@ namespace ABP.Infraestructure.Persistence.IoC
                     (servicesProvider, opt) =>
                     {
                         opt.EnableSensitiveDataLogging();
-                        opt.UseMySQL(connectionString,
+                        opt.UseNpgsql(connectionString,
                             m => m.MigrationsAssembly(typeof(ArtemisBankDbContext).Assembly.FullName));
                     },
                     contextLifetime: ServiceLifetime.Scoped,

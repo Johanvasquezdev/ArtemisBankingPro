@@ -1,5 +1,9 @@
 using Microsoft.Azure.Functions.Worker.Builder;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using ABP.Core.Application.IoC;
+using ABP.Infraestructure.Persistence.IoC;
+using ABP.Infraestructure.Shared.IoC;
 
 var builder = FunctionsApplication.CreateBuilder(args);
 
@@ -9,5 +13,9 @@ builder.ConfigureFunctionsWebApplication();
 // builder.Services
 //     .AddApplicationInsightsTelemetryWorkerService()
 //     .ConfigureFunctionsApplicationInsights();
+
+builder.Services.AddPersistenceInfrastructure(builder.Configuration);
+builder.Services.AddSharedInfrastructure(builder.Configuration);
+builder.Services.AddApplicationLayer();
 
 builder.Build().Run();
