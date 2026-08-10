@@ -6,8 +6,8 @@ namespace ABP.Core.Application.Interfaces.IServices
     {
         Task<BeneficiaryDto> GetByIdAsync(int id);
         Task<IEnumerable<BeneficiaryDto>> GetByOwnerIdAsync(string ownerId);
-        Task<bool> AddAsync(string ownerId, string accountNumber);
-        Task DeleteAsync(int id);
+        Task<BeneficiaryDto> AddAsync(string ownerId, string accountNumber);
+        Task DeleteAsync(int id, string ownerId);
         Task<bool> BeneficiaryExistsForOwnerAsync(string ownerId, string accountNumber);
     }
 }

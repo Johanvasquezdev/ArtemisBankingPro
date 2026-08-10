@@ -1,0 +1,50 @@
+@model ABP.Core.Application.ViewModels.Client.PayCreditCardViewModel
+@{
+    ViewData["Title"] = "Pago de Tarjeta de Crédito";
+    var culture = CultureInfo.GetCultureInfo("es-DO");
+    string MaskCard(string cardNumber)
+        => cardNumber.Length >= 4 ? $"•••• •••• •••• {cardNumber[^4..]}" : cardNumber;
+}
+
+<h1>Pago de Tarjeta de Crédito</h1>
+
+@if (Model.HasError)
+{
+    <div class="alert alert-danger" role="alert">@Model.Error</div>
+}
+
+@if (Model.Options.Accounts.Count == 0)
+{
+    <div class="alert alert-warning" role="alert">No posee cuentas de ahorro activas para realizar esta operación.</div>
+}
+else
+{
+    <form asp-action="PayCreditCard" method="post" class="col-md-6">
+        <div class="mb-3">
+            <label asp-for="SourceAccountNumber" class="form-label">Cuenta de origen</label>
+            <select asp-for="SourceAccountNumber" class="form-select" asp-items="@(new SelectList(Model.Options.Accounts, "AccountNumber", "AccountNumber"))">
+                <option value="">-- Seleccione una cuenta --</option>
+            </select>
+            <span asp-validation-for="SourceAccountNumber" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="CreditCardId" class="form-label">Tarjeta de crédito</label>
+            <select asp-for="CreditCardId" class="form-select">
+                <option value="">-- Seleccione una tarjeta --</option>
+                @foreach (var card in Model.Options.CreditCards)
+                {
+                    <option value="@card.Id">
+                        @MaskCard(card.CardNumber) — Deuda: @card.AmountOwed.ToString("C2", culture)
+                    </option>
+                }
+            </select>
+            <span asp-validation-for="CreditCardId" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Amount" class="form-label">Monto a pagar (RD$)</label>
+            <input asp-for="Amount" class="form-control" />
+            <span asp-validation-for="Amount" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-primary">Realizar Pago</button>
+    </form>
+}

@@ -1,0 +1,42 @@
+@model ABP.Core.Application.ViewModels.Client.TransferOwnAccountsViewModel
+@{
+    ViewData["Title"] = "Transferencia entre Cuentas";
+    var culture = CultureInfo.GetCultureInfo("es-DO");
+}
+
+<h1>Transferencia entre Cuentas</h1>
+
+@if (Model.HasError)
+{
+    <div class="alert alert-danger" role="alert">@Model.Error</div>
+}
+
+@if (Model.Options.Accounts.Count < 2)
+{
+    <div class="alert alert-warning" role="alert">Debe tener al menos dos cuentas de ahorro activas para realizar una transferencia entre cuentas.</div>
+}
+else
+{
+    <form asp-action="Index" method="post" class="col-md-6">
+        <div class="mb-3">
+            <label asp-for="SourceAccountNumber" class="form-label">Cuenta de origen</label>
+            <select asp-for="SourceAccountNumber" class="form-select" asp-items="@(new SelectList(Model.Options.Accounts, "AccountNumber", "AccountNumber"))">
+                <option value="">-- Seleccione una cuenta --</option>
+            </select>
+            <span asp-validation-for="SourceAccountNumber" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="DestinationAccountNumber" class="form-label">Cuenta destino</label>
+            <select asp-for="DestinationAccountNumber" class="form-select" asp-items="@(new SelectList(Model.Options.Accounts, "AccountNumber", "AccountNumber"))">
+                <option value="">-- Seleccione una cuenta --</option>
+            </select>
+            <span asp-validation-for="DestinationAccountNumber" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Amount" class="form-label">Monto a transferir (RD$)</label>
+            <input asp-for="Amount" class="form-control" />
+            <span asp-validation-for="Amount" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-primary">Realizar Transferencia</button>
+    </form>
+}

@@ -1,29 +1,56 @@
 using ABP.Core.Application.DTOs.Account;
 using ABP.Core.Application.DTOs.Cashier;
+using ABP.Core.Application.DTOs.Common;
+using ABP.Core.Application.DTOs.CreditCard;
 using ABP.Core.Application.DTOs.Transaction;
 using ABP.Core.Application.Interfaces.IServices;
+using ABP.Core.Domain.Entities;
 using ABP.Core.Domain.Enums;
+using ABP.Core.Domain.Exceptions;
 using ABP.Core.Domain.Interfaces;
 using AutoMapper;
-using System.Transactions;
+using Microsoft.Extensions.Logging;
+using System.Globalization;
 using Transaction = ABP.Core.Domain.Entities.Transaction;
-using TransactionStatus = ABP.Core.Domain.Enums.TransactionStatus;
 
 namespace ABP.Core.Application.Interfaces.Services
 {
-    public class TransactionService(ITransactionRepository repo, ISavingsAccountRepository accountRepo, 
-        IMapper mapper, IUserReadOnlyService user, IEmailServices email, ICreditCardRepository creditCard, ILoanRepository loanrepo, 
-        ILoanInstallmentRepository installment) : ITransactionService
+    public class TransactionService(
+        ITransactionRepository repo,
+        ISavingsAccountRepository accountRepo,
+        IMapper mapper,
+        IUserReadOnlyService user,
+        IEmailServices email,
+        ICreditCardRepository creditCard,
+        ILoanRepository loanRepo,
+        ILoanInstallmentRepository installmentRepo,
+        IBeneficiaryRepository beneficiaryRepo,
+        ICreditCardConsumptionRepository consumptionRepo,
+        ITransactionRecorder transactionRecorder,
+        IOverpaymentCalculator overpaymentCalculator,
+        ILoanPaymentAllocationService loanPaymentAllocationService,
+        IDateTimeProvider dateTimeProvider,
+        IUnitOfWork unitOfWork,
+        ILogger<TransactionService> logger) : ITransactionService
     {
-        #region Constructor and Dependencies
+        #region Dependencies
         private readonly ITransactionRepository _repo = repo;
         private readonly ISavingsAccountRepository _accountRepo = accountRepo;
         private readonly IMapper _mapper = mapper;
         private readonly IUserReadOnlyService _userService = user;
         private readonly IEmailServices _emailService = email;
         private readonly ICreditCardRepository _creditCardRepo = creditCard;
-        private readonly ILoanRepository _loanRepo = loanrepo;
-        private readonly ILoanInstallmentRepository _installmentRepo = installment;
+        private readonly ILoanRepository _loanRepo = loanRepo;
+        private readonly ILoanInstallmentRepository _installmentRepo = installmentRepo;
+        private readonly IBeneficiaryRepository _beneficiaryRepo = beneficiaryRepo;
+        private readonly ICreditCardConsumptionRepository _consumptionRepo = consumptionRepo;
+        private readonly ITransactionRecorder _transactionRecorder = transactionRecorder;
+        private readonly IOverpaymentCalculator _overpaymentCalculator = overpaymentCalculator;
+        private readonly ILoanPaymentAllocationService _loanPaymentAllocationService = loanPaymentAllocationService;
+        private readonly IDateTimeProvider _dateTimeProvider = dateTimeProvider;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly ILogger<TransactionService> _logger = logger;
+        private static readonly CultureInfo _currencyCulture = CultureInfo.GetCultureInfo("es-DO");
         #endregion
 
         public async Task<TransactionDto> GetByIdAsync(int id)
@@ -38,187 +65,406 @@ namespace ABP.Core.Application.Interfaces.Services
             return _mapper.Map<IEnumerable<TransactionDto>>(entities);
         }
 
-        public async Task<TransactionDto> TransferAsync(TransferDto dto)
-        {
-            if (dto.SourceAccountNumber == dto.DestinationAccountNumber)
-                throw new InvalidOperationException("The source and destination accounts cannot be the same.");
+        #region Client module operations
 
-            var source = await _accountRepo.GetByAccountNumberAsync(dto.SourceAccountNumber)
-                ?? throw new InvalidOperationException("Source account not found.");
+        public async Task<CommandResult> MakeExpressTransactionAsync(MakeExpressTransactionDto dto)
+        {
+            var source = await GetOwnedActiveAccountAsync(dto.ClientId, dto.SourceAccountNumber);
 
             var destination = await _accountRepo.GetByAccountNumberAsync(dto.DestinationAccountNumber)
-                ?? throw new InvalidOperationException("Destination account not found.");
+                ?? throw new InvalidAccountException();
 
-            if (source.Status != AccountStatus.Active || destination.Status != AccountStatus.Active)
-                throw new InvalidOperationException("Both accounts must be active.");
+            if (destination.Status != AccountStatus.Active)
+                throw new InvalidAccountException();
+
+            if (source.AccountNumber == destination.AccountNumber)
+                throw new SameAccountException("La cuenta destino no puede ser la misma cuenta de origen.");
 
             if (source.Balance < dto.Amount)
-                throw new InvalidOperationException("Insufficient funds.");
+            {
+                await RecordRejectedAsync(source, destination.AccountNumber, "Transacción Express rechazada", dto.Amount);
+                throw new AmountExceedsBalanceException();
+            }
+
+            await using var tx = await _unitOfWork.BeginTransactionAsync();
 
             source.Balance -= dto.Amount;
             destination.Balance += dto.Amount;
-
             await _accountRepo.UpdateAsync(source);
             await _accountRepo.UpdateAsync(destination);
 
-            var transaction = new Transaction
-            {
-                Amount = dto.Amount,
-                TransactionDate = DateTime.UtcNow,
-                Type = TransactionType.Debit,
-                Origin = dto.SourceAccountNumber,
-                Beneficiary = dto.DestinationAccountNumber,
-                Status = TransactionStatus.Approved,
-                SavingAccountId = source.Id,
-                SourceAccountNumber = dto.SourceAccountNumber,
-                DestinationAccountNumber = dto.DestinationAccountNumber,
-                Description = "Transfer",
-                CreatedAt = DateTime.UtcNow
-            };
+            await _transactionRecorder.RecordDoubleEntryAsync(
+                BuildTransferDebit(source, destination, "Transacción Express", dto.Amount),
+                BuildTransferCredit(destination, source, "Transacción Express", dto.Amount));
 
-            await _repo.AddAsync(transaction);
-            return _mapper.Map<TransactionDto>(transaction);
+            await tx.CommitAsync();
+
+            var sourceUser = await _userService.GetByIdAsync(source.UserId);
+            var destinationUser = await _userService.GetByIdAsync(destination.UserId);
+            var emailOk = true;
+
+            if (sourceUser != null)
+            {
+                emailOk &= await SendEmailSafeAsync(
+                    sourceUser.Email,
+                    $"Transacción realizada a la cuenta [{LastFour(destination.AccountNumber)}]",
+                    $"Se ha realizado una transacción de {FormatMoney(dto.Amount)} a la cuenta [{LastFour(destination.AccountNumber)}] el {FormatDate(_dateTimeProvider.UtcNow)} a las {FormatTime(_dateTimeProvider.UtcNow)}.");
+            }
+
+            if (destinationUser != null)
+            {
+                emailOk &= await SendEmailSafeAsync(
+                    destinationUser.Email,
+                    $"Transacción enviada desde la cuenta [{LastFour(source.AccountNumber)}]",
+                    $"Se ha recibido una transacción de {FormatMoney(dto.Amount)} desde la cuenta [{LastFour(source.AccountNumber)}] el {FormatDate(_dateTimeProvider.UtcNow)} a las {FormatTime(_dateTimeProvider.UtcNow)}.");
+            }
+
+            return CommandResult.Success(emailNotificationFailed: !emailOk);
         }
 
-        public async Task<TransactionDto> PayExpressAsync(PaymentDto dto)
+        public async Task<CommandResult> PayCreditCardAsync(PayCreditCardDto dto)
         {
-            var source = await _accountRepo.GetByAccountNumberAsync(dto.SourceAccountNumber)
-                ?? throw new InvalidOperationException("Source account not found.");
+            var source = await GetOwnedActiveAccountAsync(dto.ClientId, dto.SourceAccountNumber);
 
-            var destination = await _accountRepo.GetByAccountNumberAsync(dto.DestinationAccountNumber)
-                ?? throw new InvalidOperationException("Destination account not found.");
+            var card = await _creditCardRepo.GetByCardNumberAsync(dto.CreditCardNumber)
+                ?? throw new CardNotFoundException();
 
-            if (source.Status != AccountStatus.Active)
-                throw new InvalidOperationException("Source account is not active.");
-
-            if (source.Balance < dto.Amount)
-                throw new InvalidOperationException("Insufficient funds.");
-
-            source.Balance -= dto.Amount;
-            destination.Balance += dto.Amount;
-
-            await _accountRepo.UpdateAsync(source);
-            await _accountRepo.UpdateAsync(destination);
-
-            var transaction = new Transaction
-            {
-                Amount = dto.Amount,
-                TransactionDate = DateTime.UtcNow,
-                Type = TransactionType.Debit,
-                Origin = dto.SourceAccountNumber,
-                Beneficiary = dto.DestinationAccountNumber,
-                Status = TransactionStatus.Approved,
-                SavingAccountId = source.Id,
-                SourceAccountNumber = dto.SourceAccountNumber,
-                DestinationAccountNumber = dto.DestinationAccountNumber,
-                Description = "Express payment",
-                CreatedAt = DateTime.UtcNow
-            };
-
-            await _repo.AddAsync(transaction);
-            return _mapper.Map<TransactionDto>(transaction);
-        }
-
-        public async Task<TransactionDto> PayCreditCardAsync(PaymentDto dto)
-        {
-            if (dto.Amount <= 0)
-                throw new InvalidOperationException("The amount must be greater than zero.");
-
-            var source = await _accountRepo.GetByAccountNumberAsync(dto.SourceAccountNumber)
-                ?? throw new InvalidOperationException("Source account not found.");
-
-            var card = await _creditCardRepo.GetByCardNumberAsync(dto.DestinationAccountNumber)
-                ?? throw new InvalidOperationException("Credit card not found.");
-
-            if (source.Status != AccountStatus.Active)
-                throw new InvalidOperationException("Source account is not active.");
+            if (card.ClientId != dto.ClientId)
+                throw new CardNotFoundException();
 
             if (card.Status != CardStatus.Active)
-                throw new InvalidOperationException("Credit card is not active.");
+                throw new InactiveCardException();
 
             if (card.AmountOwed <= 0)
-                throw new InvalidOperationException("This card has no outstanding debt.");
+            {
+                await RecordRejectedAsync(source, LastFour(card.CardNumber), "Pago a tarjeta rechazado", dto.Amount);
+                throw new NoOutstandingDebtException();
+            }
 
-            var actualPayment = Math.Min(dto.Amount, card.AmountOwed);
+            var effectiveAmount = _overpaymentCalculator.CalculateEffectiveAmount(dto.Amount, card.AmountOwed);
 
-            if (source.Balance < actualPayment)
-                throw new InvalidOperationException("Insufficient funds.");
+            if (source.Balance < effectiveAmount)
+            {
+                await RecordRejectedAsync(source, LastFour(card.CardNumber), "Pago a tarjeta rechazado", effectiveAmount);
+                throw new InsufficientFundsException();
+            }
 
-            source.Balance -= actualPayment;
-            card.AmountOwed -= actualPayment;
+            await using var tx = await _unitOfWork.BeginTransactionAsync();
 
+            source.Balance -= effectiveAmount;
+            card.AmountOwed -= effectiveAmount;
             await _accountRepo.UpdateAsync(source);
             await _creditCardRepo.UpdateAsync(card);
 
-            var destinationReference = $"CARD-{card.CardNumber[^4..]}";
-
-            var transaction = new Transaction
+            var cardReference = LastFour(card.CardNumber);
+            await _transactionRecorder.RecordAsync(new TransactionEntry
             {
-                Amount = actualPayment,
-                TransactionDate = DateTime.UtcNow,
-                Type = TransactionType.Credit,
-                Origin = dto.SourceAccountNumber,
-                Beneficiary = dto.DestinationAccountNumber,
-                SourceAccountNumber = dto.SourceAccountNumber,
-                DestinationAccountNumber = destinationReference,
-                Description = "Credit card payment",
-                Status = TransactionStatus.Approved,
+                Amount = effectiveAmount,
+                Type = TransactionType.Debit,
+                Origin = source.AccountNumber,
+                Beneficiary = cardReference,
+                SourceAccountNumber = source.AccountNumber,
+                DestinationAccountNumber = cardReference,
+                Description = "Pago a tarjeta de crédito",
                 SavingAccountId = source.Id,
-                CreatedAt = DateTime.UtcNow
-            };
+                Status = TransactionStatus.Approved
+            });
 
-            await _repo.AddAsync(transaction);
-            return _mapper.Map<TransactionDto>(transaction);
+            await tx.CommitAsync();
+
+            var cardOwner = await _userService.GetByIdAsync(card.ClientId);
+            var emailOk = true;
+            if (cardOwner != null)
+            {
+                emailOk = await SendEmailSafeAsync(
+                    cardOwner.Email,
+                    $"Pago realizado a la tarjeta [{cardReference}]",
+                    $"Se ha realizado un pago de {FormatMoney(effectiveAmount)} a la tarjeta [{cardReference}] desde la cuenta [{LastFour(source.AccountNumber)}] el {FormatDate(_dateTimeProvider.UtcNow)} a las {FormatTime(_dateTimeProvider.UtcNow)}.");
+            }
+
+            return CommandResult.Success(emailNotificationFailed: !emailOk);
         }
 
-        public async Task<TransactionDto> PayLoanAsync(PaymentDto dto)
+        public async Task<CommandResult> PayLoanAsync(PayLoanDto dto)
         {
-            var source = await _accountRepo.GetByAccountNumberAsync(dto.SourceAccountNumber)
-                ?? throw new InvalidOperationException("Source account not found.");
+            var source = await GetOwnedActiveAccountAsync(dto.ClientId, dto.SourceAccountNumber);
 
-            if (source.Status != AccountStatus.Active)
-                throw new InvalidOperationException("Source account is not active.");
+            var loan = await _loanRepo.GetByLoanNumberAsync(dto.LoanNumber)
+                ?? throw new LoanNotFoundException();
 
-            if (source.Balance < dto.Amount)
-                throw new InvalidOperationException("Insufficient funds.");
+            if (loan.ClientId != dto.ClientId)
+                throw new LoanNotFoundException();
 
-            source.Balance -= dto.Amount;
+            if (loan.Status != LoanStatus.Active)
+                throw new LoanNotFoundException();
+
+            var pendingInstallments = (await _installmentRepo.GetByLoanIdAsync(loan.Id))
+                .Where(i => i.Status != InstallmentStatus.Paid)
+                .ToList();
+
+            if (pendingInstallments.Count == 0)
+            {
+                await RecordRejectedAsync(source, loan.LoanNumber, "Pago a préstamo rechazado", dto.Amount);
+                throw new NoPendingInstallmentsException();
+            }
+
+            var totalPending = pendingInstallments.Sum(i => i.InstallmentAmount - i.AmountPaid);
+            var effectiveAmount = _overpaymentCalculator.CalculateEffectiveAmount(dto.Amount, totalPending);
+
+            if (source.Balance < effectiveAmount)
+            {
+                await RecordRejectedAsync(source, loan.LoanNumber, "Pago a préstamo rechazado", effectiveAmount);
+                throw new InsufficientFundsException();
+            }
+
+            var allocation = _loanPaymentAllocationService.Allocate(pendingInstallments, effectiveAmount);
+
+            await using var tx = await _unitOfWork.BeginTransactionAsync();
+
+            foreach (var allocationItem in allocation.Allocations)
+            {
+                var installment = pendingInstallments.First(i => i.Id == allocationItem.InstallmentId);
+                installment.AmountPaid += allocationItem.AppliedAmount;
+                if (allocationItem.BecomesPaid)
+                {
+                    installment.Status = InstallmentStatus.Paid;
+                    installment.IsOverdue = false;
+                }
+                await _installmentRepo.UpdateAsync(installment);
+            }
+
+            source.Balance -= allocation.TotalApplied;
             await _accountRepo.UpdateAsync(source);
 
-            var transaction = new Transaction
+            if (allocation.LoanFullyPaid)
+            {
+                loan.Status = LoanStatus.Completed;
+                await _loanRepo.UpdateAsync(loan);
+            }
+
+            await _transactionRecorder.RecordAsync(new TransactionEntry
+            {
+                Amount = allocation.TotalApplied,
+                Type = TransactionType.Debit,
+                Origin = source.AccountNumber,
+                Beneficiary = loan.LoanNumber,
+                SourceAccountNumber = source.AccountNumber,
+                DestinationAccountNumber = loan.LoanNumber,
+                Description = "Pago a préstamo",
+                SavingAccountId = source.Id,
+                Status = TransactionStatus.Approved
+            });
+
+            await tx.CommitAsync();
+
+            var loanOwner = await _userService.GetByIdAsync(loan.ClientId);
+            var emailOk = true;
+            if (loanOwner != null)
+            {
+                emailOk = await SendEmailSafeAsync(
+                    loanOwner.Email,
+                    $"Pago realizado al préstamo [{loan.LoanNumber}]",
+                    $"Se ha realizado un pago de {FormatMoney(allocation.TotalApplied)} al préstamo [{loan.LoanNumber}] desde la cuenta [{LastFour(source.AccountNumber)}] el {FormatDate(_dateTimeProvider.UtcNow)} a las {FormatTime(_dateTimeProvider.UtcNow)}.");
+            }
+
+            return CommandResult.Success(emailNotificationFailed: !emailOk);
+        }
+
+        public async Task<CommandResult> PayBeneficiaryAsync(PayBeneficiaryDto dto)
+        {
+            var source = await GetOwnedActiveAccountAsync(dto.ClientId, dto.SourceAccountNumber);
+
+            var beneficiary = await _beneficiaryRepo.GetByIdAsync(dto.BeneficiaryId)
+                ?? throw new BeneficiaryNotFoundException();
+
+            if (beneficiary.OwnerId != dto.ClientId)
+                throw new BeneficiaryNotFoundException();
+
+            var destination = await _accountRepo.GetByAccountNumberAsync(beneficiary.AccountNumber)
+                ?? throw new InvalidAccountException();
+
+            if (destination.Status != AccountStatus.Active)
+                throw new InvalidAccountException();
+
+            if (source.AccountNumber == destination.AccountNumber)
+                throw new SameAccountException("La cuenta de origen y la cuenta de destino no pueden ser la misma.");
+
+            if (source.Balance < dto.Amount)
+            {
+                await RecordRejectedAsync(source, destination.AccountNumber, "Transacción a beneficiario rechazada", dto.Amount);
+                throw new InsufficientFundsException();
+            }
+
+            await using var tx = await _unitOfWork.BeginTransactionAsync();
+
+            source.Balance -= dto.Amount;
+            destination.Balance += dto.Amount;
+            await _accountRepo.UpdateAsync(source);
+            await _accountRepo.UpdateAsync(destination);
+
+            await _transactionRecorder.RecordDoubleEntryAsync(
+                BuildTransferDebit(source, destination, "Transacción a beneficiario", dto.Amount),
+                BuildTransferCredit(destination, source, "Transacción a beneficiario", dto.Amount));
+
+            await tx.CommitAsync();
+
+            var sourceUser = await _userService.GetByIdAsync(source.UserId);
+            var destinationUser = await _userService.GetByIdAsync(destination.UserId);
+            var emailOk = true;
+
+            if (sourceUser != null)
+            {
+                emailOk &= await SendEmailSafeAsync(
+                    sourceUser.Email,
+                    $"Transacción realizada a la cuenta [{LastFour(destination.AccountNumber)}]",
+                    $"Se ha realizado una transacción de {FormatMoney(dto.Amount)} a la cuenta [{LastFour(destination.AccountNumber)}] el {FormatDate(_dateTimeProvider.UtcNow)} a las {FormatTime(_dateTimeProvider.UtcNow)}.");
+            }
+
+            if (destinationUser != null)
+            {
+                emailOk &= await SendEmailSafeAsync(
+                    destinationUser.Email,
+                    $"Transacción enviada desde la cuenta [{LastFour(source.AccountNumber)}]",
+                    $"Se ha recibido una transacción de {FormatMoney(dto.Amount)} desde la cuenta [{LastFour(source.AccountNumber)}] el {FormatDate(_dateTimeProvider.UtcNow)} a las {FormatTime(_dateTimeProvider.UtcNow)}.");
+            }
+
+            return CommandResult.Success(emailNotificationFailed: !emailOk);
+        }
+
+        public async Task<CommandResult> TransferOwnAccountsAsync(TransferOwnAccountsDto dto)
+        {
+            var activeAccounts = (await _accountRepo.GetActiveAccountsByClientIdAsync(dto.ClientId)).ToList();
+            if (activeAccounts.Count < 2)
+                throw new InsufficientAccountsException();
+
+            var source = activeAccounts.FirstOrDefault(a => a.AccountNumber == dto.SourceAccountNumber)
+                ?? throw new InactiveAccountException();
+
+            var destination = activeAccounts.FirstOrDefault(a => a.AccountNumber == dto.DestinationAccountNumber)
+                ?? throw new InactiveAccountException();
+
+            if (source.AccountNumber == destination.AccountNumber)
+                throw new SameAccountException("La cuenta de origen y la cuenta de destino no pueden ser la misma.");
+
+            if (source.Balance < dto.Amount)
+            {
+                await RecordRejectedAsync(source, destination.AccountNumber, "Transferencia entre cuentas rechazada", dto.Amount);
+                throw new InsufficientFundsException();
+            }
+
+            await using var tx = await _unitOfWork.BeginTransactionAsync();
+
+            source.Balance -= dto.Amount;
+            destination.Balance += dto.Amount;
+            await _accountRepo.UpdateAsync(source);
+            await _accountRepo.UpdateAsync(destination);
+
+            await _transactionRecorder.RecordDoubleEntryAsync(
+                BuildTransferDebit(source, destination, "Transferencia entre cuentas", dto.Amount),
+                BuildTransferCredit(destination, source, "Transferencia entre cuentas", dto.Amount));
+
+            await tx.CommitAsync();
+
+            var emailOk = await SendEmailSafeAsync(
+                (await _userService.GetByIdAsync(source.UserId))?.Email ?? string.Empty,
+                "Transferencia entre cuentas realizada",
+                $"Se ha realizado una transferencia de {FormatMoney(dto.Amount)} entre la cuenta [{LastFour(source.AccountNumber)}] y la cuenta [{LastFour(destination.AccountNumber)}] el {FormatDate(_dateTimeProvider.UtcNow)} a las {FormatTime(_dateTimeProvider.UtcNow)}.");
+
+            return CommandResult.Success(emailNotificationFailed: !emailOk);
+        }
+
+        public async Task<CommandResult> CashAdvanceAsync(CashAdvanceDto dto)
+        {
+            if (dto.Amount <= 0)
+                throw new CashAdvanceAmountMustBePositiveException();
+
+            var card = await _creditCardRepo.GetByIdAsync(dto.CreditCardId)
+                ?? throw new CardNotFoundException();
+
+            if (card.ClientId != dto.ClientId)
+                throw new CardNotFoundException();
+
+            if (card.Status != CardStatus.Active)
+                throw new InactiveCardException();
+
+            if (IsCardExpired(card.ExpirationDate))
+                throw new ExpiredCardException();
+
+            var account = await _accountRepo.GetByIdAsync(dto.SavingsAccountId)
+                ?? throw new InactiveAccountException();
+
+            if (account.UserId != dto.ClientId || account.Status != AccountStatus.Active)
+                throw new InactiveAccountException();
+
+            var availableCredit = card.CreditLimit - card.AmountOwed;
+            var interest = dto.Amount * 0.0625m;
+            var totalToCharge = dto.Amount + interest;
+
+            if (totalToCharge > availableCredit)
+                throw new InsufficientAvailableCreditException();
+
+            await using var tx = await _unitOfWork.BeginTransactionAsync();
+
+            account.Balance += dto.Amount;
+            await _accountRepo.UpdateAsync(account);
+
+            card.AmountOwed += totalToCharge;
+            await _creditCardRepo.UpdateAsync(card);
+
+            await _consumptionRepo.AddAsync(new CreditCardConsumption
+            {
+                Amount = totalToCharge,
+                TransactionDate = _dateTimeProvider.UtcNow,
+                CommerceName = "AVANCE",
+                Status = ConsumptionStatus.Approved,
+                CreditCardId = card.Id,
+                CommerceId = null
+            });
+
+            var cardReference = LastFour(card.CardNumber);
+            await _transactionRecorder.RecordAsync(new TransactionEntry
             {
                 Amount = dto.Amount,
-                TransactionDate = DateTime.UtcNow,
                 Type = TransactionType.Credit,
-                Origin = dto.SourceAccountNumber,
-                Beneficiary = dto.DestinationAccountNumber,
-                Status = TransactionStatus.Approved,
-                SavingAccountId = source.Id
-            };
+                Origin = cardReference,
+                Beneficiary = account.AccountNumber,
+                SourceAccountNumber = cardReference,
+                DestinationAccountNumber = account.AccountNumber,
+                Description = "Avance de efectivo",
+                SavingAccountId = account.Id,
+                Status = TransactionStatus.Approved
+            });
 
-            await _repo.AddAsync(transaction);
-            return _mapper.Map<TransactionDto>(transaction);
+            await tx.CommitAsync();
+
+            var cardOwner = await _userService.GetByIdAsync(card.ClientId);
+            var emailOk = true;
+            if (cardOwner != null)
+            {
+                emailOk = await SendEmailSafeAsync(
+                    cardOwner.Email,
+                    $"Avance de efectivo desde la tarjeta [{cardReference}]",
+                    $"Se ha realizado un avance de efectivo de {FormatMoney(dto.Amount)} desde la tarjeta [{cardReference}] a la cuenta [{LastFour(account.AccountNumber)}] el {FormatDate(_dateTimeProvider.UtcNow)} a las {FormatTime(_dateTimeProvider.UtcNow)}.");
+            }
+
+            return CommandResult.Success(emailNotificationFailed: !emailOk);
         }
+
+        #endregion
+
+        #region Cashier operations (unchanged behavior)
 
         public async Task<int> GetTodayTransactionsCountAsync()
-        {
-            return await _repo.GetTodayTransactionsCountAsync();
-        }
+            => await _repo.GetTodayTransactionsCountAsync();
 
         public async Task<int> GetTotalTransactionsCountAsync()
-        {
-            return await _repo.GetTotalTransactionsCountAsync();
-        }
+            => await _repo.GetTotalTransactionsCountAsync();
 
         public async Task<int> GetTodayPaymentsCountAsync()
-        {
-            return await _repo.GetTodayPaymentsCountAsync();
-        }
+            => await _repo.GetTodayPaymentsCountAsync();
 
         public async Task<int> GetTotalPaymentsCountAsync()
-        {
-            return await _repo.GetTotalPaymentsCountAsync();
-        }
+            => await _repo.GetTotalPaymentsCountAsync();
 
         public async Task DepositAsync(CashierDepositDto cashierDepositDto)
         {
@@ -490,5 +736,101 @@ namespace ABP.Core.Application.Interfaces.Services
                 catch { }
             }
         }
+
+        #endregion
+
+        #region Private helpers
+
+        private async Task<SavingsAccount> GetOwnedActiveAccountAsync(string clientId, string accountNumber)
+        {
+            var account = await _accountRepo.GetByAccountNumberAsync(accountNumber)
+                ?? throw new InactiveAccountException();
+
+            if (account.UserId != clientId || account.Status != AccountStatus.Active)
+                throw new InactiveAccountException();
+
+            return account;
+        }
+
+        private TransactionEntry BuildTransferDebit(SavingsAccount source, SavingsAccount destination, string description, decimal amount) => new()
+        {
+            Amount = amount,
+            Type = TransactionType.Debit,
+            Origin = source.AccountNumber,
+            Beneficiary = destination.AccountNumber,
+            SourceAccountNumber = source.AccountNumber,
+            DestinationAccountNumber = destination.AccountNumber,
+            Description = description,
+            SavingAccountId = source.Id,
+            Status = TransactionStatus.Approved
+        };
+
+        private TransactionEntry BuildTransferCredit(SavingsAccount destination, SavingsAccount source, string description, decimal amount) => new()
+        {
+            Amount = amount,
+            Type = TransactionType.Credit,
+            Origin = source.AccountNumber,
+            Beneficiary = destination.AccountNumber,
+            SourceAccountNumber = source.AccountNumber,
+            DestinationAccountNumber = destination.AccountNumber,
+            Description = description,
+            SavingAccountId = destination.Id,
+            Status = TransactionStatus.Approved
+        };
+
+        private async Task RecordRejectedAsync(SavingsAccount source, string reference, string description, decimal amount)
+        {
+            await _transactionRecorder.RecordAsync(new TransactionEntry
+            {
+                Amount = amount,
+                Type = TransactionType.Debit,
+                Origin = source.AccountNumber,
+                Beneficiary = reference,
+                SourceAccountNumber = source.AccountNumber,
+                DestinationAccountNumber = reference,
+                Description = description,
+                SavingAccountId = source.Id,
+                Status = TransactionStatus.Declined
+            });
+        }
+
+        private async Task<bool> SendEmailSafeAsync(string to, string subject, string body)
+        {
+            if (string.IsNullOrWhiteSpace(to)) return true;
+
+            try
+            {
+                await _emailService.SendAsync(to, subject, body);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Failed to send email to {To} with subject {Subject}", to, subject);
+                return false;
+            }
+        }
+
+        private static bool IsCardExpired(string expirationDate)
+        {
+            if (!DateTime.TryParseExact(expirationDate, "MM/yy", CultureInfo.InvariantCulture, DateTimeStyles.None, out var parsed))
+                return false;
+
+            var lastDayOfMonth = new DateTime(parsed.Year, parsed.Month, DateTime.DaysInMonth(parsed.Year, parsed.Month));
+            return lastDayOfMonth < DateTime.UtcNow.Date;
+        }
+
+        private static string LastFour(string value)
+            => value.Length <= 4 ? value : value[^4..];
+
+        private static string FormatMoney(decimal amount)
+            => amount.ToString("C2", _currencyCulture);
+
+        private static string FormatDate(DateTime date)
+            => date.ToString("dd/MM/yyyy");
+
+        private static string FormatTime(DateTime date)
+            => date.ToString("HH:mm");
+
+        #endregion
     }
 }

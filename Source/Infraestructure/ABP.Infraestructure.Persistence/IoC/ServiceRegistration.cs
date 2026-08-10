@@ -55,6 +55,7 @@ namespace ABP.Infraestructure.Persistence.IoC
             services.AddScoped<ILoanInstallmentRepository, LoanInstallmentRepository>();
             services.AddScoped<ISavingsAccountRepository, SavingsAccountRepository>();
             services.AddScoped<ITransactionRepository, TransactionRepository>();
+            services.AddScoped<IUnitOfWork, UnitOfWork>();
             #endregion
         }
         #endregion

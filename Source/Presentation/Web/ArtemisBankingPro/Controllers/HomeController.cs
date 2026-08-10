@@ -1,19 +1,41 @@
+using ABP.Core.Application.Features.Client.Queries;
+using ABP.Core.Application.ViewModels.Client;
+using ArtemisBankingProApp.Extensions;
 using ArtemisBankingProApp.Models;
+using MediatR;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
 namespace ArtemisBankingProApp.Controllers
 {
-    public class HomeController : Controller
+    [Authorize(Roles = "Client")]
+    public class HomeController(IMediator mediator, ILogger<HomeController> logger) : Controller
     {
-        private readonly ILogger<HomeController> _logger;
+        private readonly ILogger<HomeController> _logger = logger;
 
-        public HomeController(ILogger<HomeController> logger)
+        public async Task<IActionResult> Index()
         {
-            _logger = logger;
+            var clientId = User.GetUserId();
+            if (string.IsNullOrEmpty(clientId))
+                return RedirectToAction(nameof(AccessDenied));
+
+            var model = await mediator.Send(new GetClientHomeQuery(clientId));
+            return View(model);
         }
 
-        public IActionResult Index()
+        [HttpGet]
+        public async Task<IActionResult> AccountDetail(string accountNumber, DateTime? dateFrom, DateTime? dateTo)
+        {
+            var clientId = User.GetUserId();
+            if (string.IsNullOrEmpty(clientId))
+                return RedirectToAction(nameof(AccessDenied));
+
+            var model = await mediator.Send(new GetAccountDetailQuery(clientId, accountNumber, dateFrom, dateTo));
+            return View(model);
+        }
+
+        public IActionResult AccessDenied()
         {
             return View();
         }

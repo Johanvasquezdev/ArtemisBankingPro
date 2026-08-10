@@ -1,0 +1,48 @@
+@model ABP.Core.Application.ViewModels.Client.PayLoanViewModel
+@{
+    ViewData["Title"] = "Pago de Préstamo";
+    var culture = CultureInfo.GetCultureInfo("es-DO");
+}
+
+<h1>Pago de Préstamo</h1>
+
+@if (Model.HasError)
+{
+    <div class="alert alert-danger" role="alert">@Model.Error</div>
+}
+
+@if (Model.Options.Accounts.Count == 0)
+{
+    <div class="alert alert-warning" role="alert">No posee cuentas de ahorro activas para realizar esta operación.</div>
+}
+else
+{
+    <form asp-action="PayLoan" method="post" class="col-md-6">
+        <div class="mb-3">
+            <label asp-for="SourceAccountNumber" class="form-label">Cuenta de origen</label>
+            <select asp-for="SourceAccountNumber" class="form-select" asp-items="@(new SelectList(Model.Options.Accounts, "AccountNumber", "AccountNumber"))">
+                <option value="">-- Seleccione una cuenta --</option>
+            </select>
+            <span asp-validation-for="SourceAccountNumber" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="LoanId" class="form-label">Préstamo</label>
+            <select asp-for="LoanId" class="form-select">
+                <option value="">-- Seleccione un préstamo --</option>
+                @foreach (var loan in Model.Options.Loans)
+                {
+                    <option value="@loan.Id">
+                        @loan.LoanNumber — Pendiente: @loan.PendingAmount.ToString("C2", culture)
+                    </option>
+                }
+            </select>
+            <span asp-validation-for="LoanId" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Amount" class="form-label">Monto a pagar (RD$)</label>
+            <input asp-for="Amount" class="form-control" />
+            <span asp-validation-for="Amount" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-primary">Realizar Pago</button>
+    </form>
+}

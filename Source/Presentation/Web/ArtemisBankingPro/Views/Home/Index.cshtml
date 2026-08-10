@@ -1,8 +1,208 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+@model ABP.Core.Application.ViewModels.Client.ClientHomeViewModel
+@{
+    ViewData["Title"] = "Inicio";
+    var culture = CultureInfo.GetCultureInfo("es-DO");
+    string MaskCard(string cardNumber)
+        => cardNumber.Length >= 4 ? $"•••• •••• •••• {cardNumber[^4..]}" : cardNumber;
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h1>Hola, @Model.ClientFullName</h1>
+    <h3 class="text-success">Balance total: @Model.TotalBalance.ToString("C2", culture)</h3>
+</div>
+
+@if (Model.HasDelinquentLoans)
+{
+    <div class="alert alert-warning" role="alert">
+        Tiene préstamo(s) en mora. Le recomendamos realizar el pago de sus cuotas pendientes lo antes posible.
+    </div>
+}
+
+<div class="row mb-4">
+    <div class="col-md-4">
+        <div class="card text-bg-primary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Cuentas de Ahorro</h5>
+                <p class="card-text display-6">@Model.TotalAccounts</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-bg-secondary mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Tarjetas de Crédito</h5>
+                <p class="card-text display-6">@Model.TotalCreditCards</p>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-4">
+        <div class="card text-bg-dark mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Préstamos</h5>
+                <p class="card-text display-6">@Model.TotalLoans</p>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">Cuentas de Ahorro</div>
+            <div class="card-body">
+                @if (Model.Accounts.Count == 0)
+                {
+                    <p class="text-muted mb-0">No posee cuentas de ahorro.</p>
+                }
+                else
+                {
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>Número</th>
+                                <th>Saldo</th>
+                                <th>Estado</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var account in Model.Accounts)
+                            {
+                                <tr>
+                                    <td>@account.AccountNumber</td>
+                                    <td>@account.Balance.ToString("C2", culture)</td>
+                                    <td>
+                                        <span class="badge @(account.Status == AccountStatus.Active ? "text-bg-success" : "text-bg-secondary")">@account.Status</span>
+                                    </td>
+                                    <td>
+                                        <a asp-controller="Home" asp-action="AccountDetail" asp-route-accountNumber="@account.AccountNumber" class="btn btn-sm btn-outline-primary">Detalle</a>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">Tarjetas de Crédito</div>
+            <div class="card-body">
+                @if (Model.CreditCards.Count == 0)
+                {
+                    <p class="text-muted mb-0">No posee tarjetas de crédito.</p>
+                }
+                else
+                {
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>Tarjeta</th>
+                                <th>Límite</th>
+                                <th>Deuda</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var card in Model.CreditCards)
+                            {
+                                <tr>
+                                    <td>@MaskCard(card.CardNumber)</td>
+                                    <td>@card.CreditLimit.ToString("C2", culture)</td>
+                                    <td>@card.AmountOwed.ToString("C2", culture)</td>
+                                    <td>
+                                        <span class="badge @(card.Status == CardStatus.Active ? "text-bg-success" : "text-bg-secondary")">@card.Status</span>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">Préstamos</div>
+            <div class="card-body">
+                @if (Model.Loans.Count == 0)
+                {
+                    <p class="text-muted mb-0">No posee préstamos activos.</p>
+                }
+                else
+                {
+                    <table class="table table-sm align-middle">
+                        <thead>
+                            <tr>
+                                <th>Préstamo</th>
+                                <th>Cuotas</th>
+                                <th>Pendiente</th>
+                                <th>Estado</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var loan in Model.Loans)
+                            {
+                                <tr>
+                                    <td>@loan.LoanNumber</td>
+                                    <td>@loan.PaidInstallments / @loan.TotalInstallments</td>
+                                    <td>@loan.PendingAmount.ToString("C2", culture)</td>
+                                    <td>
+                                        @if (loan.IsOnTime)
+                                        {
+                                            <span class="badge text-bg-success">Al día</span>
+                                        }
+                                        else
+                                        {
+                                            <span class="badge text-bg-danger">En mora</span>
+                                        }
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                }
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-6 mb-4">
+        <div class="card h-100">
+            <div class="card-header">Transacciones Recientes</div>
+            <div class="card-body">
+                @if (Model.RecentTransactions.Count == 0)
+                {
+                    <p class="text-muted mb-0">Aún no tiene transacciones.</p>
+                }
+                else
+                {
+                    <ul class="list-group list-group-flush">
+                        @foreach (var txn in Model.RecentTransactions)
+                        {
+                            var isDebit = txn.Type == TransactionType.Debit;
+                            <li class="list-group-item d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="fw-semibold">@txn.Description</div>
+                                    <small class="text-muted">@txn.TransactionDate.ToString("dd/MM/yyyy HH:mm") · @txn.Beneficiary</small>
+                                </div>
+                                <div class="text-end">
+                                    <span class="@(isDebit ? "text-danger" : "text-success") fw-semibold">
+                                        @(isDebit ? "-" : "+")@txn.Amount.ToString("C2", culture)
+                                    </span>
+                                    <div>
+                                        <span class="badge @(txn.Status == TransactionStatus.Approved ? "text-bg-success" : "text-bg-danger")">@(txn.Status == TransactionStatus.Approved ? "Aprobada" : "Rechazada")</span>
+                                    </div>
+                                </div>
+                            </li>
+                        }
+                    </ul>
+                }
+            </div>
+        </div>
+    </div>
 </div>

@@ -13,5 +13,6 @@ namespace ABP.Core.Application.DTOs.CreditCard
         public DateTime CreatedAt { get; set; }
         public string ClientId { get; set; } = string.Empty;
         public string ClientFullName { get; set; } = string.Empty;
+        public decimal AvailableBalance => CreditLimit - AmountOwed;
     }
 }

@@ -25,7 +25,8 @@ namespace ABP.Infraestructure.Persistence.Repositories
 
         public async Task<IEnumerable<Loan>> GetActiveByClientIdAsync(string clientId)
         {
-            return await _dbSet.Where(l => l.ClientId == clientId && l.Status == LoanStatus.Active)
+            return await _dbSet.Include(l => l.Installments)
+                .Where(l => l.ClientId == clientId && l.Status == LoanStatus.Active)
                 .OrderByDescending(l => l.CreatedAt).ToListAsync();
         }
 

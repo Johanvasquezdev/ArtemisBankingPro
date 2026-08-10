@@ -1,0 +1,46 @@
+@model ABP.Core.Application.ViewModels.Client.PayBeneficiaryViewModel
+@{
+    ViewData["Title"] = "Pago a Beneficiario";
+    var culture = CultureInfo.GetCultureInfo("es-DO");
+}
+
+<h1>Pago a Beneficiario</h1>
+
+@if (Model.HasError)
+{
+    <div class="alert alert-danger" role="alert">@Model.Error</div>
+}
+
+@if (Model.Options.Accounts.Count == 0)
+{
+    <div class="alert alert-warning" role="alert">No posee cuentas de ahorro activas para realizar esta operación.</div>
+}
+else
+{
+    <form asp-action="PayBeneficiary" method="post" class="col-md-6">
+        <div class="mb-3">
+            <label asp-for="SourceAccountNumber" class="form-label">Cuenta de origen</label>
+            <select asp-for="SourceAccountNumber" class="form-select" asp-items="@(new SelectList(Model.Options.Accounts, "AccountNumber", "AccountNumber"))">
+                <option value="">-- Seleccione una cuenta --</option>
+            </select>
+            <span asp-validation-for="SourceAccountNumber" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="BeneficiaryId" class="form-label">Beneficiario</label>
+            <select asp-for="BeneficiaryId" class="form-select">
+                <option value="">-- Seleccione un beneficiario --</option>
+                @foreach (var beneficiary in Model.Options.Beneficiaries)
+                {
+                    <option value="@beneficiary.Id">@beneficiary.FullName — @beneficiary.AccountNumber</option>
+                }
+            </select>
+            <span asp-validation-for="BeneficiaryId" class="text-danger"></span>
+        </div>
+        <div class="mb-3">
+            <label asp-for="Amount" class="form-label">Monto (RD$)</label>
+            <input asp-for="Amount" class="form-control" />
+            <span asp-validation-for="Amount" class="text-danger"></span>
+        </div>
+        <button type="submit" class="btn btn-primary">Realizar Transacción</button>
+    </form>
+}

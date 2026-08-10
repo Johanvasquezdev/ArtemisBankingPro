@@ -1,0 +1,103 @@
+@model ABP.Core.Application.ViewModels.Client.AccountDetailViewModel
+@{
+    ViewData["Title"] = "Detalle de Cuenta";
+    var culture = CultureInfo.GetCultureInfo("es-DO");
+}
+
+<h1>Detalle de Cuenta @Model.AccountNumber</h1>
+<p class="text-muted">Titular: @Model.OwnerFullName</p>
+
+<div class="row mb-4">
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="text-muted">Saldo</h6>
+                <h4 class="text-success">@Model.Balance.ToString("C2", culture)</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="text-muted">Tipo</h6>
+                <h4>@Model.Type</h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="text-muted">Estado</h6>
+                <h4>
+                    <span class="badge @(Model.Status == AccountStatus.Active ? "text-bg-success" : "text-bg-secondary")">@Model.Status</span>
+                </h4>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card">
+            <div class="card-body">
+                <h6 class="text-muted">Total de transacciones</h6>
+                <h4>@Model.Transactions.Count</h4>
+            </div>
+        </div>
+    </div>
+</div>
+
+<form method="get" asp-action="AccountDetail" class="row g-3 mb-4">
+    <input type="hidden" name="accountNumber" value="@Model.AccountNumber" />
+    <div class="col-auto">
+        <label class="form-label">Desde</label>
+        <input type="date" name="dateFrom" class="form-control" value="@Model.DateFrom?.ToString("yyyy-MM-dd")" />
+    </div>
+    <div class="col-auto">
+        <label class="form-label">Hasta</label>
+        <input type="date" name="dateTo" class="form-control" value="@Model.DateTo?.ToString("yyyy-MM-dd")" />
+    </div>
+    <div class="col-auto d-flex align-items-end">
+        <button type="submit" class="btn btn-primary">Filtrar</button>
+    </div>
+</form>
+
+<div class="card">
+    <div class="card-header">Historial de Transacciones</div>
+    <div class="card-body">
+        @if (Model.Transactions.Count == 0)
+        {
+            <p class="text-muted mb-0">No hay transacciones para el período seleccionado.</p>
+        }
+        else
+        {
+            <table class="table table-sm align-middle">
+                <thead>
+                    <tr>
+                        <th>Fecha</th>
+                        <th>Descripción</th>
+                        <th>Beneficiario</th>
+                        <th>Monto</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var txn in Model.Transactions)
+                    {
+                        var isDebit = txn.Type == TransactionType.Debit;
+                        <tr>
+                            <td>@txn.TransactionDate.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>@txn.Description</td>
+                            <td>@txn.Beneficiary</td>
+                            <td class="@(isDebit ? "text-danger" : "text-success") fw-semibold">@(isDebit ? "-" : "+")@txn.Amount.ToString("C2", culture)</td>
+                            <td>
+                                <span class="badge @(txn.Status == TransactionStatus.Approved ? "text-bg-success" : "text-bg-danger")">@(txn.Status == TransactionStatus.Approved ? "Aprobada" : "Rechazada")</span>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        }
+    </div>
+</div>
+
+<div class="mt-3">
+    <a asp-controller="Home" asp-action="Index" class="btn btn-outline-secondary">Volver al Inicio</a>
+</div>

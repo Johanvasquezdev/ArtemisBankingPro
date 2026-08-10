@@ -1,5 +1,7 @@
 using ABP.Core.Application.DTOs.Account;
 using ABP.Core.Application.DTOs.Cashier;
+using ABP.Core.Application.DTOs.Common;
+using ABP.Core.Application.DTOs.CreditCard;
 using ABP.Core.Application.DTOs.Transaction;
 
 namespace ABP.Core.Application.Interfaces.IServices
@@ -9,10 +11,13 @@ namespace ABP.Core.Application.Interfaces.IServices
         Task<TransactionDto> GetByIdAsync(int id);
         Task<IEnumerable<TransactionDto>> GetByAccountIdAsync(int savingsAccountId);
 
-        Task<TransactionDto> TransferAsync(TransferDto dto);
-        Task<TransactionDto> PayExpressAsync(PaymentDto dto);
-        Task<TransactionDto> PayCreditCardAsync(PaymentDto dto);
-        Task<TransactionDto> PayLoanAsync(PaymentDto dto);
+        // Client module operations
+        Task<CommandResult> MakeExpressTransactionAsync(MakeExpressTransactionDto dto);
+        Task<CommandResult> PayCreditCardAsync(PayCreditCardDto dto);
+        Task<CommandResult> PayLoanAsync(PayLoanDto dto);
+        Task<CommandResult> PayBeneficiaryAsync(PayBeneficiaryDto dto);
+        Task<CommandResult> TransferOwnAccountsAsync(TransferOwnAccountsDto dto);
+        Task<CommandResult> CashAdvanceAsync(CashAdvanceDto dto);
 
         Task<int> GetTodayTransactionsCountAsync();
         Task<int> GetTotalTransactionsCountAsync();

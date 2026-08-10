@@ -1,5 +1,7 @@
 using ABP.Core.Application.Interfaces.IServices;
+using ABP.Core.Domain.Interfaces;
 using ABP.Infraestructure.Shared.EmailServices;
+using ABP.Infraestructure.Shared.Services;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,6 +14,7 @@ namespace ABP.Infraestructure.Shared.IoC
         {
             services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
             services.AddTransient<IEmailServices, EmailService>();
+            services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
         }
     }
 }
