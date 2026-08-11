@@ -26,7 +26,6 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddSwaggerExtensions();
 builder.Services.AddAppiVersioningExtensions();
 
-builder.Services.AddOpenApi();
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddHealthChecks();
 
@@ -36,7 +35,6 @@ await app.SeedIdentityDataAsync();
 if (app.Environment.IsDevelopment())
 {
     app.UserSwaggerExtensions(app);
-    app.MapOpenApi();
 }
 
 app.UseMiddleware<ABP.API.Middlewares.ErrorHandlerMiddleware>();

@@ -19,7 +19,6 @@ namespace ABP.API.Extentions
                 }
                 opt.RoutePrefix = string.Empty; 
             });
-            routeBuilder.MapOpenApi();
         }
     }
 }
