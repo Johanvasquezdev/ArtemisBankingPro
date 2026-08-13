@@ -19,8 +19,8 @@ namespace ABP.API.Extentions
                     Description = "An ASP.NET Core Web API for Artemis Bank",
                     Contact = new OpenApiContact
                     {
-                        Name = "Ana Z, Santana y Juan E. Celedonio",
-                        Email = "20242153@itla.edu.do and 20241562@itla.edu.do",
+                        Name = "Ana Z, Santana, Joan and Gregori",
+                        Email = "20242153@itla.edu.do ",
                         Url = new Uri("https://www.itla.edu.do")
                     }
                 });

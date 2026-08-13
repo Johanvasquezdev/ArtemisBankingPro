@@ -2,7 +2,7 @@ namespace ABP.Core.Domain.Enums
 {
     public enum TransactionStatus
     {
-        Approved,
-        Declined
+        Approved = 0,
+        Declined = 1
     }
 }

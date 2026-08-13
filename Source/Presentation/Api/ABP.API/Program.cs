@@ -5,6 +5,7 @@ using ABP.Infraestructure.identity.Seeds;
 using ABP.Infraestructure.Persistence.IoC;
 using ABP.Infraestructure.Shared.IoC;
 using ABP.API.Extentions;
+using ABP.API.Middlewares;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,7 +38,7 @@ if (app.Environment.IsDevelopment())
     app.UserSwaggerExtensions(app);
 }
 
-app.UseMiddleware<ABP.API.Middlewares.ErrorHandlerMiddleware>();
+app.UseMiddleware<ErrorHandlerMiddleware>();
 app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();

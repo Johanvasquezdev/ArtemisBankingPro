@@ -12,11 +12,6 @@ namespace ABP.Core.Application.DTOs.Dashboard
         public int ActiveCreditCards { get; set; }
         public int TotalSavingsAccounts { get; set; }
         public int TodayTransactions { get; set; }
-        public int TotalInactiveTransactions { get; set; }
-        public decimal TotalDailyPayments { get; set; }
-        public int TotalAssignedProducts { get; set; }
-        public int TotalActiveClients { get; set; }
-        public int TotalInactiveClients { get; set; }
         public decimal AverageDebt { get; set; }
     }
 }

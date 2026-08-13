@@ -1,5 +1,3 @@
-// A
-
 namespace ABP.Core.Application.DTOs.Account
 {
     public class AssignSavingsAccountDto

@@ -2,7 +2,7 @@ namespace ABP.Core.Domain.Enums
 {
     public enum TransactionType
     {
-        Debit,
-        Credit
+        Debit = 0,
+        Credit = 1
     }
 }

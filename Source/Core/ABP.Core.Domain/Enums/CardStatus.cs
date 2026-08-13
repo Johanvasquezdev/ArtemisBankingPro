@@ -2,10 +2,10 @@ namespace ABP.Core.Domain.Enums
 {
     public enum CardStatus
     {
-        Active,
-        Inactive,
-        Blocked,
-        Expired,
-        Cancelled
+        Active = 0,
+        Inactive = 1,
+        Blocked = 2,
+        Expired = 3,
+        Cancelled = 4
     }
 }

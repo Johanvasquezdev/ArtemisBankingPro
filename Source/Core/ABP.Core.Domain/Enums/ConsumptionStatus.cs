@@ -2,7 +2,7 @@ namespace ABP.Core.Domain.Enums
 {
     public enum ConsumptionStatus
     {
-        Approved,
-        Rejected
+        Approved = 0,
+        Rejected = 1
     }
 }
