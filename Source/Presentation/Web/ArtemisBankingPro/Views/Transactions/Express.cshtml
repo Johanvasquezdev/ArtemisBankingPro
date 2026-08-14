@@ -4,37 +4,41 @@
     var culture = CultureInfo.GetCultureInfo("es-DO");
 }
 
-<h1>Transacción Express</h1>
+<div class="abp-content-header abp-flex abp-justify-between abp-items-center abp-mb-xl">
+    <h1 class="abp-heading-xl abp-font-serif">Transacción Express</h1>
+</div>
 
 @if (Model.HasError)
 {
-    <div class="alert alert-danger" role="alert">@Model.Error</div>
+    <div class="abp-alert-danger abp-mb-md">@Model.Error</div>
 }
 
 @if (Model.Options.Accounts.Count == 0)
 {
-    <div class="alert alert-warning" role="alert">No posee cuentas de ahorro activas para realizar esta operación.</div>
+    <div class="abp-alert-warning abp-mb-md">No posee cuentas de ahorro activas para realizar esta operación.</div>
 }
 else
 {
-    <form asp-action="Express" method="post" class="col-md-6">
-        <div class="mb-3">
-            <label asp-for="SourceAccountNumber" class="form-label">Cuenta de origen</label>
-            <select asp-for="SourceAccountNumber" class="form-select" asp-items="@(new SelectList(Model.Options.Accounts, "AccountNumber", "AccountNumber"))">
-                <option value="">-- Seleccione una cuenta --</option>
-            </select>
-            <span asp-validation-for="SourceAccountNumber" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="DestinationAccountNumber" class="form-label">Cuenta destino</label>
-            <input asp-for="DestinationAccountNumber" class="form-control" placeholder="000000000" />
-            <span asp-validation-for="DestinationAccountNumber" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="Amount" class="form-label">Monto (RD$)</label>
-            <input asp-for="Amount" class="form-control" />
-            <span asp-validation-for="Amount" class="text-danger"></span>
-        </div>
-        <button type="submit" class="btn btn-primary">Realizar Transacción</button>
-    </form>
+    <div class="abp-panel" style="max-width: 600px;">
+        <form asp-action="Express" method="post">
+            <div class="abp-mb-md">
+                <label asp-for="SourceAccountNumber" class="abp-label">Cuenta de origen</label>
+                <select asp-for="SourceAccountNumber" class="abp-select" asp-items="@(new SelectList(Model.Options.Accounts, "AccountNumber", "AccountNumber"))">
+                    <option value="">-- Seleccione una cuenta --</option>
+                </select>
+                <span asp-validation-for="SourceAccountNumber" class="abp-text-danger"></span>
+            </div>
+            <div class="abp-mb-md">
+                <label asp-for="DestinationAccountNumber" class="abp-label">Cuenta destino</label>
+                <input asp-for="DestinationAccountNumber" class="abp-input" placeholder="000000000" />
+                <span asp-validation-for="DestinationAccountNumber" class="abp-text-danger"></span>
+            </div>
+            <div class="abp-mb-md">
+                <label asp-for="Amount" class="abp-label">Monto (RD$)</label>
+                <input asp-for="Amount" class="abp-input" />
+                <span asp-validation-for="Amount" class="abp-text-danger"></span>
+            </div>
+            <button type="submit" class="abp-btn-gold">Realizar Transacción</button>
+        </form>
+    </div>
 }

@@ -3,60 +3,56 @@
     ViewData["Title"] = "Beneficiarios";
 }
 
-<h1>Beneficiarios</h1>
+<div class="abp-content-header abp-flex abp-justify-between abp-items-center abp-mb-xl">
+    <h1 class="abp-heading-xl abp-font-serif">Beneficiarios</h1>
+</div>
 
-<div class="row mb-4">
-    <div class="col-md-6">
-        <div class="card">
-            <div class="card-header">Agregar Beneficiario</div>
-            <div class="card-body">
-                <form asp-controller="Beneficiaries" asp-action="Create" method="post">
-                    <div class="mb-3">
-                        <label asp-for="Add.AccountNumber" class="form-label">Número de cuenta</label>
-                        <input asp-for="Add.AccountNumber" class="form-control" placeholder="000000000" />
-                        <span asp-validation-for="Add.AccountNumber" class="text-danger"></span>
-                    </div>
-                    <button type="submit" class="btn btn-primary">Agregar</button>
-                </form>
+<div class="abp-grid-2 abp-mb-xl">
+    <div class="abp-panel">
+        <h2 class="abp-heading-md abp-font-serif abp-mb-md">Agregar Beneficiario</h2>
+        <form asp-controller="Beneficiaries" asp-action="Create" method="post">
+            <div class="abp-mb-md">
+                <label asp-for="Add.AccountNumber" class="abp-label">Número de cuenta</label>
+                <input asp-for="Add.AccountNumber" class="abp-input" placeholder="000000000" />
+                <span asp-validation-for="Add.AccountNumber" class="abp-text-danger"></span>
             </div>
-        </div>
+            <button type="submit" class="abp-btn-gold">Agregar</button>
+        </form>
     </div>
 </div>
 
-<div class="card">
-    <div class="card-header">Mis Beneficiarios</div>
-    <div class="card-body">
-        @if (Model.Beneficiaries.Count == 0)
-        {
-            <p class="text-muted mb-0">Aún no ha registrado beneficiarios.</p>
-        }
-        else
-        {
-            <table class="table table-sm align-middle">
-                <thead>
+<div class="abp-panel">
+    <h2 class="abp-heading-md abp-font-serif abp-mb-md">Mis Beneficiarios</h2>
+    @if (Model.Beneficiaries.Count == 0)
+    {
+        <p class="abp-text-muted abp-mb-0">Aún no ha registrado beneficiarios.</p>
+    }
+    else
+    {
+        <table class="abp-table">
+            <thead>
+                <tr>
+                    <th>Nombre</th>
+                    <th>Cuenta</th>
+                    <th style="text-align: right;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var beneficiary in Model.Beneficiaries)
+                {
                     <tr>
-                        <th>Nombre</th>
-                        <th>Cuenta</th>
-                        <th></th>
+                        <td>@beneficiary.FullName</td>
+                        <td class="abp-font-mono">@beneficiary.AccountNumber</td>
+                        <td style="text-align: right;">
+                            <form asp-controller="Beneficiaries" asp-action="Delete" method="post" style="display:inline-block;"
+                                  onsubmit="return confirm('¿Está seguro de eliminar este beneficiario?');">
+                                <input type="hidden" name="id" value="@beneficiary.Id" />
+                                <button type="submit" class="abp-btn-danger abp-btn-sm">Eliminar</button>
+                            </form>
+                        </td>
                     </tr>
-                </thead>
-                <tbody>
-                    @foreach (var beneficiary in Model.Beneficiaries)
-                    {
-                        <tr>
-                            <td>@beneficiary.FullName</td>
-                            <td>@beneficiary.AccountNumber</td>
-                            <td class="text-end">
-                                <form asp-controller="Beneficiaries" asp-action="Delete" method="post" class="d-inline"
-                                      onsubmit="return confirm('¿Está seguro de eliminar este beneficiario?');">
-                                    <input type="hidden" name="id" value="@beneficiary.Id" />
-                                    <button type="submit" class="btn btn-sm btn-outline-danger">Eliminar</button>
-                                </form>
-                            </td>
-                        </tr>
-                    }
-                </tbody>
-            </table>
-        }
-    </div>
+                }
+            </tbody>
+        </table>
+    }
 </div>

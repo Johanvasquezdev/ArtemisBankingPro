@@ -3,37 +3,72 @@
     ViewData["Title"] = "Detalle de la cuenta";
 }
 
-<h1>Cuenta @Model.Account.AccountNumber</h1>
+<div class="abp-flex abp-items-center abp-justify-between abp-mb-md">
+    <h1 class="abp-heading-lg">Cuenta <span class="abp-font-mono">@Model.Account.AccountNumber</span></h1>
+    <a class="abp-btn-outline" asp-action="Index">Volver atrás</a>
+</div>
 
-<p>Titular: @Model.Account.OwnerFullName</p>
-<p>Balance: @Model.Account.Balance.ToString("C2")</p>
-<p>Tipo: @Model.Account.Type</p>
-<p>Estado: @Model.Account.Status</p>
+<div class="abp-panel abp-mb-lg">
+    <div class="abp-grid-4 abp-mb-lg">
+        <div>
+            <div class="abp-text-muted text-sm abp-mb-xs">Titular</div>
+            <div style="font-weight: 500;">@Model.Account.OwnerFullName</div>
+        </div>
+        <div>
+            <div class="abp-text-muted text-sm abp-mb-xs">Balance</div>
+            <div class="abp-font-mono" style="font-weight: 500;">@Model.Account.Balance.ToString("C2", new System.Globalization.CultureInfo("es-DO"))</div>
+        </div>
+        <div>
+            <div class="abp-text-muted text-sm abp-mb-xs">Tipo</div>
+            <div>
+                @if(Model.Account.Type == AccountType.Primary) { <span class="abp-badge-warning">Principal</span> }
+                else { <span class="abp-badge-neutral">Secundaria</span> }
+            </div>
+        </div>
+        <div>
+            <div class="abp-text-muted text-sm abp-mb-xs">Estado</div>
+            <div>
+                @if(Model.Account.Status == AccountStatus.Active) { <span class="abp-badge-success">Activa</span> }
+                else { <span class="abp-badge-neutral">@Model.Account.Status</span> }
+            </div>
+        </div>
+    </div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Fecha</th>
-            <th>Monto</th>
-            <th>Tipo</th>
-            <th>Beneficiario</th>
-            <th>Origen</th>
-            <th>Estado</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var transaction in Model.Transactions)
-        {
-            <tr>
-                <td>@transaction.TransactionDate</td>
-                <td>@transaction.Amount.ToString("C2")</td>
-                <td>@transaction.Type</td>
-                <td>@transaction.Beneficiary</td>
-                <td>@transaction.Origin</td>
-                <td>@transaction.Status</td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<a class="btn btn-secondary" asp-action="Index">Volver atras</a>
+    <h2 class="abp-heading-md abp-mb-md">Transacciones</h2>
+    <div class="table-responsive">
+        <table class="abp-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Monto</th>
+                    <th>Tipo</th>
+                    <th>Beneficiario</th>
+                    <th>Origen</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var transaction in Model.Transactions)
+                {
+                    <tr>
+                        <td>@transaction.TransactionDate.ToShortDateString()</td>
+                        <td class="abp-font-mono">
+                            @if(transaction.Type == TransactionType.Credit) {
+                                <span class="abp-text-success">+@transaction.Amount.ToString("C2", new System.Globalization.CultureInfo("es-DO"))</span>
+                            } else {
+                                <span class="abp-text-danger">-@transaction.Amount.ToString("C2", new System.Globalization.CultureInfo("es-DO"))</span>
+                            }
+                        </td>
+                        <td>@transaction.Type</td>
+                        <td>@(string.IsNullOrEmpty(transaction.Beneficiary) ? "-" : transaction.Beneficiary)</td>
+                        <td>@(string.IsNullOrEmpty(transaction.Origin) ? "-" : transaction.Origin)</td>
+                        <td>
+                            @if(transaction.Status == TransactionStatus.Approved) { <span class="abp-badge-success">Completada</span> }
+                            else { <span class="abp-badge-neutral">@transaction.Status</span> }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

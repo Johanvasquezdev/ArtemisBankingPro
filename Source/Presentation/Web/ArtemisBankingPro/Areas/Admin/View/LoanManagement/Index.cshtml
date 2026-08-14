@@ -1,64 +1,82 @@
 @model PaginatedResult<LoanDto>
-
 @{
-    ViewData["Title"] = "Gestion de prestamos";
+    ViewData["Title"] = "Gestión de préstamos";
 }
 
-<h1>Gestion de prestamos</h1>
+<div class="abp-flex abp-items-center abp-justify-between abp-mb-md">
+    <h1 class="abp-heading-lg">Gestión de préstamos</h1>
+    <a class="abp-btn-gold" asp-action="SelectClient">
+        <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Asignar préstamo
+    </a>
+</div>
 
-<a class="btn btn-success mb-3" asp-action="SelectClient">Asignar prestamo</a>
+<div class="abp-panel abp-mb-lg">
+    <form method="get" class="abp-mb-md">
+        <div class="abp-grid-4">
+            <div>
+                <label class="abp-label">Buscar por cédula</label>
+                <div class="abp-flex abp-gap-sm">
+                    <input type="text" name="cedula" class="abp-input" placeholder="Cédula del cliente" value="@ViewBag.CurrentCedula" />
+                    <button type="submit" class="abp-btn-outline">Buscar</button>
+                </div>
+            </div>
+        </div>
+    </form>
 
-<form method="get" class="mb-3 row g-2">
-    <div class="col-auto">
-        <input type="text" name="cedula" class="form-control" placeholder="Cedula del cliente" value="@ViewBag.CurrentCedula" />
+    <div class="table-responsive">
+        <table class="abp-table">
+            <thead>
+                <tr>
+                    <th>Número</th>
+                    <th>Cliente</th>
+                    <th>Capital</th>
+                    <th>Cuotas</th>
+                    <th>Pendiente</th>
+                    <th>Tasa</th>
+                    <th>Estado</th>
+                    <th>Al día</th>
+                    <th style="text-align: right;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var loan in Model.Items)
+                {
+                    <tr>
+                        <td class="abp-font-mono text-muted">@loan.LoanNumber</td>
+                        <td><strong>@loan.ClientFullName</strong></td>
+                        <td class="abp-font-mono">@loan.Amount.ToString("C2", new System.Globalization.CultureInfo("es-DO"))</td>
+                        <td>@loan.PaidInstallments / @loan.TotalInstallments</td>
+                        <td class="abp-font-mono">@loan.PendingAmount.ToString("C2", new System.Globalization.CultureInfo("es-DO"))</td>
+                        <td>@loan.AnnualInterestRate%</td>
+                        <td>
+                            @if(loan.Status == LoanStatus.Active) { <span class="abp-badge-success">Activo</span> }
+                            else { <span class="abp-badge-neutral">@loan.Status</span> }
+                        </td>
+                        <td>
+                            @if(loan.IsOnTime) { <span class="abp-badge-success">Al día</span> }
+                            else { <span class="abp-badge-danger">En mora</span> }
+                        </td>
+                        <td style="text-align: right;">
+                            <a class="abp-btn-outline" asp-action="Details" asp-route-id="@loan.Id" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Ver detalles</a>
+                            <a class="abp-btn-outline" asp-action="EditRate" asp-route-id="@loan.Id" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Editar tasa</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
-    <div class="col-auto">
-        <button type="submit" class="btn btn-outline-primary">Buscar</button>
-    </div>
-</form>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Numero</th>
-            <th>Cliente</th>
-            <th>Capital</th>
-            <th>Cuotas</th>
-            <th>Pendiente</th>
-            <th>Tasa</th>
-            <th>Estado</th>
-            <th>Al dia</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var loan in Model.Items)
-        {
-            <tr>
-                <td>@loan.LoanNumber</td>
-                <td>@loan.ClientFullName</td>
-                <td>@loan.Amount.ToString("C2")</td>
-                <td>@loan.PaidInstallments / @loan.TotalInstallments</td>
-                <td>@loan.PendingAmount.ToString("C2")</td>
-                <td>@loan.AnnualInterestRate%</td>
-                <td>@loan.Status</td>
-                <td>@(loan.IsOnTime ? "Al día" : "En mora")</td>
-                <td>
-                    <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@loan.Id">Ver detalles</a>
-                    <a class="btn btn-sm btn-outline-secondary" asp-action="EditRate" asp-route-id="@loan.Id">Editar tasa</a>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<nav>
-    <ul class="pagination">
-        @for (int i = 1; i <= Model.TotalPages; i++)
-        {
-            <li class="page-item @(i == Model.Page ? "active" : "")">
-                <a class="page-link" asp-action="Index" asp-route-page="@i">@i</a>
-            </li>
-        }
-    </ul>
-</nav>
+    @if (Model.TotalPages > 1)
+    {
+        <div class="abp-flex abp-justify-between abp-items-center abp-mt-md">
+            <span class="abp-text-muted text-sm">Página @Model.Page de @Model.TotalPages</span>
+            <div class="abp-flex abp-gap-sm">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <a class="abp-btn-outline @(i == Model.Page ? "active" : "")" asp-action="Index" asp-route-page="@i" style="padding: 0.25rem 0.75rem;">@i</a>
+                }
+            </div>
+        </div>
+    }
+</div>

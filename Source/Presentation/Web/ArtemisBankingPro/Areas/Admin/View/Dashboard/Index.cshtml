@@ -3,55 +3,68 @@
     ViewData["Title"] = "Panel del administrador";
 }
 
-<h1>Panel del administrador</h1>
+<div class="abp-grid-4">
+    <div class="abp-kpi-card">
+        <div class="abp-kpi-icon" style="color: var(--abp-gold);">
+            <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+        </div>
+        <div class="abp-kpi-value">@Model.TotalTransactions</div>
+        <div class="abp-kpi-label">Transacciones totales</div>
+    </div>
+    
+    <div class="abp-kpi-card">
+        <div class="abp-kpi-icon" style="color: var(--abp-gold);">
+            <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2"/></svg>
+        </div>
+        <div class="abp-kpi-value">@Model.TodayTransactions</div>
+        <div class="abp-kpi-label">Transacciones de hoy</div>
+    </div>
 
-<div class="row g-3">
-    <div class="col-md-3">
-        <div class="card text-bg-light p-3">
-            <span>Transacciones totales</span>
-            <strong>@Model.TotalTransactions</strong>
+    <div class="abp-kpi-card">
+        <div class="abp-kpi-icon" style="color: var(--abp-gold);">
+            <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
         </div>
+        <div class="abp-kpi-value">@Model.TotalActiveClients</div>
+        <div class="abp-kpi-label">Clientes activos</div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-bg-light p-3">
-            <span>Transacciones de hoy</span>
-            <strong>@Model.TodayTransactions</strong>
+
+    <div class="abp-kpi-card">
+        <div class="abp-kpi-icon" style="color: var(--abp-danger);">
+            <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><line x1="19" y1="8" x2="23" y2="12"/><line x1="23" y1="8" x2="19" y2="12"/></svg>
         </div>
+        <div class="abp-kpi-value">@Model.TotalInactiveClients</div>
+        <div class="abp-kpi-label">Clientes inactivos</div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-bg-light p-3">
-            <span>Clientes activos</span>
-            <strong>@Model.TotalActiveClients</strong>
+
+    <div class="abp-kpi-card">
+        <div class="abp-kpi-icon" style="color: var(--abp-gold);">
+            <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="7" width="20" height="14" rx="2" ry="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
         </div>
+        <div class="abp-kpi-value">@Model.ActiveLoans</div>
+        <div class="abp-kpi-label">Préstamos vigentes</div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-bg-light p-3">
-            <span>Clientes inactivos</span>
-            <strong>@Model.TotalInactiveClients</strong>
+
+    <div class="abp-kpi-card">
+        <div class="abp-kpi-icon" style="color: var(--abp-gold);">
+            <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
         </div>
+        <div class="abp-kpi-value">@Model.ActiveCreditCards</div>
+        <div class="abp-kpi-label">Tarjetas de crédito activas</div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-bg-light p-3">
-            <span>Prestamos vigentes</span>
-            <strong>@Model.ActiveLoans</strong>
+
+    <div class="abp-kpi-card">
+        <div class="abp-kpi-icon" style="color: var(--abp-gold);">
+            <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
         </div>
+        <div class="abp-kpi-value">@Model.TotalSavingsAccounts</div>
+        <div class="abp-kpi-label">Cuentas de ahorro activas</div>
     </div>
-    <div class="col-md-3">
-        <div class="card text-bg-light p-3">
-            <span>Tarjetas de credito activas</span>
-            <strong>@Model.ActiveCreditCards</strong>
+
+    <div class="abp-kpi-card">
+        <div class="abp-kpi-icon" style="color: var(--abp-gold);">
+            <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
         </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-bg-light p-3">
-            <span>Cuentas de ahorro activas</span>
-            <strong>@Model.TotalSavingsAccounts</strong>
-        </div>
-    </div>
-    <div class="col-md-3">
-        <div class="card text-bg-light p-3">
-            <span>Monto promedio de deuda por cliente</span>
-            <strong>@Model.AverageDebt.ToString("C2")</strong>
-        </div>
+        <div class="abp-kpi-value">@Model.AverageDebt.ToString("C2", new System.Globalization.CultureInfo("es-DO"))</div>
+        <div class="abp-kpi-label">Monto prom. deuda/cliente</div>
     </div>
 </div>

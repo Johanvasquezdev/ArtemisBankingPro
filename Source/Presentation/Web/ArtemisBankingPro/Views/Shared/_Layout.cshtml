@@ -4,74 +4,106 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] - Artemis Banking Pro</title>
-    <script type="importmap"></script>
+    <title>@ViewData["Title"] — Artemis Banking Pro</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/ArtemisBankingProApp.styles.css" asp-append-version="true" />
 </head>
 <body>
-    <header>
-        <nav class="navbar navbar-expand-sm navbar-toggleable-sm navbar-dark bg-dark border-bottom box-shadow mb-3">
-            <div class="container-fluid">
-                <a class="navbar-brand" asp-area="" asp-controller="Home" asp-action="Index">Artemis Banking Pro</a>
-                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target=".navbar-collapse" aria-controls="navbarSupportedContent"
-                        aria-expanded="false" aria-label="Toggle navigation">
-                    <span class="navbar-toggler-icon"></span>
-                </button>
-                <div class="navbar-collapse collapse d-sm-inline-flex justify-content-between">
-                    <ul class="navbar-nav flex-grow-1">
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-area="" asp-controller="Home" asp-action="Index">Inicio</a>
-                        </li>
-                        <li class="nav-item dropdown">
-                            <a class="nav-link dropdown-toggle text-light" href="#" role="button" data-bs-toggle="dropdown" aria-expanded="false">Transacciones</a>
-                            <ul class="dropdown-menu">
-                                <li><a class="dropdown-item" asp-controller="Transactions" asp-action="Express">Transacción Express</a></li>
-                                <li><a class="dropdown-item" asp-controller="Transactions" asp-action="PayCreditCard">Pago de Tarjeta</a></li>
-                                <li><a class="dropdown-item" asp-controller="Transactions" asp-action="PayLoan">Pago de Préstamo</a></li>
-                                <li><a class="dropdown-item" asp-controller="Transactions" asp-action="PayBeneficiary">Pago a Beneficiario</a></li>
-                            </ul>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-controller="CashAdvance" asp-action="Index">Avance de Efectivo</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-controller="Transfer" asp-action="Index">Transferencia</a>
-                        </li>
-                        <li class="nav-item">
-                            <a class="nav-link text-light" asp-controller="Beneficiaries" asp-action="Index">Beneficiarios</a>
-                        </li>
-                    </ul>
-                </div>
+    <!-- ═══ TOPBAR ═══ -->
+    <header class="abp-topbar">
+        <a asp-area="" asp-controller="Home" asp-action="Index" class="abp-topbar-brand">
+            <span class="abp-topbar-logo">
+                <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
+                    <path d="M12 2 3 20h4l5-11 5 11h4L12 2Z" fill="currentColor"/>
+                    <circle cx="12" cy="15.5" r="2.2" fill="currentColor"/>
+                </svg>
+            </span>
+            <div>
+                <span class="abp-topbar-title">Artemis <span class="accent">Banking</span></span>
+                <span class="abp-topbar-subtitle">Private Wealth</span>
             </div>
-        </nav>
-    </header>
-    <div class="container">
-        <main role="main" class="pb-3">
-            @if (TempData["SuccessMessage"] is string success && !string.IsNullOrEmpty(success))
-            {
-                <div class="alert alert-success alert-dismissible fade show" role="alert">
-                    @success
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            }
-            @if (TempData["ErrorMessage"] is string error && !string.IsNullOrEmpty(error))
-            {
-                <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                    @error
-                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                </div>
-            }
-            @RenderBody()
-        </main>
-    </div>
+        </a>
 
-    <footer class="border-top footer text-muted">
-        <div class="container">
-            &copy; 2026 - Artemis Banking Pro
+        <ul class="abp-topbar-nav d-none d-md-flex">
+            <li>
+                <a asp-area="" asp-controller="Home" asp-action="Index"
+                   class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                    <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    Inicio
+                </a>
+            </li>
+            <li>
+                <a asp-controller="Transactions" asp-action="Express"
+                   class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Transactions" ? "active" : "")">
+                    <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    Transacciones
+                </a>
+            </li>
+            <li>
+                <a asp-controller="CashAdvance" asp-action="Index"
+                   class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "CashAdvance" ? "active" : "")">
+                    <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    Avances
+                </a>
+            </li>
+            <li>
+                <a asp-controller="Transfer" asp-action="Index"
+                   class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Transfer" ? "active" : "")">
+                    <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                    Transferir
+                </a>
+            </li>
+            <li>
+                <a asp-controller="Beneficiaries" asp-action="Index"
+                   class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Beneficiaries" ? "active" : "")">
+                    <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Beneficiarios
+                </a>
+            </li>
+        </ul>
+
+        <div class="abp-topbar-actions">
+            <button class="abp-icon-btn" title="Notificaciones">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
+                <span class="notification-dot"></span>
+            </button>
+            <a asp-area="" asp-controller="Home" asp-action="Logout" class="abp-avatar" title="Cerrar sesión">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+            </a>
         </div>
+    </header>
+
+    <!-- ═══ MAIN CONTENT ═══ -->
+    <main style="max-width: 76rem; margin: 0 auto; padding: 2rem 1.5rem;">
+        @if (TempData["SuccessMessage"] is string success && !string.IsNullOrEmpty(success))
+        {
+            <div class="abp-alert abp-alert-success">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                @success
+                <button class="abp-alert-close" onclick="this.parentElement.remove()">×</button>
+            </div>
+        }
+        @if (TempData["ErrorMessage"] is string error && !string.IsNullOrEmpty(error))
+        {
+            <div class="abp-alert abp-alert-danger">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                @error
+                <button class="abp-alert-close" onclick="this.parentElement.remove()">×</button>
+            </div>
+        }
+        @RenderBody()
+    </main>
+
+    <!-- ═══ FOOTER ═══ -->
+    <footer class="abp-footer">
+        <span>© 2026 Artemis Banking Pro</span>
+        <span>Private Wealth Management</span>
     </footer>
+
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
     <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>

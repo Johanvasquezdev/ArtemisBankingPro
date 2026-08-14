@@ -1,63 +1,79 @@
 @model PaginatedResult<CreditCardDto>
 @{
-    ViewData["Title"] = "Gestion de tarjetas de credito";
+    ViewData["Title"] = "Gestión de tarjetas de crédito";
 }
 
-<h1>Gestion de tarjetas de credito</h1>
+<div class="abp-flex abp-items-center abp-justify-between abp-mb-md">
+    <h1 class="abp-heading-lg">Gestión de tarjetas de crédito</h1>
+    <a class="abp-btn-gold" asp-action="SelectClient">
+        <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Asignar tarjeta de crédito
+    </a>
+</div>
 
-<a class="btn btn-success mb-3" asp-action="SelectClient">Asignar tarjeta de credito</a>
+<div class="abp-panel abp-mb-lg">
+    <form method="get" class="abp-mb-md">
+        <div class="abp-grid-4">
+            <div>
+                <label class="abp-label">Buscar por cédula</label>
+                <div class="abp-flex abp-gap-sm">
+                    <input type="text" name="cedula" class="abp-input" placeholder="Cédula del cliente" value="@ViewBag.CurrentCedula" />
+                    <button type="submit" class="abp-btn-outline">Buscar</button>
+                </div>
+            </div>
+        </div>
+    </form>
 
-<form method="get" class="mb-3 row g-2">
-    <div class="col-auto">
-        <input type="text" name="cedula" class="form-control" placeholder="Cedula del cliente" value="@ViewBag.CurrentCedula" />
+    <div class="table-responsive">
+        <table class="abp-table">
+            <thead>
+                <tr>
+                    <th>Número</th>
+                    <th>Cliente</th>
+                    <th>Límite</th>
+                    <th>Expiración</th>
+                    <th>Adeudado</th>
+                    <th>Estado</th>
+                    <th style="text-align: right;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var card in Model.Items)
+                {
+                    <tr>
+                        <td class="abp-font-mono text-muted">**** **** **** @(card.CardNumber.Length >= 4 ? card.CardNumber[^4..] : card.CardNumber)</td>
+                        <td><strong>@card.ClientFullName</strong></td>
+                        <td class="abp-font-mono">@card.CreditLimit.ToString("C2", new System.Globalization.CultureInfo("es-DO"))</td>
+                        <td>@card.ExpirationDate</td>
+                        <td class="abp-font-mono">@card.AmountOwed.ToString("C2", new System.Globalization.CultureInfo("es-DO"))</td>
+                        <td>
+                            @if(card.Status == CardStatus.Active) { <span class="abp-badge-success">Activo</span> }
+                            else { <span class="abp-badge-neutral">@card.Status</span> }
+                        </td>
+                        <td style="text-align: right;">
+                            <a class="abp-btn-outline" asp-action="Details" asp-route-id="@card.Id" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Ver detalles</a>
+                            <a class="abp-btn-outline" asp-action="EditLimit" asp-route-id="@card.Id" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Editar</a>
+                            @if (card.Status == CardStatus.Active)
+                            {
+                                <a class="abp-btn-outline abp-text-danger" asp-action="Cancel" asp-route-id="@card.Id" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Cancelar</a>
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
-    <div class="col-auto">
-        <button type="submit" class="btn btn-outline-primary">Buscar</button>
-    </div>
-</form>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Numero</th>
-            <th>Cliente</th>
-            <th>Limite</th>
-            <th>Expiracion</th>
-            <th>Adeudado</th>
-            <th>Estado</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var card in Model.Items)
-        {
-            <tr>
-                <td>************@(card.CardNumber.Length >= 4 ? card.CardNumber[^4..] : card.CardNumber)</td>
-                <td>@card.ClientFullName</td>
-                <td>@card.CreditLimit.ToString("C2")</td>
-                <td>@card.ExpirationDate</td>
-                <td>@card.AmountOwed.ToString("C2")</td>
-                <td>@card.Status</td>
-                <td>
-                    <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@card.Id">Ver detalles</a>
-                    <a class="btn btn-sm btn-outline-secondary" asp-action="EditLimit" asp-route-id="@card.Id">Editar</a>
-                    @if (card.Status == CardStatus.Active)
-                    {
-                        <a class="btn btn-sm btn-outline-danger" asp-action="Cancel" asp-route-id="@card.Id">Cancelar</a>
-                    }
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<nav>
-    <ul class="pagination">
-        @for (int i = 1; i <= Model.TotalPages; i++)
-        {
-            <li class="page-item @(i == Model.Page ? "active" : "")">
-                <a class="page-link" asp-action="Index" asp-route-page="@i">@i</a>
-            </li>
-        }
-    </ul>
-</nav>
+    @if (Model.TotalPages > 1)
+    {
+        <div class="abp-flex abp-justify-between abp-items-center abp-mt-md">
+            <span class="abp-text-muted text-sm">Página @Model.Page de @Model.TotalPages</span>
+            <div class="abp-flex abp-gap-sm">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <a class="abp-btn-outline @(i == Model.Page ? "active" : "")" asp-action="Index" asp-route-page="@i" style="padding: 0.25rem 0.75rem;">@i</a>
+                }
+            </div>
+        </div>
+    }
+</div>

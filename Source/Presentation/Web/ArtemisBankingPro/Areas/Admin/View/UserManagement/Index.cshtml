@@ -1,64 +1,89 @@
 @model PaginatedResult<UserDto>
 @{
-    ViewData["Title"] = "Gestion de usuarios";
+    ViewData["Title"] = "Gestión de usuarios";
 }
 
-<h1>Gestion de usuarios</h1>
+<div class="abp-flex abp-items-center abp-justify-between abp-mb-md">
+    <h1 class="abp-heading-lg">Gestión de usuarios</h1>
+    <a class="abp-btn-gold" asp-action="Create">
+        <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Crear usuario
+    </a>
+</div>
 
-<a class="btn btn-success mb-3" asp-action="Create">Crear usuario</a>
+<div class="abp-panel abp-mb-lg">
+    <form method="get" class="abp-mb-md">
+        <div class="abp-grid-4">
+            <div>
+                <label class="abp-label">Filtrar por rol</label>
+                <select name="role" class="abp-select" onchange="this.form.submit()">
+                    <option value="">Todos</option>
+                    <option value="Admin">Administrador</option>
+                    <option value="Cashier">Cajero</option>
+                    <option value="Client">Cliente</option>
+                </select>
+            </div>
+        </div>
+    </form>
 
-<form method="get" class="mb-3 d-inline-block">
-    <select name="role" class="form-select d-inline-block w-auto" onchange="this.form.submit()">
-        <option value="">Todos</option>
-        <option value="Admin">Administrador</option>
-        <option value="Cashier">Cajero</option>
-        <option value="Client">Cliente</option>
-    </select>
-</form>
+    <div class="table-responsive">
+        <table class="abp-table">
+            <thead>
+                <tr>
+                    <th>Nombre de usuario</th>
+                    <th>Cédula</th>
+                    <th>Nombre</th>
+                    <th>Correo electrónico</th>
+                    <th>Tipo</th>
+                    <th>Estado</th>
+                    <th style="text-align: right;">Acciones</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.Items)
+                {
+                    <tr>
+                        <td><strong>@user.UserName</strong></td>
+                        <td class="abp-font-mono text-muted">@user.Cedula</td>
+                        <td>@user.FirstName @user.LastName</td>
+                        <td>@user.Email</td>
+                        <td>
+                            @if(user.Role == UserRole.Admin) { <span class="abp-badge-warning">Admin</span> }
+                            else if(user.Role == UserRole.Cashier) { <span class="abp-badge-neutral">Cajero</span> }
+                            else { <span class="abp-badge-success">Cliente</span> }
+                        </td>
+                        <td>
+                            @if(user.IsActive) {
+                                <span class="abp-badge-success">Activo</span>
+                            } else {
+                                <span class="abp-badge-danger">Inactivo</span>
+                            }
+                        </td>
+                        <td style="text-align: right;">
+                            <a class="abp-btn-outline" asp-action="Edit" asp-route-id="@user.Id" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Editar</a>
+                            <form method="post" asp-action="ChangeStatus" asp-route-id="@user.Id" class="d-inline">
+                                <input type="hidden" name="isActive" value="@(user.IsActive ? "false" : "true")" />
+                                <button type="submit" class="abp-btn-outline @(user.IsActive ? "abp-text-danger" : "abp-text-success")" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">
+                                    @(user.IsActive ? "Inactivar" : "Activar")
+                                </button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Nombre de usuario</th>
-            <th>Cedula</th>
-            <th>Nombre</th>
-            <th>Correo electronico</th>
-            <th>Tipo</th>
-            <th>Estado</th>
-            <th></th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var user in Model.Items)
-        {
-            <tr>
-                <td>@user.UserName</td>
-                <td>@user.Cedula</td>
-                <td>@user.FirstName @user.LastName</td>
-                <td>@user.Email</td>
-                <td>@user.Role</td>
-                <td>@(user.IsActive ? "Activo" : "Inactivo")</td>
-                <td>
-                    <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@user.Id">Editar</a>
-                    <form method="post" asp-action="ChangeStatus" asp-route-id="@user.Id" class="d-inline">
-                        <input type="hidden" name="isActive" value="@(!user.IsActive)" />
-                        <button type="submit" class="btn btn-sm btn-outline-secondary">
-                            @(user.IsActive ? "Inactivar" : "Activar")
-                        </button>
-                    </form>
-                </td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<nav>
-    <ul class="pagination">
-        @for (int i = 1; i <= Model.TotalPages; i++)
-        {
-            <li class="page-item @(i == Model.Page ? "active" : "")">
-                <a class="page-link" asp-action="Index" asp-route-page="@i">@i</a>
-            </li>
-        }
-    </ul>
-</nav>
+    @if (Model.TotalPages > 1)
+    {
+        <div class="abp-flex abp-justify-between abp-items-center abp-mt-md">
+            <span class="abp-text-muted text-sm">Página @Model.Page de @Model.TotalPages</span>
+            <div class="abp-flex abp-gap-sm">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <a class="abp-btn-outline @(i == Model.Page ? "active" : "")" asp-action="Index" asp-route-page="@i" style="padding: 0.25rem 0.75rem;">@i</a>
+                }
+            </div>
+        </div>
+    }
+</div>

@@ -3,37 +3,48 @@
     ViewData["Title"] = "Seleccionar cliente";
 }
 
-<h1>Asignar tarjeta de crédito - Seleccionar cliente</h1>
+<div class="abp-flex abp-items-center abp-justify-between abp-mb-md">
+    <h1 class="abp-heading-lg">Asignar tarjeta de crédito - Seleccionar cliente</h1>
+</div>
 
-<form method="get" class="mb-3 row g-2">
-    <div class="col-auto">
-        <input type="text" name="cedula" class="form-control" placeholder="Buscar por cedula" value="@Model.CurrentCedula" />
+<div class="abp-panel abp-mb-lg">
+    <form method="get" class="abp-mb-md">
+        <div class="abp-grid-4">
+            <div>
+                <label class="abp-label">Buscar cliente</label>
+                <div class="abp-flex abp-gap-sm">
+                    <input type="text" name="cedula" class="abp-input" placeholder="Buscar por cédula" value="@Model.CurrentCedula" />
+                    <button type="submit" class="abp-btn-outline">Buscar</button>
+                </div>
+            </div>
+        </div>
+    </form>
+
+    <div class="table-responsive abp-mb-md">
+        <table class="abp-table">
+            <thead>
+                <tr>
+                    <th>Acción</th>
+                    <th>Cédula</th>
+                    <th>Nombre</th>
+                    <th>Correo</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var client in Model.Clients ?? Enumerable.Empty<UserDto>())
+                {
+                    <tr>
+                        <td>
+                            <a class="abp-btn-outline" asp-action="Assign" asp-route-clientId="@client.Id" style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">Seleccionar</a>
+                        </td>
+                        <td class="abp-font-mono text-muted">@client.Cedula</td>
+                        <td><strong>@client.FirstName @client.LastName</strong></td>
+                        <td>@client.Email</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
-    <div class="col-auto">
-        <button type="submit" class="btn btn-outline-primary">Buscar</button>
-    </div>
-</form>
 
-<table class="table">
-    <thead>
-        <tr>
-            <th></th>
-            <th>Cedula</th>
-            <th>Nombre</th>
-            <th>Correo</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var client in Model.Clients ?? Enumerable.Empty<UserDto>())
-        {
-            <tr>
-                <td><a class="btn btn-sm btn-primary" asp-action="Assign" asp-route-clientId="@client.Id">Seleccionar</a></td>
-                <td>@client.Cedula</td>
-                <td>@client.FirstName @client.LastName</td>
-                <td>@client.Email</td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<a class="btn btn-secondary" asp-action="Index">Volver atras</a>
+    <a class="abp-btn-outline" asp-action="Index">Volver atrás</a>
+</div>

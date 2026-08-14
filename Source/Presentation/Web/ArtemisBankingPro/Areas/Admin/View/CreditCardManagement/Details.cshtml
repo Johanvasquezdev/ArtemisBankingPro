@@ -3,33 +3,59 @@
     ViewData["Title"] = "Detalle de la tarjeta";
 }
 
-<h1>Tarjeta ************@(Model.CreditCard.CardNumber.Length >= 4 ? Model.CreditCard.CardNumber[^4..] : Model.CreditCard.CardNumber)</h1>
+<div class="abp-flex abp-items-center abp-justify-between abp-mb-md">
+    <h1 class="abp-heading-lg">Tarjeta <span class="abp-font-mono">************@(Model.CreditCard.CardNumber.Length >= 4 ? Model.CreditCard.CardNumber[^4..] : Model.CreditCard.CardNumber)</span></h1>
+    <a class="abp-btn-outline" asp-action="Index">Volver atrás</a>
+</div>
 
-<p>Cliente: @Model.CreditCard.ClientFullName</p>
-<p>Límite de crédito: @Model.CreditCard.CreditLimit.ToString("C2")</p>
-<p>Monto adeudado: @Model.CreditCard.AmountOwed.ToString("C2")</p>
-<p>Estado: @Model.CreditCard.Status</p>
+<div class="abp-panel abp-mb-lg">
+    <div class="abp-grid-4 abp-mb-lg">
+        <div>
+            <div class="abp-text-muted text-sm abp-mb-xs">Cliente</div>
+            <div style="font-weight: 500;">@Model.CreditCard.ClientFullName</div>
+        </div>
+        <div>
+            <div class="abp-text-muted text-sm abp-mb-xs">Límite de crédito</div>
+            <div class="abp-font-mono" style="font-weight: 500;">@Model.CreditCard.CreditLimit.ToString("C2", new System.Globalization.CultureInfo("es-DO"))</div>
+        </div>
+        <div>
+            <div class="abp-text-muted text-sm abp-mb-xs">Monto adeudado</div>
+            <div class="abp-font-mono" style="font-weight: 500;">@Model.CreditCard.AmountOwed.ToString("C2", new System.Globalization.CultureInfo("es-DO"))</div>
+        </div>
+        <div>
+            <div class="abp-text-muted text-sm abp-mb-xs">Estado</div>
+            <div>
+                @if(Model.CreditCard.Status == CardStatus.Active) { <span class="abp-badge-success">Activa</span> }
+                else { <span class="abp-badge-neutral">@Model.CreditCard.Status</span> }
+            </div>
+        </div>
+    </div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Fecha</th>
-            <th>Monto</th>
-            <th>Comercio</th>
-            <th>Estado</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var consumption in Model.Consumptions)
-        {
-            <tr>
-                <td>@consumption.TransactionDate</td>
-                <td>@consumption.Amount.ToString("C2")</td>
-                <td>@consumption.CommerceName</td>
-                <td>@consumption.Status</td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<a class="btn btn-secondary" asp-action="Index">Volver atras</a>
+    <h2 class="abp-heading-md abp-mb-md">Consumos</h2>
+    <div class="table-responsive">
+        <table class="abp-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Monto</th>
+                    <th>Comercio</th>
+                    <th>Estado</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var consumption in Model.Consumptions)
+                {
+                    <tr>
+                        <td>@consumption.TransactionDate.ToShortDateString()</td>
+                        <td class="abp-font-mono">@consumption.Amount.ToString("C2", new System.Globalization.CultureInfo("es-DO"))</td>
+                        <td>@consumption.CommerceName</td>
+                        <td>
+                            @if(consumption.Status == ConsumptionStatus.Approved) { <span class="abp-badge-success">Completado</span> }
+                            else { <span class="abp-badge-neutral">@consumption.Status</span> }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

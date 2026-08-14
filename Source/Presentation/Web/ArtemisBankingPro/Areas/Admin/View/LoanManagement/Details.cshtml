@@ -1,40 +1,68 @@
 @model LoanDetailViewModel
 @{
-    ViewData["Title"] = "Detalle del prestamo";
+    ViewData["Title"] = "Detalle del préstamo";
 }
 
-<h1>Prestamo @Model.Loan.LoanNumber</h1>
+<div class="abp-flex abp-items-center abp-justify-between abp-mb-md">
+    <h1 class="abp-heading-lg">Préstamo <span class="abp-font-mono">@Model.Loan.LoanNumber</span></h1>
+    <a class="abp-btn-outline" asp-action="Index">Volver atrás</a>
+</div>
 
-<p>Cliente: @Model.Loan.ClientFullName</p>
-<p>Monto aprobado: @Model.Loan.Amount.ToString("C2")</p>
-<p>Tasa de interes anual: @Model.Loan.AnnualInterestRate%</p>
-<p>Plazo: @Model.Loan.TermInMonths meses</p>
-<p>Estado: @Model.Loan.Status</p>
+<div class="abp-panel abp-mb-lg">
+    <div class="abp-grid-4 abp-mb-lg">
+        <div>
+            <div class="abp-text-muted text-sm abp-mb-xs">Cliente</div>
+            <div style="font-weight: 500;">@Model.Loan.ClientFullName</div>
+        </div>
+        <div>
+            <div class="abp-text-muted text-sm abp-mb-xs">Monto aprobado</div>
+            <div class="abp-font-mono" style="font-weight: 500;">@Model.Loan.Amount.ToString("C2", new System.Globalization.CultureInfo("es-DO"))</div>
+        </div>
+        <div>
+            <div class="abp-text-muted text-sm abp-mb-xs">Condiciones</div>
+            <div style="font-weight: 500;">@Model.Loan.AnnualInterestRate% / @Model.Loan.TermInMonths meses</div>
+        </div>
+        <div>
+            <div class="abp-text-muted text-sm abp-mb-xs">Estado</div>
+            <div>
+                @if(Model.Loan.Status == LoanStatus.Active) { <span class="abp-badge-success">Activo</span> }
+                else { <span class="abp-badge-neutral">@Model.Loan.Status</span> }
+            </div>
+        </div>
+    </div>
 
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Cuota</th>
-            <th>Vencimiento</th>
-            <th>Valor de la cuota</th>
-            <th>Pendiente</th>
-            <th>Estado</th>
-            <th>Atraso</th>
-        </tr>
-    </thead>
-    <tbody>
-        @foreach (var installment in Model.Installments)
-        {
-            <tr>
-                <td>@installment.InstallmentNumber</td>
-                <td>@installment.DueDate.ToShortDateString()</td>
-                <td>@installment.InstallmentAmount.ToString("C2")</td>
-                <td>@((installment.InstallmentAmount - installment.AmountPaid).ToString("C2"))</td>
-                <td>@installment.Status</td>
-                <td>@(installment.IsOverdue ? "Atrasada" : "-")</td>
-            </tr>
-        }
-    </tbody>
-</table>
-
-<a class="btn btn-secondary" asp-action="Index">Volver atras</a>
+    <h2 class="abp-heading-md abp-mb-md">Tabla de amortización</h2>
+    <div class="table-responsive">
+        <table class="abp-table">
+            <thead>
+                <tr>
+                    <th>Cuota</th>
+                    <th>Vencimiento</th>
+                    <th>Valor de la cuota</th>
+                    <th>Pendiente</th>
+                    <th>Estado</th>
+                    <th>Atraso</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var installment in Model.Installments)
+                {
+                    <tr>
+                        <td>@installment.InstallmentNumber</td>
+                        <td>@installment.DueDate.ToShortDateString()</td>
+                        <td class="abp-font-mono">@installment.InstallmentAmount.ToString("C2", new System.Globalization.CultureInfo("es-DO"))</td>
+                        <td class="abp-font-mono">@((installment.InstallmentAmount - installment.AmountPaid).ToString("C2", new System.Globalization.CultureInfo("es-DO")))</td>
+                        <td>
+                            @if(installment.Status == InstallmentStatus.Paid) { <span class="abp-badge-success">Pagada</span> }
+                            else { <span class="abp-badge-neutral">@installment.Status</span> }
+                        </td>
+                        <td>
+                            @if(installment.IsOverdue) { <span class="abp-badge-danger">Atrasada</span> }
+                            else { <span class="abp-text-muted">-</span> }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

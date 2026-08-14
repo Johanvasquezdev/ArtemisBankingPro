@@ -1,7 +1,6 @@
 using ABP.Core.Application.Features.Client.Queries;
 using ArtemisBankingPro.Extensions;
-using ArtemisBankingProApp.Models;
-using MediatR;
+using ArtemisBankingPro.Models;using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;

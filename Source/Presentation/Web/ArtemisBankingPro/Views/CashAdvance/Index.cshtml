@@ -6,52 +6,58 @@
         => cardNumber.Length >= 4 ? $"•••• •••• •••• {cardNumber[^4..]}" : cardNumber;
 }
 
-<h1>Avance de Efectivo</h1>
-<p class="text-muted">
-    El avance de efectivo genera un cargo adicional de <strong>6.25%</strong> sobre el monto solicitado, el cual será cargado a la tarjeta.
-</p>
+<div class="abp-content-header abp-flex abp-justify-between abp-items-center abp-mb-xl">
+    <div>
+        <h1 class="abp-heading-xl abp-font-serif">Avance de Efectivo</h1>
+        <p class="abp-text-muted abp-mt-sm">
+            El avance de efectivo genera un cargo adicional de <strong>6.25%</strong> sobre el monto solicitado, el cual será cargado a la tarjeta.
+        </p>
+    </div>
+</div>
 
 @if (Model.HasError)
 {
-    <div class="alert alert-danger" role="alert">@Model.Error</div>
+    <div class="abp-alert-danger abp-mb-md">@Model.Error</div>
 }
 
 @if (Model.UserCreditCards.Count() == 0 || Model.UserAccounts.Count() == 0)
 {
-    <div class="alert alert-warning" role="alert">Debe poseer al menos una tarjeta de crédito activa y una cuenta de ahorro activa para realizar esta operación.</div>
+    <div class="abp-alert-warning abp-mb-md">Debe poseer al menos una tarjeta de crédito activa y una cuenta de ahorro activa para realizar esta operación.</div>
 }
 else
 {
-    <form asp-action="Index" method="post" class="col-md-6">
-        <div class="mb-3">
-            <label asp-for="CreditCardId" class="form-label">Tarjeta de crédito</label>
-            <select asp-for="CreditCardId" class="form-select">
-                <option value="">-- Seleccione una tarjeta --</option>
-                @foreach (var card in Model.UserCreditCards)
-                {
-                    <option value="@card.Id">
-                        @MaskCard(card.CardNumber) — Disponible: @card.AvailableBalance.ToString("C2", culture)
-                    </option>
-                }
-            </select>
-            <span asp-validation-for="CreditCardId" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="SavingsAccountId" class="form-label">Cuenta de ahorro destino</label>
-            <select asp-for="SavingsAccountId" class="form-select">
-                <option value="">-- Seleccione una cuenta --</option>
-                @foreach (var account in Model.UserAccounts)
-                {
-                    <option value="@account.Id">@account.AccountNumber — Saldo: @account.Balance.ToString("C2", culture)</option>
-                }
-            </select>
-            <span asp-validation-for="SavingsAccountId" class="text-danger"></span>
-        </div>
-        <div class="mb-3">
-            <label asp-for="Amount" class="form-label">Monto del avance (RD$)</label>
-            <input asp-for="Amount" class="form-control" />
-            <span asp-validation-for="Amount" class="text-danger"></span>
-        </div>
-        <button type="submit" class="btn btn-primary">Solicitar Avance</button>
-    </form>
+    <div class="abp-panel" style="max-width: 600px;">
+        <form asp-action="Index" method="post">
+            <div class="abp-mb-md">
+                <label asp-for="CreditCardId" class="abp-label">Tarjeta de crédito</label>
+                <select asp-for="CreditCardId" class="abp-select">
+                    <option value="">-- Seleccione una tarjeta --</option>
+                    @foreach (var card in Model.UserCreditCards)
+                    {
+                        <option value="@card.Id">
+                            @MaskCard(card.CardNumber) — Disponible: @card.AvailableBalance.ToString("C2", culture)
+                        </option>
+                    }
+                </select>
+                <span asp-validation-for="CreditCardId" class="abp-text-danger"></span>
+            </div>
+            <div class="abp-mb-md">
+                <label asp-for="SavingsAccountId" class="abp-label">Cuenta de ahorro destino</label>
+                <select asp-for="SavingsAccountId" class="abp-select">
+                    <option value="">-- Seleccione una cuenta --</option>
+                    @foreach (var account in Model.UserAccounts)
+                    {
+                        <option value="@account.Id">@account.AccountNumber — Saldo: @account.Balance.ToString("C2", culture)</option>
+                    }
+                </select>
+                <span asp-validation-for="SavingsAccountId" class="abp-text-danger"></span>
+            </div>
+            <div class="abp-mb-md">
+                <label asp-for="Amount" class="abp-label">Monto del avance (RD$)</label>
+                <input asp-for="Amount" class="abp-input" />
+                <span asp-validation-for="Amount" class="abp-text-danger"></span>
+            </div>
+            <button type="submit" class="abp-btn-gold">Solicitar Avance</button>
+        </form>
+    </div>
 }

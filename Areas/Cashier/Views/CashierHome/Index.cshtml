@@ -1,0 +1,154 @@
+@{
+    ViewData["Title"] = "Dashboard de Cajero";
+}
+
+<div class="abp-grid-3 abp-mb-xl">
+    <div class="abp-kpi-card abp-panel">
+        <div class="abp-flex abp-items-center abp-gap-sm abp-mb-sm">
+            <div class="abp-kpi-icon" style="color: var(--abp-gold); background: var(--abp-gold-bg); padding: 0.5rem; border-radius: 8px;">
+                <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="1" x2="12" y2="23"></line>
+                    <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                </svg>
+            </div>
+            <div class="abp-kpi-label abp-eyebrow abp-text-muted">Transacciones hoy</div>
+        </div>
+        <div class="abp-kpi-value abp-heading-lg abp-font-mono">142</div>
+    </div>
+    
+    <div class="abp-kpi-card abp-panel">
+        <div class="abp-flex abp-items-center abp-gap-sm abp-mb-sm">
+            <div class="abp-kpi-icon" style="color: var(--abp-success); background: rgba(40, 167, 69, 0.1); padding: 0.5rem; border-radius: 8px;">
+                <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="12" y1="5" x2="12" y2="19"></line>
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </div>
+            <div class="abp-kpi-label abp-eyebrow abp-text-muted">Depósitos hoy</div>
+        </div>
+        <div class="abp-kpi-value abp-heading-lg abp-font-mono">@((284120m).ToString("C", CultureInfo.GetCultureInfo("es-DO")))</div>
+    </div>
+    
+    <div class="abp-kpi-card abp-panel">
+        <div class="abp-flex abp-items-center abp-gap-sm abp-mb-sm">
+            <div class="abp-kpi-icon" style="color: var(--abp-danger); background: rgba(220, 53, 69, 0.1); padding: 0.5rem; border-radius: 8px;">
+                <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                    <line x1="5" y1="12" x2="19" y2="12"></line>
+                </svg>
+            </div>
+            <div class="abp-kpi-label abp-eyebrow abp-text-muted">Retiros hoy</div>
+        </div>
+        <div class="abp-kpi-value abp-heading-lg abp-font-mono">@((96540m).ToString("C", CultureInfo.GetCultureInfo("es-DO")))</div>
+    </div>
+</div>
+
+<div class="abp-grid-2-1">
+    <!-- Quick Actions -->
+    <div>
+        <h2 class="abp-heading-md abp-mb-md">Acciones Rápidas</h2>
+        <div class="abp-grid-2 abp-gap-md">
+            <a href="/Cashier/CashierHome/Deposit" class="abp-quick-action abp-panel abp-panel-highlight abp-flex abp-items-center abp-justify-between" style="text-decoration: none; color: inherit;">
+                <div class="abp-flex abp-items-center abp-gap-md">
+                    <div class="qa-icon" style="color: var(--abp-success);">
+                        <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    </div>
+                    <div>
+                        <div class="abp-font-serif" style="font-weight: 600;">Depósito</div>
+                        <div class="abp-text-muted" style="font-size: 0.85rem;">Ingreso a cuenta</div>
+                    </div>
+                </div>
+                <div class="qa-arrow abp-text-gold">
+                    <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+            </a>
+            
+            <a href="/Cashier/CashierHome/Withdraw" class="abp-quick-action abp-panel abp-panel-highlight abp-flex abp-items-center abp-justify-between" style="text-decoration: none; color: inherit;">
+                <div class="abp-flex abp-items-center abp-gap-md">
+                    <div class="qa-icon" style="color: var(--abp-danger);">
+                        <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                    </div>
+                    <div>
+                        <div class="abp-font-serif" style="font-weight: 600;">Retiro</div>
+                        <div class="abp-text-muted" style="font-size: 0.85rem;">Extracción de fondos</div>
+                    </div>
+                </div>
+                <div class="qa-arrow abp-text-gold">
+                    <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+            </a>
+            
+            <a href="/Cashier/CashierHome/PayCreditCard" class="abp-quick-action abp-panel abp-panel-highlight abp-flex abp-items-center abp-justify-between" style="text-decoration: none; color: inherit;">
+                <div class="abp-flex abp-items-center abp-gap-md">
+                    <div class="qa-icon" style="color: var(--abp-gold);">
+                        <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                    </div>
+                    <div>
+                        <div class="abp-font-serif" style="font-weight: 600;">Pago de Tarjeta</div>
+                        <div class="abp-text-muted" style="font-size: 0.85rem;">Abono a TC</div>
+                    </div>
+                </div>
+                <div class="qa-arrow abp-text-gold">
+                    <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+            </a>
+            
+            <a href="/Cashier/CashierHome/PayLoan" class="abp-quick-action abp-panel abp-panel-highlight abp-flex abp-items-center abp-justify-between" style="text-decoration: none; color: inherit;">
+                <div class="abp-flex abp-items-center abp-gap-md">
+                    <div class="qa-icon" style="color: var(--abp-gold);">
+                        <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"></line><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
+                    </div>
+                    <div>
+                        <div class="abp-font-serif" style="font-weight: 600;">Pago Préstamo</div>
+                        <div class="abp-text-muted" style="font-size: 0.85rem;">Abono a capital</div>
+                    </div>
+                </div>
+                <div class="qa-arrow abp-text-gold">
+                    <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+            </a>
+            
+            <a href="/Cashier/CashierHome/TransferToThirdParty" class="abp-quick-action abp-panel abp-panel-highlight abp-flex abp-items-center abp-justify-between" style="text-decoration: none; color: inherit;" style="grid-column: 1 / -1;">
+                <div class="abp-flex abp-items-center abp-gap-md">
+                    <div class="qa-icon" style="color: var(--abp-gold);">
+                        <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3v18"></path><path d="M10 18l7 3 7-3"></path><path d="M7 21V3"></path><path d="M14 6L7 3 0 6"></path></svg>
+                    </div>
+                    <div>
+                        <div class="abp-font-serif" style="font-weight: 600;">Transferencia a Terceros</div>
+                        <div class="abp-text-muted" style="font-size: 0.85rem;">Entre cuentas del banco</div>
+                    </div>
+                </div>
+                <div class="qa-arrow abp-text-gold">
+                    <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </div>
+            </a>
+        </div>
+    </div>
+    
+    <!-- Recent Transactions -->
+    <div>
+        <h2 class="abp-heading-md abp-mb-md">Operaciones Recientes</h2>
+        <div class="abp-panel abp-txn-list">
+            <div class="abp-txn-item abp-flex abp-justify-between abp-items-center" style="padding: 1rem; border-bottom: 1px solid var(--abp-border-subtle);">
+                <div>
+                    <div class="abp-font-serif" style="font-weight: 600;">Depósito</div>
+                    <div class="abp-text-muted" style="font-size: 0.85rem;">Cta. 1002348500</div>
+                </div>
+                <div class="abp-font-mono abp-text-success" style="font-weight: 600;">+ $5,000.00</div>
+            </div>
+            <div class="abp-txn-item abp-flex abp-justify-between abp-items-center" style="padding: 1rem; border-bottom: 1px solid var(--abp-border-subtle);">
+                <div>
+                    <div class="abp-font-serif" style="font-weight: 600;">Retiro</div>
+                    <div class="abp-text-muted" style="font-size: 0.85rem;">Cta. 1005832940</div>
+                </div>
+                <div class="abp-font-mono abp-text-danger" style="font-weight: 600;">- $1,200.00</div>
+            </div>
+            <div class="abp-txn-item abp-flex abp-justify-between abp-items-center" style="padding: 1rem;">
+                <div>
+                    <div class="abp-font-serif" style="font-weight: 600;">Pago Préstamo</div>
+                    <div class="abp-text-muted" style="font-size: 0.85rem;">Pto. 3004820100</div>
+                </div>
+                <div class="abp-font-mono" style="font-weight: 600;">$2,450.00</div>
+            </div>
+        </div>
+    </div>
+</div>
