@@ -1,5 +1,5 @@
 using ABP.Core.Domain.Enums;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity; 
 
 namespace ABP.Infraestructure.identity.Entities
 {
@@ -10,7 +10,7 @@ namespace ABP.Infraestructure.identity.Entities
         public string Cedula { get; set; } = string.Empty;
         public UserRole Role { get; set; }
         public string? ActivationToken { get; set; }
-        public bool IsActive { get; set; } = false;
+        public bool IsActive { get; set; } = false
         public int? CommerceId { get; set; }
     }
 }
