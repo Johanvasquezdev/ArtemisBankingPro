@@ -1,0 +1,64 @@
+@model PaginatedResult<LoanDto>
+
+@{
+    ViewData["Title"] = "Gestion de prestamos";
+}
+
+<h1>Gestion de prestamos</h1>
+
+<a class="btn btn-success mb-3" asp-action="SelectClient">Asignar prestamo</a>
+
+<form method="get" class="mb-3 row g-2">
+    <div class="col-auto">
+        <input type="text" name="cedula" class="form-control" placeholder="Cedula del cliente" value="@ViewBag.CurrentCedula" />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-primary">Buscar</button>
+    </div>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Numero</th>
+            <th>Cliente</th>
+            <th>Capital</th>
+            <th>Cuotas</th>
+            <th>Pendiente</th>
+            <th>Tasa</th>
+            <th>Estado</th>
+            <th>Al dia</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var loan in Model.Items)
+        {
+            <tr>
+                <td>@loan.LoanNumber</td>
+                <td>@loan.ClientFullName</td>
+                <td>@loan.Amount.ToString("C2")</td>
+                <td>@loan.PaidInstallments / @loan.TotalInstallments</td>
+                <td>@loan.PendingAmount.ToString("C2")</td>
+                <td>@loan.AnnualInterestRate%</td>
+                <td>@loan.Status</td>
+                <td>@(loan.IsOnTime ? "Al día" : "En mora")</td>
+                <td>
+                    <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@loan.Id">Ver detalles</a>
+                    <a class="btn btn-sm btn-outline-secondary" asp-action="EditRate" asp-route-id="@loan.Id">Editar tasa</a>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<nav>
+    <ul class="pagination">
+        @for (int i = 1; i <= Model.TotalPages; i++)
+        {
+            <li class="page-item @(i == Model.Page ? "active" : "")">
+                <a class="page-link" asp-action="Index" asp-route-page="@i">@i</a>
+            </li>
+        }
+    </ul>
+</nav>

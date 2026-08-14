@@ -32,7 +32,8 @@ namespace ABP.Infraestructure.Persistence.Repositories
         public async Task<int> GetTodayPaymentsCountAsync()
         {
             var today = DateTime.UtcNow.Date;
-            return await _dbSet.CountAsync(t => t.TransactionDate.Date == today && t.Type == TransactionType.Debit 
+            var tomorrow = today.AddDays(1);
+            return await _dbSet.CountAsync(t => t.TransactionDate >= today && t.TransactionDate < tomorrow && t.Type == TransactionType.Debit 
             && (t.Beneficiary.Length == 16 || t.Beneficiary.Length == 9));
         }
 
@@ -45,7 +46,8 @@ namespace ABP.Infraestructure.Persistence.Repositories
         public async Task<int> GetTodayTransactionsCountAsync()
         {
             var today = DateTime.UtcNow.Date;
-            return await _dbSet.CountAsync(t => t.TransactionDate.Date == today);
+            var tomorrow = today.AddDays(1);
+            return await _dbSet.CountAsync(t => t.TransactionDate >= today && t.TransactionDate < tomorrow);
         }
 
         public async Task<int> GetTodayWithdrawalsByUserIdCountAsync(string userId)

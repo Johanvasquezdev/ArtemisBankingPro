@@ -1,5 +1,5 @@
 using ABP.Core.Domain.Enums;
-using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity; 
 
 namespace ABP.Infraestructure.identity.Entities
 {

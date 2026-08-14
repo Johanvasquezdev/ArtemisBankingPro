@@ -1,0 +1,64 @@
+@model PaginatedResult<UserDto>
+@{
+    ViewData["Title"] = "Gestion de usuarios";
+}
+
+<h1>Gestion de usuarios</h1>
+
+<a class="btn btn-success mb-3" asp-action="Create">Crear usuario</a>
+
+<form method="get" class="mb-3 d-inline-block">
+    <select name="role" class="form-select d-inline-block w-auto" onchange="this.form.submit()">
+        <option value="">Todos</option>
+        <option value="Admin">Administrador</option>
+        <option value="Cashier">Cajero</option>
+        <option value="Client">Cliente</option>
+    </select>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Nombre de usuario</th>
+            <th>Cedula</th>
+            <th>Nombre</th>
+            <th>Correo electronico</th>
+            <th>Tipo</th>
+            <th>Estado</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var user in Model.Items)
+        {
+            <tr>
+                <td>@user.UserName</td>
+                <td>@user.Cedula</td>
+                <td>@user.FirstName @user.LastName</td>
+                <td>@user.Email</td>
+                <td>@user.Role</td>
+                <td>@(user.IsActive ? "Activo" : "Inactivo")</td>
+                <td>
+                    <a class="btn btn-sm btn-outline-primary" asp-action="Edit" asp-route-id="@user.Id">Editar</a>
+                    <form method="post" asp-action="ChangeStatus" asp-route-id="@user.Id" class="d-inline">
+                        <input type="hidden" name="isActive" value="@(!user.IsActive)" />
+                        <button type="submit" class="btn btn-sm btn-outline-secondary">
+                            @(user.IsActive ? "Inactivar" : "Activar")
+                        </button>
+                    </form>
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<nav>
+    <ul class="pagination">
+        @for (int i = 1; i <= Model.TotalPages; i++)
+        {
+            <li class="page-item @(i == Model.Page ? "active" : "")">
+                <a class="page-link" asp-action="Index" asp-route-page="@i">@i</a>
+            </li>
+        }
+    </ul>
+</nav>

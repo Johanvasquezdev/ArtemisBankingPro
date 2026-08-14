@@ -1,0 +1,39 @@
+@model SavingsAccountDetailViewModel
+@{
+    ViewData["Title"] = "Detalle de la cuenta";
+}
+
+<h1>Cuenta @Model.Account.AccountNumber</h1>
+
+<p>Titular: @Model.Account.OwnerFullName</p>
+<p>Balance: @Model.Account.Balance.ToString("C2")</p>
+<p>Tipo: @Model.Account.Type</p>
+<p>Estado: @Model.Account.Status</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>Monto</th>
+            <th>Tipo</th>
+            <th>Beneficiario</th>
+            <th>Origen</th>
+            <th>Estado</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var transaction in Model.Transactions)
+        {
+            <tr>
+                <td>@transaction.TransactionDate</td>
+                <td>@transaction.Amount.ToString("C2")</td>
+                <td>@transaction.Type</td>
+                <td>@transaction.Beneficiary</td>
+                <td>@transaction.Origin</td>
+                <td>@transaction.Status</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a class="btn btn-secondary" asp-action="Index">Volver atras</a>

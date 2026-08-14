@@ -1,6 +1,6 @@
 using System.Security.Claims;
 
-namespace ArtemisBankingProApp.Extensions
+namespace ArtemisBankingPro.Extensions
 {
     public static class ClaimsPrincipalExtensions
     {

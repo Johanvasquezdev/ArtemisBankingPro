@@ -82,7 +82,7 @@ namespace ABP.Core.Application.Interfaces.Services
 
             if (source.Balance < dto.Amount)
             {
-                await RecordRejectedAsync(source, destination.AccountNumber, "Transacción Express rechazada", dto.Amount);
+                await RecordRejectedAsync(source, destination.AccountNumber, "Transaccion Express rechazada", dto.Amount);
                 throw new AmountExceedsBalanceException();
             }
 
@@ -94,8 +94,8 @@ namespace ABP.Core.Application.Interfaces.Services
             await _accountRepo.UpdateAsync(destination);
 
             await _transactionRecorder.RecordDoubleEntryAsync(
-                BuildTransferDebit(source, destination, "Transacción Express", dto.Amount),
-                BuildTransferCredit(destination, source, "Transacción Express", dto.Amount));
+                BuildTransferDebit(source, destination, "Transaccion Express", dto.Amount),
+                BuildTransferCredit(destination, source, "Transaccion Express", dto.Amount));
 
             await tx.CommitAsync();
 
@@ -107,16 +107,16 @@ namespace ABP.Core.Application.Interfaces.Services
             {
                 emailOk &= await SendEmailSafeAsync(
                     sourceUser.Email,
-                    $"Transacción realizada a la cuenta [{LastFour(destination.AccountNumber)}]",
-                    $"Se ha realizado una transacción de {FormatMoney(dto.Amount)} a la cuenta [{LastFour(destination.AccountNumber)}] el {FormatDate(_dateTimeProvider.UtcNow)} a las {FormatTime(_dateTimeProvider.UtcNow)}.");
+                    $"Transaccion realizada a la cuenta [{LastFour(destination.AccountNumber)}]",
+                    $"Se ha realizado una transaccion de {FormatMoney(dto.Amount)} a la cuenta [{LastFour(destination.AccountNumber)}] el {FormatDate(_dateTimeProvider.UtcNow)} a las {FormatTime(_dateTimeProvider.UtcNow)}.");
             }
 
             if (destinationUser != null)
             {
                 emailOk &= await SendEmailSafeAsync(
                     destinationUser.Email,
-                    $"Transacción enviada desde la cuenta [{LastFour(source.AccountNumber)}]",
-                    $"Se ha recibido una transacción de {FormatMoney(dto.Amount)} desde la cuenta [{LastFour(source.AccountNumber)}] el {FormatDate(_dateTimeProvider.UtcNow)} a las {FormatTime(_dateTimeProvider.UtcNow)}.");
+                    $"Transaccion enviada desde la cuenta [{LastFour(source.AccountNumber)}]",
+                    $"Se ha recibido una transaccion de {FormatMoney(dto.Amount)} desde la cuenta [{LastFour(source.AccountNumber)}] el {FormatDate(_dateTimeProvider.UtcNow)} a las {FormatTime(_dateTimeProvider.UtcNow)}.");
             }
 
             return CommandResult.Success(emailNotificationFailed: !emailOk);
@@ -165,7 +165,7 @@ namespace ABP.Core.Application.Interfaces.Services
                 Beneficiary = cardReference,
                 SourceAccountNumber = source.AccountNumber,
                 DestinationAccountNumber = cardReference,
-                Description = "Pago a tarjeta de crédito",
+                Description = "Pago a tarjeta de credito",
                 SavingAccountId = source.Id,
                 Status = TransactionStatus.Approved
             });
@@ -204,7 +204,7 @@ namespace ABP.Core.Application.Interfaces.Services
 
             if (pendingInstallments.Count == 0)
             {
-                await RecordRejectedAsync(source, loan.LoanNumber, "Pago a préstamo rechazado", dto.Amount);
+                await RecordRejectedAsync(source, loan.LoanNumber, "Pago a prestamo rechazado", dto.Amount);
                 throw new NoPendingInstallmentsException();
             }
 
@@ -213,7 +213,7 @@ namespace ABP.Core.Application.Interfaces.Services
 
             if (source.Balance < effectiveAmount)
             {
-                await RecordRejectedAsync(source, loan.LoanNumber, "Pago a préstamo rechazado", effectiveAmount);
+                await RecordRejectedAsync(source, loan.LoanNumber, "Pago a prestamo rechazado", effectiveAmount);
                 throw new InsufficientFundsException();
             }
 
@@ -250,7 +250,7 @@ namespace ABP.Core.Application.Interfaces.Services
                 Beneficiary = loan.LoanNumber,
                 SourceAccountNumber = source.AccountNumber,
                 DestinationAccountNumber = loan.LoanNumber,
-                Description = "Pago a préstamo",
+                Description = "Pago a prestamo",
                 SavingAccountId = source.Id,
                 Status = TransactionStatus.Approved
             });
@@ -263,8 +263,8 @@ namespace ABP.Core.Application.Interfaces.Services
             {
                 emailOk = await SendEmailSafeAsync(
                     loanOwner.Email,
-                    $"Pago realizado al préstamo [{loan.LoanNumber}]",
-                    $"Se ha realizado un pago de {FormatMoney(allocation.TotalApplied)} al préstamo [{loan.LoanNumber}] desde la cuenta [{LastFour(source.AccountNumber)}] el {FormatDate(_dateTimeProvider.UtcNow)} a las {FormatTime(_dateTimeProvider.UtcNow)}.");
+                    $"Pago realizado al prestamo [{loan.LoanNumber}]",
+                    $"Se ha realizado un pago de {FormatMoney(allocation.TotalApplied)} al prestamo [{loan.LoanNumber}] desde la cuenta [{LastFour(source.AccountNumber)}] el {FormatDate(_dateTimeProvider.UtcNow)} a las {FormatTime(_dateTimeProvider.UtcNow)}.");
             }
 
             return CommandResult.Success(emailNotificationFailed: !emailOk);
@@ -291,7 +291,7 @@ namespace ABP.Core.Application.Interfaces.Services
 
             if (source.Balance < dto.Amount)
             {
-                await RecordRejectedAsync(source, destination.AccountNumber, "Transacción a beneficiario rechazada", dto.Amount);
+                await RecordRejectedAsync(source, destination.AccountNumber, "Transaccion a beneficiario rechazada", dto.Amount);
                 throw new InsufficientFundsException();
             }
 
@@ -303,8 +303,8 @@ namespace ABP.Core.Application.Interfaces.Services
             await _accountRepo.UpdateAsync(destination);
 
             await _transactionRecorder.RecordDoubleEntryAsync(
-                BuildTransferDebit(source, destination, "Transacción a beneficiario", dto.Amount),
-                BuildTransferCredit(destination, source, "Transacción a beneficiario", dto.Amount));
+                BuildTransferDebit(source, destination, "Transaccion a beneficiario", dto.Amount),
+                BuildTransferCredit(destination, source, "Transaccion a beneficiario", dto.Amount));
 
             await tx.CommitAsync();
 
@@ -316,16 +316,16 @@ namespace ABP.Core.Application.Interfaces.Services
             {
                 emailOk &= await SendEmailSafeAsync(
                     sourceUser.Email,
-                    $"Transacción realizada a la cuenta [{LastFour(destination.AccountNumber)}]",
-                    $"Se ha realizado una transacción de {FormatMoney(dto.Amount)} a la cuenta [{LastFour(destination.AccountNumber)}] el {FormatDate(_dateTimeProvider.UtcNow)} a las {FormatTime(_dateTimeProvider.UtcNow)}.");
+                    $"Transaccion realizada a la cuenta [{LastFour(destination.AccountNumber)}]",
+                    $"Se ha realizado una transaccion de {FormatMoney(dto.Amount)} a la cuenta [{LastFour(destination.AccountNumber)}] el {FormatDate(_dateTimeProvider.UtcNow)} a las {FormatTime(_dateTimeProvider.UtcNow)}.");
             }
 
             if (destinationUser != null)
             {
                 emailOk &= await SendEmailSafeAsync(
                     destinationUser.Email,
-                    $"Transacción enviada desde la cuenta [{LastFour(source.AccountNumber)}]",
-                    $"Se ha recibido una transacción de {FormatMoney(dto.Amount)} desde la cuenta [{LastFour(source.AccountNumber)}] el {FormatDate(_dateTimeProvider.UtcNow)} a las {FormatTime(_dateTimeProvider.UtcNow)}.");
+                    $"Transaccion enviada desde la cuenta [{LastFour(source.AccountNumber)}]",
+                    $"Se ha recibido una transaccion de {FormatMoney(dto.Amount)} desde la cuenta [{LastFour(source.AccountNumber)}] el {FormatDate(_dateTimeProvider.UtcNow)} a las {FormatTime(_dateTimeProvider.UtcNow)}.");
             }
 
             return CommandResult.Success(emailNotificationFailed: !emailOk);
@@ -470,10 +470,10 @@ namespace ABP.Core.Application.Interfaces.Services
         {
             var account = await _accountRepo.GetByAccountNumberAsync(cashierDepositDto.AccountNumber);
             if (account == null)
-                throw new Exception("The destination account does not exist.");
+                throw new Exception("La cuenta de destino no existe.");
 
             if (account.Status != AccountStatus.Active)
-                throw new InvalidOperationException("Cannot deposit into an inactive or cancelled account.");
+                throw new InvalidOperationException("No se puede depositar en una cuenta inactiva o cancelada.");
             account.Balance += cashierDepositDto.Amount;
             await _accountRepo.UpdateAsync(account);
 
@@ -483,7 +483,7 @@ namespace ABP.Core.Application.Interfaces.Services
                 Type = TransactionType.Credit,
                 DestinationAccountNumber = cashierDepositDto.AccountNumber,
                 SourceAccountNumber = "CASHIER",
-                Description = "Cash deposit made at branch",
+                Description = "Deposito en caja",
                 CreatedAt = DateTime.UtcNow,
                 SavingAccountId = account.Id
             };
@@ -493,8 +493,8 @@ namespace ABP.Core.Application.Interfaces.Services
             {
                 try
                 {
-                    await _emailService.SendAsync(user.Email, "Deposit Received",
-                        $"A deposit of {cashierDepositDto.Amount:C2} has been credited to your account {cashierDepositDto.AccountNumber}.");
+                    await _emailService.SendAsync(user.Email, "Deposito Recibido",
+                        $"Un deposito de {cashierDepositDto.Amount:C2} se ha credito a tu cuenta {cashierDepositDto.AccountNumber}.");
                 }
                 catch { }
             }
@@ -505,13 +505,13 @@ namespace ABP.Core.Application.Interfaces.Services
             var account = await _accountRepo.GetByAccountNumberAsync(dto.AccountNumber);
 
             if (account == null)
-                throw new Exception("The source account does not exist.");
+                throw new Exception("La cuenta de origen no existe.");
 
             if (account.Status != AccountStatus.Active)
-                throw new InvalidOperationException("Cannot withdraw from an inactive or cancelled account.");
+                throw new InvalidOperationException("No se puede retirar dinero de una cuenta inactiva o cancelada.");
             if (account.Balance < dto.Amount)
             {
-                throw new InvalidOperationException($"Insufficient funds. Current balance: ${account.Balance:N2}");
+                throw new InvalidOperationException($"Fondos insuficientes. Balance actual: ${account.Balance:N2}");
             }
 
             account.Balance -= dto.Amount;
@@ -521,8 +521,8 @@ namespace ABP.Core.Application.Interfaces.Services
                 Amount = dto.Amount,
                 Type = TransactionType.Debit,
                 SourceAccountNumber = dto.AccountNumber,
-                DestinationAccountNumber = "CASHIER",
-                Description = "Cash withdrawal made at branch",
+                DestinationAccountNumber = "CAJERO",
+                Description = "Retiro de efectivo realizado en sucursal",
                 CreatedAt = DateTime.UtcNow,
                 SavingAccountId = account.Id
             };
@@ -533,34 +533,35 @@ namespace ABP.Core.Application.Interfaces.Services
             {
                 try
                 {
-                    await _emailService.SendAsync(user.Email, "Withdrawal Notification",
-                        $"A withdrawal of {dto.Amount:C2} has been processed from your account {dto.AccountNumber}.");
+                    await _emailService.SendAsync(user.Email, "Notificación de Retiro",
+                        $"Se ha procesado un retiro de {dto.Amount:C2} de su cuenta {dto.AccountNumber}.");
                 }
                 catch { }
             }
         }
 
+
         public async Task CashierPayCreditCardAsync(CashierPayCreditCardDto dto)
         {
             var account = await _accountRepo.GetByAccountNumberAsync(dto.SourceAccountNumber);
             if (account == null)
-                throw new Exception("The source account does not exist.");
+                throw new Exception("La cuenta de origen no existe.");
 
             if (account.Status != AccountStatus.Active)
-                throw new InvalidOperationException("Cannot process payment from an inactive or cancelled account.");
+                throw new InvalidOperationException("No se puede procesar el pago desde una cuenta inactiva o cancelada.");
 
             var card = await _creditCardRepo.GetByCardNumberAsync(dto.CardNumber);
             if (card == null)
-                throw new Exception("Credit card not found.");
+                throw new Exception("Tarjeta de credito no encontrada.");
 
             if (card.Status != CardStatus.Active)
-                throw new InvalidOperationException("Cannot process payments for an inactive or cancelled card.");
+                throw new InvalidOperationException("No se pueden procesar pagos para una tarjeta inactiva o cancelada.");
 
             if (account.Balance < dto.Amount)
-                throw new InvalidOperationException("Insufficient funds in the source account.");
+                throw new InvalidOperationException("Fondos insuficientes en la cuenta de origen.");
 
             if (card.AmountOwed <= 0)
-                throw new InvalidOperationException("This card has no outstanding debt.");
+                throw new InvalidOperationException("Esta tarjeta no tiene deuda pendiente.");
 
             var actualPayment = Math.Min(dto.Amount, card.AmountOwed);
 
@@ -583,7 +584,7 @@ namespace ABP.Core.Application.Interfaces.Services
                 SavingAccountId = account.Id,
                 SourceAccountNumber = dto.SourceAccountNumber,
                 DestinationAccountNumber = destinationReference,
-                Description = "Credit card payment made at branch",
+                Description = "Pago de tarjeta de credito realizado en sucursal",
                 CreatedAt = DateTime.UtcNow
             };
             await _repo.AddAsync(transaction);
@@ -593,20 +594,21 @@ namespace ABP.Core.Application.Interfaces.Services
             {
                 try
                 {
-                    await _emailService.SendAsync(user.Email, "Credit Card Payment Received",
-                        $"A payment of {actualPayment:C2} has been applied to your card ending in {card.CardNumber.Substring(card.CardNumber.Length - 4)}.");
+                    await _emailService.SendAsync(user.Email, "Pago de tarjeta de credito recibido",
+                        $"Se ha aplicado un pago de {actualPayment:C2} a su tarjeta terminada en {card.CardNumber.Substring(card.CardNumber.Length - 4)}.");
                 }
                 catch { }
             }
         }
+
 
         public async Task CashierPayLoanAsync(CashierPayLoanDto Dto)
         {
             var account = await _accountRepo.GetByAccountNumberAsync(Dto.SourceAccountNumber);
             var loan = await _loanRepo.GetByLoanNumberAsync(Dto.LoanNumber);
 
-            if (account == null || loan == null) throw new Exception("Account or Loan not found.");
-            if (account.Balance < Dto.Amount) throw new InvalidOperationException("Insufficient funds in the source account.");
+            if (account == null || loan == null) throw new Exception("Cuenta o Prestamo no encontrado.");
+            if (account.Balance < Dto.Amount) throw new InvalidOperationException("Fondos insuficientes en la cuenta de origen.");
 
             var installments = (await _installmentRepo.GetByLoanIdAsync(loan.Id))
                 .Where(i => i.Status != InstallmentStatus.Paid).OrderBy(i => i.DueDate).ToList();
@@ -648,34 +650,35 @@ namespace ABP.Core.Application.Interfaces.Services
                 Type = TransactionType.Debit,
                 SourceAccountNumber = Dto.SourceAccountNumber,
                 DestinationAccountNumber = Dto.LoanNumber,
-                Description = $"Loan payment applied to {loan.LoanNumber}",
+                Description = $"Pago de prestamo aplicado a {loan.LoanNumber}",
                 CreatedAt = DateTime.UtcNow,
                 SavingAccountId = account.Id
             });
             var user = await _userService.GetByIdAsync(loan.ClientId);
-            await _emailService.SendAsync(user.Email, "Loan Payment Applied",
-                $"A payment of {totalActuallyPaid:C2} was applied to your loan {loan.LoanNumber}.");
+            await _emailService.SendAsync(user.Email, "Pago de prestamo aplicado",
+                $"Se ha aplicado un pago de {totalActuallyPaid:C2} a su prestamo {loan.LoanNumber}.");
         }
+
 
         public async Task CashierTransferAsync(CashierTransferDto dto)
         {
             if (dto.Amount <= 0)
-                throw new InvalidOperationException("The transfer amount must be greater than zero.");
+                throw new InvalidOperationException("El monto de la transferencia debe ser mayor que cero.");
 
             if (dto.SourceAccountNumber == dto.DestinationAccountNumber)
-                throw new InvalidOperationException("The source and destination accounts cannot be the same.");
+                throw new InvalidOperationException("Las cuentas de origen y destino no pueden ser iguales.");
 
             var sourceAccount = await _accountRepo.GetByAccountNumberAsync(dto.SourceAccountNumber)
-                ?? throw new Exception("Source account not found.");
+                ?? throw new Exception("Cuenta de origen no encontrada.");
 
             var destAccount = await _accountRepo.GetByAccountNumberAsync(dto.DestinationAccountNumber)
-                ?? throw new Exception("Destination account not found.");
+                ?? throw new Exception("Cuenta de destino no encontrada.");
 
             if (sourceAccount.Status != AccountStatus.Active || destAccount.Status != AccountStatus.Active)
-                throw new InvalidOperationException("Both accounts must be active.");
+                throw new InvalidOperationException("Ambas cuentas deben estar activas.");
 
             if (sourceAccount.Balance < dto.Amount)
-                throw new InvalidOperationException("Insufficient funds in the source account.");
+                throw new InvalidOperationException("Fondos insuficientes en la cuenta de origen.");
 
             sourceAccount.Balance -= dto.Amount;
             destAccount.Balance += dto.Amount;
@@ -694,7 +697,7 @@ namespace ABP.Core.Application.Interfaces.Services
                 SavingAccountId = sourceAccount.Id,
                 SourceAccountNumber = dto.SourceAccountNumber,
                 DestinationAccountNumber = dto.DestinationAccountNumber,
-                Description = $"Transfer to {dto.DestinationAccountNumber}",
+                Description = $"Transferencia enviada a {dto.DestinationAccountNumber}",
                 CreatedAt = DateTime.UtcNow
             });
 
@@ -709,7 +712,7 @@ namespace ABP.Core.Application.Interfaces.Services
                 SavingAccountId = destAccount.Id,
                 SourceAccountNumber = dto.SourceAccountNumber,
                 DestinationAccountNumber = dto.DestinationAccountNumber,
-                Description = $"Transfer from {dto.SourceAccountNumber}",
+                Description = $"Transferencia recibida desde {dto.SourceAccountNumber}",
                 CreatedAt = DateTime.UtcNow
             });
 
@@ -720,8 +723,8 @@ namespace ABP.Core.Application.Interfaces.Services
             {
                 try
                 {
-                    await _emailService.SendAsync(sourceUser.Email, "Transfer Sent",
-                        $"You have sent {dto.Amount:C2} to account {dto.DestinationAccountNumber}.");
+                    await _emailService.SendAsync(sourceUser.Email, "Transferencia Enviada",
+                        $"Ha enviado {dto.Amount:C2} a la cuenta {dto.DestinationAccountNumber}.");
                 }
                 catch { }
             }
@@ -730,8 +733,8 @@ namespace ABP.Core.Application.Interfaces.Services
             {
                 try
                 {
-                    await _emailService.SendAsync(destUser.Email, "Transfer Received",
-                        $"You have received {dto.Amount:C2} from account {dto.SourceAccountNumber}.");
+                    await _emailService.SendAsync(destUser.Email, "Transferencia Recibida",
+                        $"Ha recibido {dto.Amount:C2} desde la cuenta {dto.SourceAccountNumber}.");
                 }
                 catch { }
             }

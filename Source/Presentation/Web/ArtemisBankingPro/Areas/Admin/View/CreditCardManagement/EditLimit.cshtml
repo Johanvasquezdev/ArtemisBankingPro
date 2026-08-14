@@ -1,0 +1,29 @@
+@model EditCreditCardLimitViewModel
+@{
+    ViewData["Title"] = "Editar limite de la tarjeta";
+}
+
+<h1>Editar limite - Tarjeta terminada en ***@(Model.CardNumber.Length >= 4 ? Model.CardNumber[^4..] : Model.CardNumber)</h1>
+
+@if (Model.HasError)
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+
+<p>Limite actual: @Model.CurrentCreditLimit.ToString("C2")</p>
+<p>Monto adeudado: @Model.AmountOwed.ToString("C2")</p>
+
+<form asp-action="EditLimit" asp-route-id="@Model.CardId" method="post">
+    <input type="hidden" asp-for="CardId" />
+    <input type="hidden" asp-for="CardNumber" />
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="NewCreditLimit" class="form-label">Nuevo limite</label>
+        <input asp-for="NewCreditLimit" class="form-control" />
+        <span asp-validation-for="NewCreditLimit" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Guardar cambios</button>
+    <a class="btn btn-secondary" asp-action="Index">Volver atras</a>
+</form>

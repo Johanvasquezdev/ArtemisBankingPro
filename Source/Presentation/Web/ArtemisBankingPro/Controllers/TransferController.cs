@@ -2,12 +2,12 @@ using ABP.Core.Application.DTOs.Transaction;
 using ABP.Core.Application.Features.Client.Commands;
 using ABP.Core.Application.Features.Client.Queries;
 using ABP.Core.Application.ViewModels.Client;
-using ArtemisBankingProApp.Extensions;
+using ArtemisBankingPro.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ArtemisBankingProApp.Controllers
+namespace ArtemisBankingPro.Controllers
 {
     [Authorize(Roles = "Client")]
     public class TransferController(IMediator mediator) : Controller

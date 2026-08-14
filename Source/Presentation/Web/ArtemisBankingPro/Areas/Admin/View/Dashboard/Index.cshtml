@@ -1,0 +1,57 @@
+@model AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Panel del administrador";
+}
+
+<h1>Panel del administrador</h1>
+
+<div class="row g-3">
+    <div class="col-md-3">
+        <div class="card text-bg-light p-3">
+            <span>Transacciones totales</span>
+            <strong>@Model.TotalTransactions</strong>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-bg-light p-3">
+            <span>Transacciones de hoy</span>
+            <strong>@Model.TodayTransactions</strong>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-bg-light p-3">
+            <span>Clientes activos</span>
+            <strong>@Model.TotalActiveClients</strong>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-bg-light p-3">
+            <span>Clientes inactivos</span>
+            <strong>@Model.TotalInactiveClients</strong>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-bg-light p-3">
+            <span>Prestamos vigentes</span>
+            <strong>@Model.ActiveLoans</strong>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-bg-light p-3">
+            <span>Tarjetas de credito activas</span>
+            <strong>@Model.ActiveCreditCards</strong>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-bg-light p-3">
+            <span>Cuentas de ahorro activas</span>
+            <strong>@Model.TotalSavingsAccounts</strong>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="card text-bg-light p-3">
+            <span>Monto promedio de deuda por cliente</span>
+            <strong>@Model.AverageDebt.ToString("C2")</strong>
+        </div>
+    </div>
+</div>

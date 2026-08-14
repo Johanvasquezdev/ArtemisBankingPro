@@ -3,12 +3,12 @@ using ABP.Core.Application.Features.Client.Commands;
 using ABP.Core.Application.Features.Client.Queries;
 using ABP.Core.Application.ViewModels.Client;
 using ABP.Core.Application.ViewModels.CreditCard;
-using ArtemisBankingProApp.Extensions;
+using ArtemisBankingPro.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ArtemisBankingProApp.Controllers
+namespace ArtemisBankingPro.Controllers
 {
     [Authorize(Roles = "Client")]
     public class CashAdvanceController(IMediator mediator) : Controller

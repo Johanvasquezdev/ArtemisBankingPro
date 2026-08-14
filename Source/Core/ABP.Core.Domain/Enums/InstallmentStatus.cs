@@ -2,8 +2,8 @@ namespace ABP.Core.Domain.Enums
 {
     public enum InstallmentStatus
     {
-        Pending,
-        Paid,
-        Overdue
+        Pending = 0,
+        Paid = 1,
+        Overdue = 2
     }
 }

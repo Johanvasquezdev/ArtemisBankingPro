@@ -1,0 +1,35 @@
+@model CreditCardDetailViewModel
+@{
+    ViewData["Title"] = "Detalle de la tarjeta";
+}
+
+<h1>Tarjeta ************@(Model.CreditCard.CardNumber.Length >= 4 ? Model.CreditCard.CardNumber[^4..] : Model.CreditCard.CardNumber)</h1>
+
+<p>Cliente: @Model.CreditCard.ClientFullName</p>
+<p>Límite de crédito: @Model.CreditCard.CreditLimit.ToString("C2")</p>
+<p>Monto adeudado: @Model.CreditCard.AmountOwed.ToString("C2")</p>
+<p>Estado: @Model.CreditCard.Status</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Fecha</th>
+            <th>Monto</th>
+            <th>Comercio</th>
+            <th>Estado</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var consumption in Model.Consumptions)
+        {
+            <tr>
+                <td>@consumption.TransactionDate</td>
+                <td>@consumption.Amount.ToString("C2")</td>
+                <td>@consumption.CommerceName</td>
+                <td>@consumption.Status</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a class="btn btn-secondary" asp-action="Index">Volver atras</a>

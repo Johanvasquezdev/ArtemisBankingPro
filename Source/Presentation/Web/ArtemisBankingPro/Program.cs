@@ -2,7 +2,7 @@ using ABP.Core.Application.IoC;
 using ABP.Infraestructure.identity;
 using ABP.Infraestructure.Persistence.IoC;
 using ABP.Infraestructure.Shared.IoC;
-using ArtemisBankingProApp.Filters;
+using ArtemisBankingPro.Filters;
 using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -39,6 +39,11 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "areas",
+    pattern: "{area:exists}/{controller=Home}/{action=Index}/{id?}")
+    .WithStaticAssets();
 
 app.MapControllerRoute(
     name: "default",

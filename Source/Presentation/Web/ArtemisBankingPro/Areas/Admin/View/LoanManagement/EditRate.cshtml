@@ -1,0 +1,26 @@
+@model EditLoanRateViewModel
+@{
+    ViewData["Title"] = "Editar tasa de interes";
+}
+
+<h1>Editar tasa de interes - Prestamo @Model.LoanNumber</h1>
+
+@if (Model.HasError)
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+
+<form asp-action="EditRate" asp-route-id="@Model.LoanId" method="post">
+    <input type="hidden" asp-for="LoanId" />
+    <input type="hidden" asp-for="LoanNumber" />
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="NewAnnualInterestRate" class="form-label">Nueva tasa de interes anual (%)</label>
+        <input asp-for="NewAnnualInterestRate" class="form-control" />
+        <span asp-validation-for="NewAnnualInterestRate" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Modificar tasa</button>
+    <a class="btn btn-secondary" asp-action="Index">Volver atras</a>
+</form>

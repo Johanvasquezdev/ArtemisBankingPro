@@ -1,4 +1,3 @@
-using System.Threading.Tasks;
 using ABP.Core.Application.DTOs.Beneficiary;
 using ABP.Core.Application.Interfaces.IServices;
 using ABP.Core.Application.Interfaces.Services;
@@ -9,6 +8,7 @@ using ABP.Core.Domain.Exceptions;
 using ABP.Core.Domain.Interfaces;
 using AutoMapper;
 using FluentAssertions;
+using Microsoft.Extensions.Logging.Abstractions;
 using Moq;
 using Xunit;
 
@@ -27,7 +27,7 @@ namespace ABP.Unit.Tests.Services
             _repo = new Mock<IBeneficiaryRepository>();
             _accountRepo = new Mock<ISavingsAccountRepository>();
             _userService = new Mock<IUserReadOnlyService>();
-            _mapper = new MapperConfiguration(cfg => cfg.AddProfile<AutoMapperProfile>()).CreateMapper();
+            _mapper = new MapperConfiguration(cfg => cfg.AddProfile<AutoMapperProfile>(), NullLoggerFactory.Instance).CreateMapper();
 
             _service = new BeneficiaryService(_repo.Object, _accountRepo.Object, _userService.Object, _mapper);
         }

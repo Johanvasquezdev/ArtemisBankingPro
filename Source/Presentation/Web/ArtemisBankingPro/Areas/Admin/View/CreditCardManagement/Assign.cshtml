@@ -1,0 +1,25 @@
+@model AssignCreditCardViewModel
+@{
+    ViewData["Title"] = "Asignar tarjeta de credito";
+}
+
+<h1>Asignar tarjeta de credito</h1>
+
+@if (Model.HasError)
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+
+<form asp-action="Assign" method="post">
+    <input type="hidden" asp-for="ClientId" />
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="CreditLimit" class="form-label">Limite de credito</label>
+        <input asp-for="CreditLimit" class="form-control" />
+        <span asp-validation-for="CreditLimit" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Asignar</button>
+    <a class="btn btn-secondary" asp-action="SelectClient">Volver atras</a>
+</form>

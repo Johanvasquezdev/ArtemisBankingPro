@@ -1,0 +1,60 @@
+@model AssignLoanViewModel
+@{
+    ViewData["Title"] = "Asignar prestamo";
+}
+
+<h1>Asignar prestamo</h1>
+
+@if (Model.HasError)
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+
+@if (Model.IsHighRisk)
+{
+    <div class="alert alert-warning">
+        <p>@Model.RiskMessage</p>
+        <p>Deuda actual: @Model.CurrentDebt.ToString("C2") — Deuda promedio: @Model.AverageDebt.ToString("C2")</p>
+    </div>
+}
+
+<form asp-action="Assign" method="post">
+    <input type="hidden" asp-for="ClientId" />
+    <input type="hidden" asp-for="IsHighRisk" />
+    <input type="hidden" asp-for="AverageDebt" />
+    <input type="hidden" asp-for="CurrentDebt" />
+    <input type="hidden" asp-for="RiskMessage" />
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="Amount" class="form-label">Monto a prestar</label>
+        <input asp-for="Amount" class="form-control" />
+        <span asp-validation-for="Amount" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="AnnualInterestRate" class="form-label">Tasa de interes anual (%)</label>
+        <input asp-for="AnnualInterestRate" class="form-control" />
+        <span asp-validation-for="AnnualInterestRate" class="text-danger"></span>
+    </div>
+    <div class="mb-3">
+        <label asp-for="TermInMonths" class="form-label">Plazo (meses)</label>
+        <select asp-for="TermInMonths" class="form-select">
+            @foreach (var months in new[] { 6, 12, 18, 24, 30, 36, 42, 48, 54, 60 })
+            {
+                <option value="@months">@months meses</option>
+            }
+        </select>
+        <span asp-validation-for="TermInMonths" class="text-danger"></span>
+    </div>
+
+    @if (Model.IsHighRisk)
+    {
+        <div class="mb-3 form-check">
+            <input type="checkbox" asp-for="RiskConfirmed" class="form-check-input" value="true" />
+            <label class="form-check-label" asp-for="RiskConfirmed">Confirmar asignacion de alto riesgo</label>
+        </div>
+    }
+
+    <button type="submit" class="btn btn-primary">Asignar prestamo</button>
+    <a class="btn btn-secondary" asp-action="SelectClient">Volver atras</a>
+</form>

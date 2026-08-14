@@ -2,9 +2,9 @@ namespace ABP.Core.Domain.Enums
 {
     public enum AccountStatus
     {
-        Inactive,
-        Active,
-        Closed,
-        Suspended
+        Inactive = 0,
+        Active = 1,
+        Closed = 2,
+        Suspended = 3
     }
 }

@@ -1,0 +1,40 @@
+@model LoanDetailViewModel
+@{
+    ViewData["Title"] = "Detalle del prestamo";
+}
+
+<h1>Prestamo @Model.Loan.LoanNumber</h1>
+
+<p>Cliente: @Model.Loan.ClientFullName</p>
+<p>Monto aprobado: @Model.Loan.Amount.ToString("C2")</p>
+<p>Tasa de interes anual: @Model.Loan.AnnualInterestRate%</p>
+<p>Plazo: @Model.Loan.TermInMonths meses</p>
+<p>Estado: @Model.Loan.Status</p>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Cuota</th>
+            <th>Vencimiento</th>
+            <th>Valor de la cuota</th>
+            <th>Pendiente</th>
+            <th>Estado</th>
+            <th>Atraso</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var installment in Model.Installments)
+        {
+            <tr>
+                <td>@installment.InstallmentNumber</td>
+                <td>@installment.DueDate.ToShortDateString()</td>
+                <td>@installment.InstallmentAmount.ToString("C2")</td>
+                <td>@((installment.InstallmentAmount - installment.AmountPaid).ToString("C2"))</td>
+                <td>@installment.Status</td>
+                <td>@(installment.IsOverdue ? "Atrasada" : "-")</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a class="btn btn-secondary" asp-action="Index">Volver atras</a>
