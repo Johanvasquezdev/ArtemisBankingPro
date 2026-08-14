@@ -1,0 +1,25 @@
+@model AssignSavingsAccountViewModel
+@{
+    ViewData["Title"] = "Asignar cuenta de ahorro";
+}
+
+<h1>Asignar cuenta de ahorro secundaria</h1>
+
+@if (Model.HasError)
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+
+<form asp-action="Assign" method="post">
+    <input type="hidden" asp-for="ClientId" />
+    <div asp-validation-summary="ModelOnly" class="text-danger"></div>
+
+    <div class="mb-3">
+        <label asp-for="InitialBalance" class="form-label">Balance inicial</label>
+        <input asp-for="InitialBalance" class="form-control" />
+        <span asp-validation-for="InitialBalance" class="text-danger"></span>
+    </div>
+
+    <button type="submit" class="btn btn-primary">Asignar</button>
+    <a class="btn btn-secondary" asp-action="SelectClient">Volver atras</a>
+</form>

@@ -1,0 +1,39 @@
+@model SelectClientViewModel
+@{
+    ViewData["Title"] = "Seleccionar cliente";
+}
+
+<h1>Asignar tarjeta de crédito - Seleccionar cliente</h1>
+
+<form method="get" class="mb-3 row g-2">
+    <div class="col-auto">
+        <input type="text" name="cedula" class="form-control" placeholder="Buscar por cedula" value="@Model.CurrentCedula" />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-primary">Buscar</button>
+    </div>
+</form>
+
+<table class="table">
+    <thead>
+        <tr>
+            <th></th>
+            <th>Cedula</th>
+            <th>Nombre</th>
+            <th>Correo</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var client in Model.Clients ?? Enumerable.Empty<UserDto>())
+        {
+            <tr>
+                <td><a class="btn btn-sm btn-primary" asp-action="Assign" asp-route-clientId="@client.Id">Seleccionar</a></td>
+                <td>@client.Cedula</td>
+                <td>@client.FirstName @client.LastName</td>
+                <td>@client.Email</td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<a class="btn btn-secondary" asp-action="Index">Volver atras</a>

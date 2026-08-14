@@ -1,6 +1,5 @@
 using ABP.Core.Application.DTOs;
 using ABP.Core.Application.DTOs.CreditCard;
-using ABP.Core.Application.DTOs.CreditCardConsumption;
 using ABP.Core.Application.Interfaces.IServices;
 using ABP.Core.Domain.Entities;
 using ABP.Core.Domain.Enums;
@@ -179,30 +178,28 @@ namespace ABP.Core.Application.Interfaces.Services
         public async Task UpdateLimitAsync(int cardId, decimal newCreditLimit)
         {
             var card = await _repo.GetByIdAsync(cardId);
-            if (card == null) throw new Exception("Credit card not found.");
+            if (card == null) throw new Exception("Tarjeta de credito no encontrada.");
 
             if (newCreditLimit < card.AmountOwed)
             {
-                throw new InvalidOperationException($"The new limit cannot be lower than the current debt (${card.AmountOwed:N2}).");
+                throw new InvalidOperationException($"El nuevo limite no puede ser menor que la deuda actual (${card.AmountOwed:N2}).");
             }
 
             card.CreditLimit = newCreditLimit;
             await _repo.UpdateAsync(card);
 
             var user = await _userService.GetByIdAsync(card.ClientId);
-            await _emailService.SendAsync(user.Email, "Credit Limit Updated", $"Your new limit is {newCreditLimit:C2}");
+            await _emailService.SendAsync(user.Email, "Limite de credito actualizado", $"Su nuevo limite es {newCreditLimit:C2}");
         }
 
         public async Task CancelAsync(int cardId)
         {
-            var card = await _repo.GetByIdAsync(cardId);
-            if (card == null) throw new Exception("Credit card not found.");
-
+            var card = await _repo.GetByIdAsync(cardId) ?? throw new Exception("Tarjeta de credito no encontrada.");
             if (card.Status == CardStatus.Cancelled) return;
 
             if (card.AmountOwed > 0)
             {
-                throw new InvalidOperationException($"Cannot cancel card. Client owes ${card.AmountOwed:N2}. The balance must be zero.");
+                throw new InvalidOperationException($"No se puede cancelar la tarjeta. El cliente adeuda ${card.AmountOwed:N2}. El saldo debe ser cero.");
             }
 
             card.Status = CardStatus.Cancelled;
@@ -215,11 +212,11 @@ namespace ABP.Core.Application.Interfaces.Services
             {
                 try
                 {
-                    await _emailService.SendAsync(user.Email, "Credit Card Cancelled", "Your credit card has been successfully closed.");
+                    await _emailService.SendAsync(user.Email, "Tarjeta de credito cancelada", "Su tarjeta de credito ha sido cancelada exitosamente.");
                 }
                 catch
                 {
-                    // Logging in error, email not working, but cancellation not reversed
+                    // Registro de error, el correo no funciona, pero la cancelacion no se revierte
                 }
             }
         }

@@ -1,0 +1,23 @@
+@model CancelCreditCardViewModel
+@{
+    ViewData["Title"] = "Cancelar tarjeta";
+}
+
+<h1>¿Esta seguro que desea cancelar la tarjeta @Model.LastFourDigits?</h1>
+
+@if (Model.HasError)
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+
+@if (Model.AmountOwed > 0)
+{
+    <div class="alert alert-warning">
+        Para cancelar esta tarjeta, el cliente debe saldar la totalidad de la deuda pendiente (@Model.AmountOwed.ToString("C2")).
+    </div>
+}
+
+<form asp-action="Cancel" asp-route-id="@Model.CardId" method="post">
+    <button type="submit" class="btn btn-danger" @(Model.AmountOwed > 0 ? "disabled" : "")>Aceptar</button>
+    <a class="btn btn-secondary" asp-action="Index">Cancelar</a>
+</form>

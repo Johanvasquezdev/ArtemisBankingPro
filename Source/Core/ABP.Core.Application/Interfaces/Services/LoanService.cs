@@ -139,7 +139,7 @@ namespace ABP.Core.Application.Interfaces.Services
                     Status = InstallmentStatus.Pending,
                     IsOverdue = false,
                     InstallmentNumber = i,
-                    LoanId = createdLoan.Id // Usa el ID correcto
+                    LoanId = createdLoan!.Id // Usa el ID correcto
                 };
 
                 await _installmentRepo.AddAsync(installment);

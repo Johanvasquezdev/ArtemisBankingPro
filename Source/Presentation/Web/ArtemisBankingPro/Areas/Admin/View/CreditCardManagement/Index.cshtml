@@ -1,0 +1,63 @@
+@model PaginatedResult<CreditCardDto>
+@{
+    ViewData["Title"] = "Gestion de tarjetas de credito";
+}
+
+<h1>Gestion de tarjetas de credito</h1>
+
+<a class="btn btn-success mb-3" asp-action="SelectClient">Asignar tarjeta de credito</a>
+
+<form method="get" class="mb-3 row g-2">
+    <div class="col-auto">
+        <input type="text" name="cedula" class="form-control" placeholder="Cedula del cliente" value="@ViewBag.CurrentCedula" />
+    </div>
+    <div class="col-auto">
+        <button type="submit" class="btn btn-outline-primary">Buscar</button>
+    </div>
+</form>
+
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Numero</th>
+            <th>Cliente</th>
+            <th>Limite</th>
+            <th>Expiracion</th>
+            <th>Adeudado</th>
+            <th>Estado</th>
+            <th></th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var card in Model.Items)
+        {
+            <tr>
+                <td>************@(card.CardNumber.Length >= 4 ? card.CardNumber[^4..] : card.CardNumber)</td>
+                <td>@card.ClientFullName</td>
+                <td>@card.CreditLimit.ToString("C2")</td>
+                <td>@card.ExpirationDate</td>
+                <td>@card.AmountOwed.ToString("C2")</td>
+                <td>@card.Status</td>
+                <td>
+                    <a class="btn btn-sm btn-outline-primary" asp-action="Details" asp-route-id="@card.Id">Ver detalles</a>
+                    <a class="btn btn-sm btn-outline-secondary" asp-action="EditLimit" asp-route-id="@card.Id">Editar</a>
+                    @if (card.Status == CardStatus.Active)
+                    {
+                        <a class="btn btn-sm btn-outline-danger" asp-action="Cancel" asp-route-id="@card.Id">Cancelar</a>
+                    }
+                </td>
+            </tr>
+        }
+    </tbody>
+</table>
+
+<nav>
+    <ul class="pagination">
+        @for (int i = 1; i <= Model.TotalPages; i++)
+        {
+            <li class="page-item @(i == Model.Page ? "active" : "")">
+                <a class="page-link" asp-action="Index" asp-route-page="@i">@i</a>
+            </li>
+        }
+    </ul>
+</nav>

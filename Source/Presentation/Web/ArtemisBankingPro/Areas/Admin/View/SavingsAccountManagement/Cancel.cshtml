@@ -1,0 +1,23 @@
+@model CancelSavingsAccountViewModel
+@{
+    ViewData["Title"] = "Cancelar cuenta";
+}
+
+<h1>¿Esta seguro que desea cancelar la cuenta @Model.AccountNumber?</h1>
+
+@if (Model.HasError)
+{
+    <div class="alert alert-danger">@Model.Error</div>
+}
+
+@if (Model.Balance > 0)
+{
+    <div class="alert alert-info">
+        El balance disponible (@Model.Balance.ToString("C2")) sera transferido automaticamente a la cuenta principal del cliente.
+    </div>
+}
+
+<form asp-action="Cancel" asp-route-accountNumber="@Model.AccountNumber" method="post">
+    <button type="submit" class="btn btn-danger">Aceptar</button>
+    <a class="btn btn-secondary" asp-action="Index">Cancelar</a>
+</form>
