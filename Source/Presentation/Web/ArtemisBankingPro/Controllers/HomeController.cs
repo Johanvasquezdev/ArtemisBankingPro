@@ -1,13 +1,12 @@
 using ABP.Core.Application.Features.Client.Queries;
-using ABP.Core.Application.ViewModels.Client;
-using ArtemisBankingProApp.Extensions;
+using ArtemisBankingPro.Extensions;
 using ArtemisBankingProApp.Models;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
-namespace ArtemisBankingProApp.Controllers
+namespace ArtemisBankingPro.Controllers
 {
     [Authorize(Roles = "Client")]
     public class HomeController(IMediator mediator, ILogger<HomeController> logger) : Controller
