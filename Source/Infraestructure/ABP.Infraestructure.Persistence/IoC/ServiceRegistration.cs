@@ -31,16 +31,16 @@ namespace ABP.Infraestructure.Persistence.IoC
                 {
                     throw new InvalidOperationException("Connection string 'DefaultConnection' not found.");
                 }
-                services.AddDbContext<ArtemisBankDbContext>(
-                    (servicesProvider, opt) =>
+
+                services.AddNpgsqlDataSource(connectionString);
+                services.AddDbContextPool<ArtemisBankDbContext>(opt =>
+                {
+                    opt.EnableSensitiveDataLogging();
+                    opt.UseNpgsql(npgsqlOptions =>
                     {
-                        opt.EnableSensitiveDataLogging();
-                        opt.UseNpgsql(connectionString,
-                            m => m.MigrationsAssembly(typeof(ArtemisBankDbContext).Assembly.FullName));
-                    },
-                    contextLifetime: ServiceLifetime.Scoped,
-                    optionsLifetime: ServiceLifetime.Scoped
-                );
+                        npgsqlOptions.MigrationsAssembly(typeof(ArtemisBankDbContext).Assembly.FullName);
+                    });
+                });
             }
             #endregion
 

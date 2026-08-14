@@ -24,7 +24,7 @@ namespace ABP.Core.Application.Interfaces.Services
             var entity = await _repo.GetByIdAsync(id);
             var dto = _mapper.Map<LoanDto>(entity);
             // Actualizar cuotas y pendiente
-            var installments = await _installmentRepo.GetByLoanIdAsync(entity.Id);
+            var installments = await _installmentRepo.GetByLoanIdAsync(entity!.Id);
             dto.TotalInstallments = installments.Count();
             dto.PaidInstallments = installments.Count(i => i.Status == InstallmentStatus.Paid);
             dto.PendingAmount = installments.Where(i => i.Status != InstallmentStatus.Paid).Sum(i => i.InstallmentAmount - i.AmountPaid);
