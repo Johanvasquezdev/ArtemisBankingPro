@@ -1,5 +1,6 @@
 using ABP.Core.Application.IoC;
 using ABP.Infraestructure.identity;
+using ABP.Infraestructure.identity.Seeds;
 using ABP.Infraestructure.Persistence.IoC;
 using ABP.Infraestructure.Shared.IoC;
 using ArtemisBankingPro.Filters;
@@ -28,6 +29,7 @@ builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
 
 var app = builder.Build();
+await app.SeedIdentityDataAsync();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
