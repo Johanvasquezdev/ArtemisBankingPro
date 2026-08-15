@@ -11,8 +11,6 @@
 *.sln.docstates
 *.env
 
-# Local development configuration may contain connection strings and secrets.
-Source/Presentation/Web/ArtemisBankingPro/appsettings.Local.json
 
 # User-specific files (MonoDevelop/Xamarin Studio)
 *.userprefs
