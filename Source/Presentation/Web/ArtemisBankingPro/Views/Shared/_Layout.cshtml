@@ -20,15 +20,8 @@
     <aside class="fixed inset-y-0 left-0 z-20 hidden h-screen w-64 flex-col bg-obsidian text-ivory shadow-xl lg:flex">
         <div class="flex h-20 items-center border-b border-white/10 px-6">
             <a asp-area="" asp-controller="Home" asp-action="Index" class="flex items-center gap-3 no-underline">
-                <span class="text-gold">
-                    <svg viewBox="0 0 24 24" fill="none" width="26" height="26" aria-hidden="true">
-                        <path d="M12 2 3 20h4l5-11 5 11h4L12 2Z" fill="currentColor"/>
-                        <circle cx="12" cy="15.5" r="2.2" fill="currentColor"/>
-                    </svg>
-                </span>
-                <span class="flex flex-col">
-                    <span class="font-serif text-lg leading-tight tracking-wide text-ivory">Artemis <span class="text-gold">Banking Pro</span></span>
-                    <span class="mt-0.5 text-[0.6rem] uppercase tracking-[0.22em] text-ivory/55">Private Wealth</span>
+                <span class="block w-52 shrink-0">
+                    <partial name="_BrandLogo" model='"light"' />
                 </span>
             </a>
         </div>
@@ -88,9 +81,13 @@
                             <a asp-controller="Beneficiaries" asp-action="Index" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Beneficiarios</a>
                         </nav>
                     </details>
-                    <div class="lg:hidden">
-                        <div class="font-serif text-lg leading-tight text-obsidian">Artemis <span class="text-gold">Banking Pro</span></div>
-                        <div class="text-[0.6rem] uppercase tracking-[0.2em] text-gold/80">Private Wealth</div>
+                    <div class="client-mobile-brand lg:hidden w-44 shrink-0">
+                        <div class="client-mobile-logo-dark">
+                            <partial name="_BrandLogo" model='"dark"' />
+                        </div>
+                        <div class="client-mobile-logo-light hidden">
+                            <partial name="_BrandLogo" model='"light"' />
+                        </div>
                     </div>
                     <div class="hidden lg:block">
                         <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-obsidian/40">Panel del Cliente</p>

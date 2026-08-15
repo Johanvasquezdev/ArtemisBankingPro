@@ -793,11 +793,17 @@
   .w-32 {
     width: calc(var(--spacing) * 32);
   }
+  .w-44 {
+    width: calc(var(--spacing) * 44);
+  }
   .w-48 {
     width: calc(var(--spacing) * 48);
   }
   .w-50 {
     width: calc(var(--spacing) * 50);
+  }
+  .w-52 {
+    width: calc(var(--spacing) * 52);
   }
   .w-56 {
     width: calc(var(--spacing) * 56);
@@ -1549,9 +1555,6 @@
     font-size: var(--text-xs);
     line-height: var(--tw-leading, var(--text-xs--line-height));
   }
-  .text-\[0\.6rem\] {
-    font-size: 0.6rem;
-  }
   .text-\[0\.65rem\] {
     font-size: 0.65rem;
   }
@@ -1566,10 +1569,6 @@
   .font-bold {
     --tw-font-weight: var(--font-weight-bold);
     font-weight: var(--font-weight-bold);
-  }
-  .font-light {
-    --tw-font-weight: var(--font-weight-light);
-    font-weight: var(--font-weight-light);
   }
   .font-medium {
     --tw-font-weight: var(--font-weight-medium);
@@ -1586,10 +1585,6 @@
   .tracking-\[0\.15em\] {
     --tw-tracking: 0.15em;
     letter-spacing: 0.15em;
-  }
-  .tracking-\[0\.22em\] {
-    --tw-tracking: 0.22em;
-    letter-spacing: 0.22em;
   }
   .tracking-tight {
     --tw-tracking: var(--tracking-tight);
@@ -1628,12 +1623,6 @@
   .text-gold-dark {
     color: var(--color-gold-dark);
   }
-  .text-gold\/80 {
-    color: color-mix(in srgb, #C5A059 80%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      color: color-mix(in oklab, var(--color-gold) 80%, transparent);
-    }
-  }
   .text-gray-600 {
     color: var(--color-gray-600);
   }
@@ -1653,18 +1642,6 @@
     color: color-mix(in srgb, #FAF9F6 40%, transparent);
     @supports (color: color-mix(in lab, red, red)) {
       color: color-mix(in oklab, var(--color-ivory) 40%, transparent);
-    }
-  }
-  .text-ivory\/55 {
-    color: color-mix(in srgb, #FAF9F6 55%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      color: color-mix(in oklab, var(--color-ivory) 55%, transparent);
-    }
-  }
-  .text-ivory\/60 {
-    color: color-mix(in srgb, #FAF9F6 60%, transparent);
-    @supports (color: color-mix(in lab, red, red)) {
-      color: color-mix(in oklab, var(--color-ivory) 60%, transparent);
     }
   }
   .text-ivory\/70 {
@@ -2525,6 +2502,15 @@
   .abp-operation-panel {
     width: 100%;
     max-width: none;
+  }
+  .client-mobile-logo-light {
+    display: none;
+  }
+  body[data-theme="dark"] .client-mobile-logo-dark {
+    display: none;
+  }
+  body[data-theme="dark"] .client-mobile-logo-light {
+    display: block;
   }
   .abp-flex {
     display: flex;

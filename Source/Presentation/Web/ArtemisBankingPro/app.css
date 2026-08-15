@@ -214,6 +214,9 @@
   .abp-operation-page { @apply mx-auto w-full max-w-2xl; }
   .abp-operation-page .abp-content-header { @apply justify-center text-center; }
   .abp-operation-panel { @apply w-full max-w-none; }
+  .client-mobile-logo-light { display: none; }
+  body[data-theme="dark"] .client-mobile-logo-dark { display: none; }
+  body[data-theme="dark"] .client-mobile-logo-light { display: block; }
   .abp-flex { @apply flex; }
   .abp-items-center { @apply items-center; }
   .abp-justify-between { @apply justify-between; }
