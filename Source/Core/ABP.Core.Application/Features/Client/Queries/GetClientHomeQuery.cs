@@ -65,7 +65,6 @@ namespace ABP.Core.Application.Features.Client.Queries
             return new ClientHomeViewModel
             {
                 ClientFullName = user is null ? string.Empty : $"{user.FirstName} {user.LastName}".Trim(),
-                TotalBalance = accounts.Sum(a => a.Balance),
                 TotalAccounts = accounts.Count,
                 TotalCreditCards = cards.Count,
                 TotalLoans = loans.Count,
