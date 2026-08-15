@@ -211,6 +211,9 @@
   }
 
   .abp-content-header { @apply flex items-center justify-between gap-4 mb-8; }
+  .abp-operation-page { @apply mx-auto w-full max-w-2xl; }
+  .abp-operation-page .abp-content-header { @apply justify-center text-center; }
+  .abp-operation-panel { @apply w-full max-w-none; }
   .abp-flex { @apply flex; }
   .abp-items-center { @apply items-center; }
   .abp-justify-between { @apply justify-between; }

@@ -4,7 +4,8 @@
     var culture = CultureInfo.GetCultureInfo("es-DO");
 }
 
-<div class="abp-content-header abp-flex abp-justify-between abp-items-center abp-mb-xl">
+<div class="abp-operation-page">
+<div class="abp-content-header abp-flex abp-justify-center abp-items-center abp-mb-xl">
     <h1 class="abp-heading-xl abp-font-serif">Transacción Express</h1>
 </div>
 
@@ -19,7 +20,7 @@
 }
 else
 {
-    <div class="abp-panel" style="max-width: 600px;">
+    <div class="abp-panel abp-operation-panel">
         <form asp-action="Express" method="post" data-loading-form data-loading-text="Procesando transferencia...">
             <input asp-for="IdempotencyKey" type="hidden" />
             <div class="abp-mb-md">
@@ -47,3 +48,4 @@ else
         </form>
     </div>
 }
+</div>
