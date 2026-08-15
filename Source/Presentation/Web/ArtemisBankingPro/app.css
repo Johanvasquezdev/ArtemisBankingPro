@@ -30,18 +30,18 @@
 }
 
 @media (prefers-reduced-motion: no-preference) {
-  body.page-motion-ready main {
+  body.page-motion-ready:not(.anime-motion-ready) main {
     animation: abp-page-in 280ms cubic-bezier(.22, 1, .36, 1) both;
   }
 
-  body.page-motion-ready .abp-panel,
-  body.page-motion-ready .abp-kpi-card,
-  body.page-motion-ready .abp-quick-action,
-  body.page-motion-ready .access-denied-card {
+  body.page-motion-ready:not(.anime-motion-ready) .abp-panel,
+  body.page-motion-ready:not(.anime-motion-ready) .abp-kpi-card,
+  body.page-motion-ready:not(.anime-motion-ready) .abp-quick-action,
+  body.page-motion-ready:not(.anime-motion-ready) .access-denied-card {
     animation: abp-page-in 320ms cubic-bezier(.22, 1, .36, 1) both;
   }
 
-  body.page-motion-leaving main {
+  body.page-motion-leaving:not(.anime-motion-ready) main {
     animation: abp-page-out 140ms ease both;
   }
 }

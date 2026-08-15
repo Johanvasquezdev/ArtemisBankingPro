@@ -1,4 +1,29 @@
 document.addEventListener('DOMContentLoaded', () => {
+    const transitionOut = async (main) => {
+        if (!main) return;
+
+        const motion = window.ArtemisMotion;
+        const anime = motion?.getAnime?.();
+        if (!anime) {
+            main.style.opacity = '0';
+            main.style.transform = 'translateY(-10px)';
+            await new Promise((resolve) => setTimeout(resolve, motion?.prefersReducedMotion?.() ? 0 : 150));
+            return;
+        }
+
+        await anime({
+            targets: main,
+            opacity: [1, 0],
+            translateY: [0, -8],
+            duration: 150,
+            easing: 'easeInQuad'
+        }).finished;
+    };
+
+    const transitionIn = () => {
+        window.ArtemisMotion?.animatePageEnter?.();
+    };
+
     // Enable SPA-like navigation for sidebar links
     document.addEventListener('click', async (e) => {
         const link = e.target instanceof Element ? e.target.closest('a') : null;
@@ -22,15 +47,11 @@ document.addEventListener('DOMContentLoaded', () => {
         link.classList.add('active');
 
         const currentMain = document.querySelector('.abp-main');
-        if (currentMain) {
-            currentMain.style.transition = 'opacity 0.2s ease-out, transform 0.2s ease-out';
-            currentMain.style.opacity = '0';
-            currentMain.style.transform = 'translateY(-10px)';
-        }
-
         try {
-            // Fetch the new page
-            const response = await fetch(url);
+            // Start loading while the current view transitions out.
+            const responsePromise = fetch(url);
+            await transitionOut(currentMain);
+            const response = await responsePromise;
             if (!response.ok) {
                 window.location.href = url;
                 return;
@@ -42,16 +63,10 @@ document.addEventListener('DOMContentLoaded', () => {
             const newMain = doc.querySelector('.abp-main');
             
             if (newMain && currentMain) {
-                // Wait for fade out to finish
-                setTimeout(() => {
-                    currentMain.replaceChildren(...Array.from(newMain.childNodes, node => document.importNode(node, true)));
-                    document.title = doc.title;
-                    window.history.pushState({ path: url }, '', url);
-                    
-                    // Fade in
-                    currentMain.style.opacity = '1';
-                    currentMain.style.transform = 'translateY(0)';
-                }, 200);
+                currentMain.replaceChildren(...Array.from(newMain.childNodes, node => document.importNode(node, true)));
+                document.title = doc.title;
+                window.history.pushState({ path: url }, '', url);
+                transitionIn();
             } else {
                 window.location.href = url;
             }
@@ -76,6 +91,7 @@ document.addEventListener('DOMContentLoaded', () => {
             if (newMain && currentMain) {
                 currentMain.replaceChildren(...Array.from(newMain.childNodes, node => document.importNode(node, true)));
                 document.title = doc.title;
+                transitionIn();
 
                 // Restore active state in sidebar
                 document.querySelectorAll('.abp-sidebar-nav a, .abp-topbar-nav a').forEach(link => {
