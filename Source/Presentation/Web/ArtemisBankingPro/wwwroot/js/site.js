@@ -42,9 +42,6 @@
             document.body.classList.add('page-motion-leaving');
         }, { capture: true });
 
-        document.addEventListener('submit', () => {
-            document.body.classList.add('page-motion-leaving');
-        }, { capture: true });
     };
 
     const initializeFormLoading = () => {
