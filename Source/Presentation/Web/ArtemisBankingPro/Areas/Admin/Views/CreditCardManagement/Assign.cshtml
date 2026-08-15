@@ -17,7 +17,7 @@
 }
 
 <div class="abp-panel" style="max-width: 500px;">
-    <form asp-action="Assign" method="post">
+    <form asp-action="Assign" method="post" data-loading-form data-loading-text="Asignando tarjeta...">
         <input type="hidden" asp-for="ClientId" />
         <div asp-validation-summary="ModelOnly" class="abp-text-danger abp-mb-md"></div>
 

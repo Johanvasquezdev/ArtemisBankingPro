@@ -5,12 +5,13 @@ using ABP.Core.Domain.Entities;
 using ABP.Core.Domain.Enums;
 using ABP.Core.Domain.Interfaces;
 using AutoMapper;
+using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace ABP.Core.Application.Interfaces.Services
 {
-    public class CreditCardService(ICreditCardRepository repo, ICreditCardConsumptionRepository consumptionService,ISavingsAccountRepository accountRepo, IMapper mapper, IUserReadOnlyService user, IEmailServices email) : ICreditCardService
+    public class CreditCardService(ICreditCardRepository repo, ICreditCardConsumptionRepository consumptionService, ISavingsAccountRepository accountRepo, IMapper mapper, IUserReadOnlyService user, IEmailServices email, ILogger<CreditCardService> logger) : ICreditCardService
     {
         private readonly ICreditCardRepository _repo = repo;
         private readonly ICreditCardConsumptionRepository _consumptionRepo = consumptionService;
@@ -18,6 +19,7 @@ namespace ABP.Core.Application.Interfaces.Services
         private readonly IMapper _mapper = mapper;
         private readonly IUserReadOnlyService _userService = user;
         private readonly IEmailServices _emailService = email;
+        private readonly ILogger<CreditCardService> _logger = logger;
 
         public async Task<CreditCardDto> GetByIdAsync(int id)
         {
@@ -210,7 +212,10 @@ namespace ABP.Core.Application.Interfaces.Services
         public async Task UpdateLimitAsync(int cardId, decimal newCreditLimit)
         {
             var card = await _repo.GetByIdAsync(cardId);
-            if (card == null) throw new Exception("Tarjeta de credito no encontrada.");
+            if (card == null) throw new InvalidOperationException("Tarjeta de credito no encontrada.");
+
+            if (newCreditLimit <= 0)
+                throw new InvalidOperationException("El limite de credito debe ser mayor que cero.");
 
             if (newCreditLimit < card.AmountOwed)
             {
@@ -221,7 +226,23 @@ namespace ABP.Core.Application.Interfaces.Services
             await _repo.UpdateAsync(card);
 
             var user = await _userService.GetByIdAsync(card.ClientId);
-            await _emailService.SendAsync(user.Email, "Limite de credito actualizado", $"Su nuevo limite es {newCreditLimit:C2}");
+            if (user == null || string.IsNullOrWhiteSpace(user.Email))
+            {
+                _logger.LogWarning("Credit limit updated for card {CardId}, but no valid client email was found.", cardId);
+                return;
+            }
+
+            try
+            {
+                await _emailService.SendAsync(
+                    user.Email,
+                    "Limite de credito actualizado",
+                    $"Su nuevo limite es {newCreditLimit:C2}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Credit limit updated for card {CardId}, but the email notification failed.", cardId);
+            }
         }
 
         public async Task CancelAsync(int cardId)

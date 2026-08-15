@@ -28,7 +28,7 @@
         </div>
     </div>
 
-    <form asp-action="EditLimit" asp-route-id="@Model.CardId" method="post">
+    <form asp-action="EditLimit" asp-route-id="@Model.CardId" method="post" data-loading-form data-loading-text="Actualizando límite...">
         <input type="hidden" asp-for="CardId" />
         <input type="hidden" asp-for="CardNumber" />
         <div asp-validation-summary="ModelOnly" class="abp-text-danger abp-mb-md"></div>
