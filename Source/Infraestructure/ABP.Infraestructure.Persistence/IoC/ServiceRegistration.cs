@@ -4,7 +4,6 @@ using ABP.Infraestructure.Persistence.Context;
 using ABP.Infraestructure.Persistence.Repositories;
 using ABP.Infraestructure.Persistence.Repositories.Generic;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -23,10 +22,7 @@ namespace ABP.Infraestructure.Persistence.IoC
             #region Context
             if (config.GetValue<bool>("UseInMemoryDatabase"))
             {
-                services.AddDbContext<ArtemisBankDbContext>(opt =>
-                    opt.UseInMemoryDatabase("AppDb")
-                        .ConfigureWarnings(warnings =>
-                            warnings.Ignore(InMemoryEventId.TransactionIgnoredWarning)));
+                services.AddDbContext<ArtemisBankDbContext>(opt => opt.UseInMemoryDatabase("AppDb"));
             }
             else
             {
