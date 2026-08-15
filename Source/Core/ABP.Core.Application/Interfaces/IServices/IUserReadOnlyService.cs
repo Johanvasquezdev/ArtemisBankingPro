@@ -7,6 +7,7 @@ namespace ABP.Core.Application.Interfaces.IServices
     {
         // User management
         Task<UserDto> GetByIdAsync(string userId);
+        Task<IEnumerable<UserDto>> GetByIdsAsync(IEnumerable<string> userIds);
         Task<bool> ExistsByCedulaAsync(string cedula, string? excludingUserId = null);
         Task<string?> GetActivationTokenAsync(string userId);
 

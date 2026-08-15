@@ -15,10 +15,21 @@ namespace ABP.Infraestructure.Persistence.Repositories.Generic
             await _context.SaveChangesAsync();
         }
 
+        public virtual Task AddWithoutSaveAsync(Entity entity)
+        {
+            return _dbSet.AddAsync(entity).AsTask();
+        }
+
         public virtual async Task DeleteAsync(Entity entity)
         {
             _dbSet.Remove(entity);
             await _context.SaveChangesAsync();
+        }
+
+        public virtual Task DeleteWithoutSaveAsync(Entity entity)
+        {
+            _dbSet.Remove(entity);
+            return Task.CompletedTask;
         }
 
         public virtual IQueryable<Entity> GetAll()
@@ -40,6 +51,12 @@ namespace ABP.Infraestructure.Persistence.Repositories.Generic
         {
             _context.Entry(entity).State = EntityState.Modified;
             await _context.SaveChangesAsync();
+        }
+
+        public virtual Task UpdateWithoutSaveAsync(Entity entity)
+        {
+            _context.Entry(entity).State = EntityState.Modified;
+            return Task.CompletedTask;
         }
     }
 }

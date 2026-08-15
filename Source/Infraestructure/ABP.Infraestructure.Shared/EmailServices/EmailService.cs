@@ -3,6 +3,8 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using System.Net;
+using System.Text.RegularExpressions;
 namespace ABP.Infraestructure.Shared.EmailServices
 {
     public class EmailService(IOptions<EmailSettings> settings) : ICorreoServices
@@ -37,6 +39,9 @@ namespace ABP.Infraestructure.Shared.EmailServices
             else
                 builder.TextBody = request.Body;
 
+            if (request.IsHtml)
+                builder.TextBody = request.TextBody ?? ConvertHtmlToText(request.Body);
+
             email.Body = builder.ToMessageBody();
 
             using var smtp = new SmtpClient();
@@ -52,6 +57,24 @@ namespace ABP.Infraestructure.Shared.EmailServices
             await smtp.AuthenticateAsync(_settings.SmtpUser, _settings.SmtpPassword);
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);
+        }
+
+        private static string ConvertHtmlToText(string html)
+        {
+            var withLinks = Regex.Replace(
+                html,
+                "<a[^>]+href=[\\\"']([^\\\"']+)[\\\"'][^>]*>(.*?)</a>",
+                "$2 ($1)",
+                RegexOptions.IgnoreCase | RegexOptions.Singleline);
+            var withLineBreaks = Regex.Replace(
+                withLinks,
+                "<(br|/p|/div|/h[1-6]|/li|/tr)[^>]*>",
+                "\\n",
+                RegexOptions.IgnoreCase);
+            var withoutTags = Regex.Replace(withLineBreaks, "<[^>]+>", string.Empty);
+            var decoded = WebUtility.HtmlDecode(withoutTags);
+
+            return Regex.Replace(decoded, "[ \\t]+\\n", "\\n").Trim();
         }
     }
 }

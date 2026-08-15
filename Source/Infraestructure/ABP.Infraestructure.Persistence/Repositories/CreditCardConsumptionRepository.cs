@@ -12,5 +12,12 @@ namespace ABP.Infraestructure.Persistence.Repositories
         {
             return await _dbSet.Where(c => c.CreditCardId == creditCardId).OrderByDescending(c => c.TransactionDate).ToListAsync();
         }
+
+        public async Task<IEnumerable<CreditCardConsumption>> GetByCommerceIdAsync(int commerceId)
+        {
+            return await _dbSet.Where(c => c.CommerceId == commerceId)
+                .OrderByDescending(c => c.TransactionDate)
+                .ToListAsync();
+        }
     }
 }

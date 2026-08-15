@@ -25,6 +25,7 @@ namespace ArtemisBankingPro.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Register(SaveUserViewModel model)
         {
             if (!ModelState.IsValid)

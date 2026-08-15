@@ -16,5 +16,6 @@ namespace ABP.Core.Application.ViewModels.Client
         public bool HasError { get; set; }
         public string? Error { get; set; }
         public bool EmailNotificationFailed { get; set; }
+        public string IdempotencyKey { get; set; } = Guid.NewGuid().ToString("N");
     }
 }

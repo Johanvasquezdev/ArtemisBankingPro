@@ -31,7 +31,8 @@ namespace ABP.Core.Application.Interfaces.Services
         ILoanPaymentAllocationService loanPaymentAllocationService,
         IDateTimeProvider dateTimeProvider,
         IUnitOfWork unitOfWork,
-        ILogger<TransactionService> logger) : ITransactionService
+        ILogger<TransactionService> logger,
+        IIdempotencyRepository? idempotencyRepository = null) : ITransactionService
     {
         #region Dependencies
         private readonly ITransactionRepository _repo = repo;
@@ -50,19 +51,49 @@ namespace ABP.Core.Application.Interfaces.Services
         private readonly IDateTimeProvider _dateTimeProvider = dateTimeProvider;
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
         private readonly ILogger<TransactionService> _logger = logger;
+        private readonly IIdempotencyRepository? _idempotencyRepository = idempotencyRepository;
         private static readonly CultureInfo _currencyCulture = CultureInfo.GetCultureInfo("es-DO");
         #endregion
 
         public async Task<TransactionDto> GetByIdAsync(int id)
         {
             var entity = await _repo.GetByIdAsync(id);
-            return _mapper.Map<TransactionDto>(entity);
+            if (entity is null)
+                return new TransactionDto();
+
+            return MapWithFallback(entity);
         }
 
         public async Task<IEnumerable<TransactionDto>> GetByAccountIdAsync(int savingsAccountId)
         {
             var entities = await _repo.GetByAccountIdAsync(savingsAccountId);
-            return _mapper.Map<IEnumerable<TransactionDto>>(entities);
+            return MapWithFallback(entities);
+        }
+
+        public async Task<IEnumerable<TransactionDto>> GetByAccountIdsAsync(IEnumerable<int> savingsAccountIds)
+        {
+            var entities = await _repo.GetByAccountIdsAsync(savingsAccountIds);
+            return MapWithFallback(entities);
+        }
+
+        public async Task<IEnumerable<TransactionDto>> GetHistoryAsync(int take = 100)
+        {
+            var entities = await _repo.GetRecentAsync(take);
+            return MapWithFallback(entities);
+        }
+
+        private TransactionDto MapWithFallback(Transaction entity)
+        {
+            var dto = _mapper.Map<TransactionDto>(entity);
+            if (dto.TransactionDate == default)
+                dto.TransactionDate = dto.CreatedAt;
+
+            return dto;
+        }
+
+        private IEnumerable<TransactionDto> MapWithFallback(IEnumerable<Transaction> entities)
+        {
+            return entities.Select(MapWithFallback).ToList();
         }
 
         #region Client module operations
@@ -87,6 +118,7 @@ namespace ABP.Core.Application.Interfaces.Services
             }
 
             await using var tx = await _unitOfWork.BeginTransactionAsync();
+            await ReserveIdempotencyAsync("client.express", dto.ClientId, dto.IdempotencyKey);
 
             source.Balance -= dto.Amount;
             destination.Balance += dto.Amount;
@@ -150,6 +182,7 @@ namespace ABP.Core.Application.Interfaces.Services
             }
 
             await using var tx = await _unitOfWork.BeginTransactionAsync();
+            await ReserveIdempotencyAsync("client.card-payment", dto.ClientId, dto.IdempotencyKey);
 
             source.Balance -= effectiveAmount;
             card.AmountOwed -= effectiveAmount;
@@ -220,6 +253,7 @@ namespace ABP.Core.Application.Interfaces.Services
             var allocation = _loanPaymentAllocationService.Allocate(pendingInstallments, effectiveAmount);
 
             await using var tx = await _unitOfWork.BeginTransactionAsync();
+            await ReserveIdempotencyAsync("client.loan-payment", dto.ClientId, dto.IdempotencyKey);
 
             foreach (var allocationItem in allocation.Allocations)
             {
@@ -296,6 +330,7 @@ namespace ABP.Core.Application.Interfaces.Services
             }
 
             await using var tx = await _unitOfWork.BeginTransactionAsync();
+            await ReserveIdempotencyAsync("client.beneficiary-payment", dto.ClientId, dto.IdempotencyKey);
 
             source.Balance -= dto.Amount;
             destination.Balance += dto.Amount;
@@ -353,6 +388,7 @@ namespace ABP.Core.Application.Interfaces.Services
             }
 
             await using var tx = await _unitOfWork.BeginTransactionAsync();
+            await ReserveIdempotencyAsync("client.account-transfer", dto.ClientId, dto.IdempotencyKey);
 
             source.Balance -= dto.Amount;
             destination.Balance += dto.Amount;
@@ -404,6 +440,7 @@ namespace ABP.Core.Application.Interfaces.Services
                 throw new InsufficientAvailableCreditException();
 
             await using var tx = await _unitOfWork.BeginTransactionAsync();
+            await ReserveIdempotencyAsync("client.cash-advance", dto.ClientId, dto.IdempotencyKey);
 
             account.Balance += dto.Amount;
             await _accountRepo.UpdateAsync(account);
@@ -470,10 +507,12 @@ namespace ABP.Core.Application.Interfaces.Services
         {
             var account = await _accountRepo.GetByAccountNumberAsync(cashierDepositDto.AccountNumber);
             if (account == null)
-                throw new Exception("La cuenta de destino no existe.");
+                throw new InvalidOperationException("La cuenta de destino no existe.");
 
             if (account.Status != AccountStatus.Active)
                 throw new InvalidOperationException("No se puede depositar en una cuenta inactiva o cancelada.");
+            await using var depositTx = await _unitOfWork.BeginTransactionAsync();
+            await ReserveIdempotencyAsync("cashier.deposit", cashierDepositDto.PerformedByUserId, cashierDepositDto.IdempotencyKey);
             account.Balance += cashierDepositDto.Amount;
             await _accountRepo.UpdateAsync(account);
 
@@ -481,13 +520,20 @@ namespace ABP.Core.Application.Interfaces.Services
             {
                 Amount = cashierDepositDto.Amount,
                 Type = TransactionType.Credit,
+                TransactionDate = DateTime.UtcNow,
+                Origin = "CAJERO",
+                Beneficiary = cashierDepositDto.AccountNumber,
+                Status = TransactionStatus.Approved,
                 DestinationAccountNumber = cashierDepositDto.AccountNumber,
                 SourceAccountNumber = "CASHIER",
                 Description = "Deposito en caja",
                 CreatedAt = DateTime.UtcNow,
-                SavingAccountId = account.Id
+                SavingAccountId = account.Id,
+                PerformedByUserId = cashierDepositDto.PerformedByUserId
             };
             await _repo.AddAsync(transaction);
+            await _unitOfWork.SaveChangesAsync();
+            await depositTx.CommitAsync();
             var user = await _userService.GetByIdAsync(account.UserId);
             if (user != null)
             {
@@ -496,7 +542,7 @@ namespace ABP.Core.Application.Interfaces.Services
                     await _emailService.SendAsync(user.Email, "Deposito Recibido",
                         $"Un deposito de {cashierDepositDto.Amount:C2} se ha credito a tu cuenta {cashierDepositDto.AccountNumber}.");
                 }
-                catch { }
+                catch (Exception ex) { _logger.LogWarning(ex, "Email notification failed."); }
             }
         }
 
@@ -514,19 +560,28 @@ namespace ABP.Core.Application.Interfaces.Services
                 throw new InvalidOperationException($"Fondos insuficientes. Balance actual: ${account.Balance:N2}");
             }
 
+            await using var withdrawalTx = await _unitOfWork.BeginTransactionAsync();
+            await ReserveIdempotencyAsync("cashier.withdrawal", dto.PerformedByUserId, dto.IdempotencyKey);
             account.Balance -= dto.Amount;
-            await _accountRepo.UpdateAsync(account);
+            await _accountRepo.UpdateWithoutSaveAsync(account);
             var transaction = new Transaction
             {
                 Amount = dto.Amount,
                 Type = TransactionType.Debit,
+                TransactionDate = DateTime.UtcNow,
+                Origin = dto.AccountNumber,
+                Beneficiary = "CAJERO",
+                Status = TransactionStatus.Approved,
                 SourceAccountNumber = dto.AccountNumber,
                 DestinationAccountNumber = "CAJERO",
                 Description = "Retiro de efectivo realizado en sucursal",
                 CreatedAt = DateTime.UtcNow,
-                SavingAccountId = account.Id
+                SavingAccountId = account.Id,
+                PerformedByUserId = dto.PerformedByUserId
             };
-            await _repo.AddAsync(transaction);
+            await _repo.AddWithoutSaveAsync(transaction);
+            await _unitOfWork.SaveChangesAsync();
+            await withdrawalTx.CommitAsync();
 
             var user = await _userService.GetByIdAsync(account.UserId);
             if (user != null)
@@ -536,7 +591,7 @@ namespace ABP.Core.Application.Interfaces.Services
                     await _emailService.SendAsync(user.Email, "Notificación de Retiro",
                         $"Se ha procesado un retiro de {dto.Amount:C2} de su cuenta {dto.AccountNumber}.");
                 }
-                catch { }
+                catch (Exception ex) { _logger.LogWarning(ex, "Email notification failed."); }
             }
         }
 
@@ -565,11 +620,13 @@ namespace ABP.Core.Application.Interfaces.Services
 
             var actualPayment = Math.Min(dto.Amount, card.AmountOwed);
 
+            await using var cardPaymentTx = await _unitOfWork.BeginTransactionAsync();
+            await ReserveIdempotencyAsync("cashier.card-payment", dto.PerformedByUserId, dto.IdempotencyKey);
             account.Balance -= actualPayment;
             card.AmountOwed -= actualPayment;
 
-            await _accountRepo.UpdateAsync(account);
-            await _creditCardRepo.UpdateAsync(card);
+            await _accountRepo.UpdateWithoutSaveAsync(account);
+            await _creditCardRepo.UpdateWithoutSaveAsync(card);
 
             var destinationReference = $"CARD-{card.CardNumber[^4..]}";
 
@@ -585,9 +642,12 @@ namespace ABP.Core.Application.Interfaces.Services
                 SourceAccountNumber = dto.SourceAccountNumber,
                 DestinationAccountNumber = destinationReference,
                 Description = "Pago de tarjeta de credito realizado en sucursal",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                PerformedByUserId = dto.PerformedByUserId
             };
-            await _repo.AddAsync(transaction);
+            await _repo.AddWithoutSaveAsync(transaction);
+            await _unitOfWork.SaveChangesAsync();
+            await cardPaymentTx.CommitAsync();
 
             var user = await _userService.GetByIdAsync(card.ClientId);
             if (user != null)
@@ -597,7 +657,7 @@ namespace ABP.Core.Application.Interfaces.Services
                     await _emailService.SendAsync(user.Email, "Pago de tarjeta de credito recibido",
                         $"Se ha aplicado un pago de {actualPayment:C2} a su tarjeta terminada en {card.CardNumber.Substring(card.CardNumber.Length - 4)}.");
                 }
-                catch { }
+                catch (Exception ex) { _logger.LogWarning(ex, "Email notification failed."); }
             }
         }
 
@@ -612,6 +672,9 @@ namespace ABP.Core.Application.Interfaces.Services
 
             var installments = (await _installmentRepo.GetByLoanIdAsync(loan.Id))
                 .Where(i => i.Status != InstallmentStatus.Paid).OrderBy(i => i.DueDate).ToList();
+
+            await using var loanPaymentTx = await _unitOfWork.BeginTransactionAsync();
+            await ReserveIdempotencyAsync("cashier.loan-payment", Dto.PerformedByUserId, Dto.IdempotencyKey);
 
             decimal remainingPayment = Dto.Amount;
             decimal totalActuallyPaid = 0;
@@ -631,20 +694,19 @@ namespace ABP.Core.Application.Interfaces.Services
                     installment.Status = InstallmentStatus.Paid;
                 }
 
-                await _installmentRepo.UpdateAsync(installment);
+                await _installmentRepo.UpdateWithoutSaveAsync(installment);
             }
             account.Balance -= totalActuallyPaid;
-            await _accountRepo.UpdateAsync(account);
+            await _accountRepo.UpdateWithoutSaveAsync(account);
 
-            var stillPending = (await _installmentRepo.GetByLoanIdAsync(loan.Id))
-                        .Any(i => i.Status != InstallmentStatus.Paid);
+            var stillPending = installments.Any(i => i.Status != InstallmentStatus.Paid);
 
             if (!stillPending)
             {
                 loan.Status = LoanStatus.Completed;
-                await _loanRepo.UpdateAsync(loan);
+                await _loanRepo.UpdateWithoutSaveAsync(loan);
             }
-            await _repo.AddAsync(new Transaction
+            await _repo.AddWithoutSaveAsync(new Transaction
             {
                 Amount = totalActuallyPaid,
                 Type = TransactionType.Debit,
@@ -652,8 +714,15 @@ namespace ABP.Core.Application.Interfaces.Services
                 DestinationAccountNumber = Dto.LoanNumber,
                 Description = $"Pago de prestamo aplicado a {loan.LoanNumber}",
                 CreatedAt = DateTime.UtcNow,
-                SavingAccountId = account.Id
+                SavingAccountId = account.Id,
+                Status = TransactionStatus.Approved,
+                TransactionDate = DateTime.UtcNow,
+                Origin = Dto.SourceAccountNumber,
+                Beneficiary = Dto.LoanNumber,
+                PerformedByUserId = Dto.PerformedByUserId
             });
+            await _unitOfWork.SaveChangesAsync();
+            await loanPaymentTx.CommitAsync();
             var user = await _userService.GetByIdAsync(loan.ClientId);
             await _emailService.SendAsync(user.Email, "Pago de prestamo aplicado",
                 $"Se ha aplicado un pago de {totalActuallyPaid:C2} a su prestamo {loan.LoanNumber}.");
@@ -680,13 +749,15 @@ namespace ABP.Core.Application.Interfaces.Services
             if (sourceAccount.Balance < dto.Amount)
                 throw new InvalidOperationException("Fondos insuficientes en la cuenta de origen.");
 
+            await using var cashierTransferTx = await _unitOfWork.BeginTransactionAsync();
+            await ReserveIdempotencyAsync("cashier.transfer", dto.PerformedByUserId, dto.IdempotencyKey);
             sourceAccount.Balance -= dto.Amount;
             destAccount.Balance += dto.Amount;
 
-            await _accountRepo.UpdateAsync(sourceAccount);
-            await _accountRepo.UpdateAsync(destAccount);
+            await _accountRepo.UpdateWithoutSaveAsync(sourceAccount);
+            await _accountRepo.UpdateWithoutSaveAsync(destAccount);
 
-            await _repo.AddAsync(new Transaction
+            await _repo.AddWithoutSaveAsync(new Transaction
             {
                 Amount = dto.Amount,
                 Type = TransactionType.Debit,
@@ -698,10 +769,11 @@ namespace ABP.Core.Application.Interfaces.Services
                 SourceAccountNumber = dto.SourceAccountNumber,
                 DestinationAccountNumber = dto.DestinationAccountNumber,
                 Description = $"Transferencia enviada a {dto.DestinationAccountNumber}",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                PerformedByUserId = dto.PerformedByUserId
             });
 
-            await _repo.AddAsync(new Transaction
+            await _repo.AddWithoutSaveAsync(new Transaction
             {
                 Amount = dto.Amount,
                 Type = TransactionType.Credit,
@@ -713,8 +785,12 @@ namespace ABP.Core.Application.Interfaces.Services
                 SourceAccountNumber = dto.SourceAccountNumber,
                 DestinationAccountNumber = dto.DestinationAccountNumber,
                 Description = $"Transferencia recibida desde {dto.SourceAccountNumber}",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                PerformedByUserId = dto.PerformedByUserId
             });
+
+            await _unitOfWork.SaveChangesAsync();
+            await cashierTransferTx.CommitAsync();
 
             var sourceUser = await _userService.GetByIdAsync(sourceAccount.UserId);
             var destUser = await _userService.GetByIdAsync(destAccount.UserId);
@@ -726,7 +802,7 @@ namespace ABP.Core.Application.Interfaces.Services
                     await _emailService.SendAsync(sourceUser.Email, "Transferencia Enviada",
                         $"Ha enviado {dto.Amount:C2} a la cuenta {dto.DestinationAccountNumber}.");
                 }
-                catch { }
+                catch (Exception ex) { _logger.LogWarning(ex, "Email notification failed."); }
             }
 
             if (destUser != null)
@@ -736,7 +812,7 @@ namespace ABP.Core.Application.Interfaces.Services
                     await _emailService.SendAsync(destUser.Email, "Transferencia Recibida",
                         $"Ha recibido {dto.Amount:C2} desde la cuenta {dto.SourceAccountNumber}.");
                 }
-                catch { }
+                catch (Exception ex) { _logger.LogWarning(ex, "Email notification failed."); }
             }
         }
 
@@ -753,6 +829,29 @@ namespace ABP.Core.Application.Interfaces.Services
                 throw new InactiveAccountException();
 
             return account;
+        }
+
+        private async Task ReserveIdempotencyAsync(string operation, string actorUserId, string? key)
+        {
+            if (_idempotencyRepository is null || string.IsNullOrWhiteSpace(key))
+                return;
+
+            var normalizedKey = key.Trim();
+            var normalizedActor = string.IsNullOrWhiteSpace(actorUserId) ? "anonymous" : actorUserId;
+            if (await _idempotencyRepository.GetAsync(operation, normalizedKey, normalizedActor) is not null)
+                throw new DuplicateOperationException();
+
+            await _idempotencyRepository.AddWithoutSaveAsync(new IdempotencyRecord
+            {
+                Operation = operation,
+                Key = normalizedKey,
+                ActorUserId = normalizedActor,
+                CreatedAt = _dateTimeProvider.UtcNow
+            });
+
+            // Claim the unique key before changing balances. A concurrent duplicate fails here,
+            // while the surrounding financial transaction remains untouched.
+            await _unitOfWork.SaveChangesAsync();
         }
 
         private TransactionEntry BuildTransferDebit(SavingsAccount source, SavingsAccount destination, string description, decimal amount) => new()

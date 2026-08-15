@@ -1,4 +1,5 @@
 using ABP.Core.Domain.Entities;
+using ABP.Core.Application.Interfaces.IServices;
 using ABP.Core.Domain.Interfaces;
 using ABP.Infraestructure.identity.Entities;
 using Microsoft.AspNetCore.Identity;
@@ -40,6 +41,7 @@ namespace ABP.Infraestructure.identity.Seeds
 
                 await DefaultRoles.SeedAsync(roleManager);
                 await DefaultUsers.SeedAsync(userManager, defaultCommerce.Id);
+                await EnsureDefaultClientAccountAsync(userManager, services.GetRequiredService<ISavingsAccountService>());
             }
             catch (Exception ex)
             {
@@ -47,6 +49,17 @@ namespace ABP.Infraestructure.identity.Seeds
                 var logger = loggerFactory.CreateLogger("IdentitySeed");
                 logger.LogError(ex, "An error occurred during Identity seeding.");
             }
+        }
+
+        private static async Task EnsureDefaultClientAccountAsync(
+            UserManager<ApplicationUser> userManager,
+            ISavingsAccountService savingsAccountService)
+        {
+            var client = await userManager.FindByNameAsync("ClientUser");
+            if (client is null || await savingsAccountService.HasActiveAccountAsync(client.Id))
+                return;
+
+            await savingsAccountService.CreateAccountAsync(client.Id, "SYSTEM-SEED", 10000m);
         }
     }
 }

@@ -28,6 +28,7 @@ else
 {
     <div class="abp-panel" style="max-width: 600px;">
         <form asp-action="Index" method="post">
+            <input asp-for="IdempotencyKey" type="hidden" />
             <div class="abp-mb-md">
                 <label asp-for="CreditCardId" class="abp-label">Tarjeta de crédito</label>
                 <select asp-for="CreditCardId" class="abp-select">

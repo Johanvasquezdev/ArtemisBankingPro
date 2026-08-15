@@ -22,6 +22,7 @@ builder.Services.AddJwtAuthenticationLayer(builder.Configuration);
 
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddMemoryCache();
 
 builder.Services.AddSwaggerExtensions();
 builder.Services.AddAppiVersioningExtensions();

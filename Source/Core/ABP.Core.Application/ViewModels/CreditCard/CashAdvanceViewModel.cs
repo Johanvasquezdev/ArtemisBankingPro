@@ -22,5 +22,6 @@ namespace ABP.Core.Application.ViewModels.CreditCard
 
         public bool HasError { get; set; }
         public string? Error { get; set; }
+        public string IdempotencyKey { get; set; } = Guid.NewGuid().ToString("N");
     }
 }

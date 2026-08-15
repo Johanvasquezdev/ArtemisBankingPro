@@ -24,6 +24,9 @@ namespace ABP.Core.Application.Interfaces.Services
             return _mapper.Map<CommerceDto>(entity);
         }
 
+        public Task<string?> GetActiveUserIdAsync(int commerceId)
+            => _repo.GetActiveUserIdAsync(commerceId);
+
         public async Task<IEnumerable<CommerceDto>> GetAllAsync()
         {
             var entities = await _repo.GetAllAsync();

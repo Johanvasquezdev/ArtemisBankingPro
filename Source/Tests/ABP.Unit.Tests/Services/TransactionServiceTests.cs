@@ -111,7 +111,8 @@ namespace ABP.Unit.Tests.Services
 
             Func<Task> act = async () => await _service.DepositAsync(request);
 
-            await act.Should().ThrowAsync<Exception>().WithMessage("The destination account does not exist.");
+            await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*La cuenta de destino no existe.*");
         }
 
         [Fact]
@@ -134,13 +135,14 @@ namespace ABP.Unit.Tests.Services
         public async Task WithdrawAsync_ShouldThrowException_WhenInsufficientFunds()
         {
             var request = new CashierWithdrawalDto { AccountNumber = "ACC-1", Amount = 1000 };
-            var account = new SavingsAccount { Id = 1, AccountNumber = "ACC-1", Balance = 500, Status = AccountStatus.Active };
+            var senderAccount = new SavingsAccount { Id = 1, AccountNumber = "ACC-1", Balance = 500, Status = AccountStatus.Active };
 
-            _accountRepo.Setup(x => x.GetByAccountNumberAsync(request.AccountNumber)).ReturnsAsync(account);
+            _accountRepo.Setup(x => x.GetByAccountNumberAsync(request.AccountNumber)).ReturnsAsync(senderAccount);
 
             Func<Task> act = async () => await _service.WithdrawAsync(request);
 
-            await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Insufficient funds. Current balance: $500.00");
+            await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage($"*Fondos insuficientes. Balance actual: {senderAccount.Balance:C}*");
         }
 
         #endregion

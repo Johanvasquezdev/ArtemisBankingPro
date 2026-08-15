@@ -4,6 +4,7 @@ namespace ABP.Core.Domain.Enums
     {
         Pending = 0,
         Paid = 1,
-        Overdue = 2
+        Overdue = 2,
+        Partial = 3
     }
 }

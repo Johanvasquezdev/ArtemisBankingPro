@@ -6,6 +6,7 @@ namespace ABP.Core.Application.Interfaces.IServices
     public interface ICommerceService
     {
         Task<CommerceDto> GetByIdAsync(int id);
+        Task<string?> GetActiveUserIdAsync(int commerceId);
         Task<IEnumerable<CommerceDto>> GetAllAsync();
         Task<PaginatedResult<CommerceDto>> GetAllPagedAsync(int page, int pageSize = 20);
         Task AddAsync(CommerceDto dto);

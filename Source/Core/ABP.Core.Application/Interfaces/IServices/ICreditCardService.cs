@@ -8,6 +8,8 @@ namespace ABP.Core.Application.Interfaces.IServices
     {
         Task<CreditCardDto> GetByIdAsync(int id);
         Task<CreditCardDto?> GetByCardNumberAsync(string cardNumber);
+        Task<bool> VerifyCvcAsync(int cardId, string cvc);
+        Task<bool> ChargeAsync(int cardId, decimal amount);
         Task<IEnumerable<CreditCardDto>> GetActiveByClientIdAsync(string clientId);
         Task<PaginatedResult<CreditCardDto>> GetAllPagedAsync(int page, int pageSize = 20, CardStatus? status = null, string? cedula = null);
 

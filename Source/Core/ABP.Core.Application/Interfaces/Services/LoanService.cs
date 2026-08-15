@@ -10,7 +10,7 @@ using AutoMapper;
 namespace ABP.Core.Application.Interfaces.Services
 {
     public class LoanService(ILoanRepository repo, ILoanInstallmentRepository installmentRepo, ITransactionRepository transactionrepo, 
-        ISavingsAccountRepository accountRepo, IUserReadOnlyService user, IMapper mapper) : ILoanService
+        ISavingsAccountRepository accountRepo, IUserReadOnlyService user, IMapper mapper, IUnitOfWork? unitOfWork = null) : ILoanService
     {
         private readonly ILoanRepository _repo = repo;
         private readonly ILoanInstallmentRepository _installmentRepo = installmentRepo;
@@ -18,6 +18,7 @@ namespace ABP.Core.Application.Interfaces.Services
         private readonly ISavingsAccountRepository _accountRepo = accountRepo;
         private readonly IUserReadOnlyService _userService = user;
         private readonly IMapper _mapper = mapper;
+        private readonly IUnitOfWork? _unitOfWork = unitOfWork;
 
         public async Task<LoanDto> GetByIdAsync(int id)
         {
@@ -46,11 +47,14 @@ namespace ABP.Core.Application.Interfaces.Services
         public async Task<IEnumerable<LoanDto>> GetActiveByClientIdAsync(string clientId)
         {
             var entities = await _repo.GetActiveByClientIdAsync(clientId);
+            var installmentsByLoan = (await _installmentRepo.GetByLoanIdsAsync(entities.Select(entity => entity.Id)))
+                .GroupBy(installment => installment.LoanId)
+                .ToDictionary(group => group.Key, group => group.ToList());
             var dtos = new List<LoanDto>();
             foreach (var entity in entities)
             {
                 var dto = _mapper.Map<LoanDto>(entity);
-                var installments = await _installmentRepo.GetByLoanIdAsync(entity.Id);
+                var installments = installmentsByLoan.GetValueOrDefault(entity.Id, []);
                 dto.TotalInstallments = installments.Count();
                 dto.PaidInstallments = installments.Count(i => i.Status == InstallmentStatus.Paid);
                 dto.PendingAmount = installments.Where(i => i.Status != InstallmentStatus.Paid).Sum(i => i.InstallmentAmount - i.AmountPaid);
@@ -63,10 +67,12 @@ namespace ABP.Core.Application.Interfaces.Services
         {
             var entities = await _repo.GetAllPagedAsync(page, pageSize, status, cedula);
             var items = _mapper.Map<IEnumerable<LoanDto>>(entities);
+            var usersById = (await _userService.GetByIdsAsync(items.Select(item => item.ClientId)))
+                .ToDictionary(user => user.Id);
 
             foreach (var item in items)
             {
-                var user = await _userService.GetByIdAsync(item.ClientId);
+                usersById.TryGetValue(item.ClientId, out var user);
                 if (user != null)
                     item.ClientFullName = $"{user.FirstName} {user.LastName}";
             }
@@ -85,16 +91,8 @@ namespace ABP.Core.Application.Interfaces.Services
             var allActiveClients = await _userService.GetActiveClientsAsync(cedula);
 
             // 2. Filtrar usando la lógica de préstamos que ya conoce este servicio
-            var filteredClients = new List<UserDto>();
-            foreach (var client in allActiveClients)
-            {
-                var hasActiveLoan = await _repo.ClientHasActiveLoanAsync(client.Id);
-                if (!hasActiveLoan)
-                {
-                    filteredClients.Add(client);
-                }
-            }
-            return filteredClients;
+            var clientsWithActiveLoans = (await _repo.GetActiveLoanClientIdsAsync()).ToHashSet();
+            return allActiveClients.Where(client => !clientsWithActiveLoans.Contains(client.Id));
         }
         public async Task<LoanDto> AssignAsync(AssignLoanDto dto)
         {
@@ -120,10 +118,17 @@ namespace ABP.Core.Application.Interfaces.Services
                 AssignedByAdminId = dto.AdminId
             };
 
+            var primaryAccount = await _accountRepo.GetPrimaryAccountByClientIdAsync(dto.ClientId)
+                ?? throw new InvalidOperationException("El cliente debe tener una cuenta principal activa para desembolsar el préstamo.");
+
+            if (_unitOfWork is null)
+                throw new InvalidOperationException("La unidad de trabajo no está disponible.");
+
+            await using var loanTransaction = await _unitOfWork.BeginTransactionAsync();
             await _repo.AddAsync(loan);
 
             // Recupera el préstamo para obtener el ID real
-            var createdLoan = await _repo.GetByLoanNumberAsync(loan.LoanNumber);
+            var createdLoan = loan;
 
             // French amortization: fixed monthly payment
             var totalDebt = CalculateTotalLoanDebt(dto.Amount, dto.AnnualInterestRate, dto.TermInMonths);
@@ -139,20 +144,23 @@ namespace ABP.Core.Application.Interfaces.Services
                     Status = InstallmentStatus.Pending,
                     IsOverdue = false,
                     InstallmentNumber = i,
-                    LoanId = createdLoan!.Id // Usa el ID correcto
+                    LoanId = loan.Id,
+                    PrincipalPortion = Math.Round(fixedPayment - (dto.Amount * (dto.AnnualInterestRate / 100m) / 12m), 2),
+                    InterestPortion = Math.Round(dto.Amount * (dto.AnnualInterestRate / 100m) / 12m, 2),
+                    Loan = loan
                 };
 
-                await _installmentRepo.AddAsync(installment);
+                await _installmentRepo.AddWithoutSaveAsync(installment);
             }
 
             // Deposit loan amount into client's primary account
-            var primaryAccount = await _accountRepo.GetPrimaryAccountByClientIdAsync(dto.ClientId);
+            // The primary account was validated before opening the transaction.
             if (primaryAccount != null)
             {
                 primaryAccount.Balance += dto.Amount;
-                await _accountRepo.UpdateAsync(primaryAccount);
+                await _accountRepo.UpdateWithoutSaveAsync(primaryAccount);
 
-                await _transactionRepo.AddAsync(new Transaction
+                await _transactionRepo.AddWithoutSaveAsync(new Transaction
                 {
                     Amount = dto.Amount,
                     TransactionDate = DateTime.UtcNow,
@@ -168,6 +176,8 @@ namespace ABP.Core.Application.Interfaces.Services
                 });
             }
 
+            await _unitOfWork.SaveChangesAsync();
+            await loanTransaction.CommitAsync();
             return _mapper.Map<LoanDto>(createdLoan);
         }
 

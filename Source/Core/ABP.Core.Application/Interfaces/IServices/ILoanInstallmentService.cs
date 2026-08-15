@@ -6,6 +6,7 @@ namespace ABP.Core.Application.Interfaces.IServices
     {
         Task<LoanInstallmentDto> GetByIdAsync(int id);
         Task<IEnumerable<LoanInstallmentDto>> GetByLoanIdAsync(int loanId);
+        Task<IEnumerable<LoanInstallmentDto>> GetByLoanIdsAsync(IEnumerable<int> loanIds);
         Task<LoanInstallmentDto?> GetFirstPendingAsync(int loanId);
         Task<decimal> GetPendingAmountByLoanIdAsync(int loanId);
         Task<int> GetPaidCountAsync(int loanId);

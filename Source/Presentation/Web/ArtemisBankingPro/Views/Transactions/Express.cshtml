@@ -21,6 +21,7 @@ else
 {
     <div class="abp-panel" style="max-width: 600px;">
         <form asp-action="Express" method="post" data-loading-form data-loading-text="Procesando transferencia...">
+            <input asp-for="IdempotencyKey" type="hidden" />
             <div class="abp-mb-md">
                 <label asp-for="SourceAccountNumber" class="abp-label">Cuenta de origen</label>
                 <select asp-for="SourceAccountNumber" class="abp-select" asp-items="@(new SelectList(Model.Options.Accounts, "AccountNumber", "AccountNumber"))">

@@ -29,11 +29,18 @@ namespace ABP.Core.Application.Interfaces.Services
             return _mapper.Map<IEnumerable<CreditCardConsumptionDto>>(entities);
         }
 
-        public async Task AddAsync(CreditCardConsumptionDto dto)
+        public async Task<IEnumerable<CreditCardConsumptionDto>> GetByCommerceIdAsync(int commerceId)
+        {
+            var entities = await _repo.GetByCommerceIdAsync(commerceId);
+            return _mapper.Map<IEnumerable<CreditCardConsumptionDto>>(entities);
+        }
+
+        public async Task<CreditCardConsumptionDto> AddAsync(CreditCardConsumptionDto dto)
         {
             var entity = _mapper.Map<CreditCardConsumption>(dto);
             entity.TransactionDate = DateTime.UtcNow;
             await _repo.AddAsync(entity);
+            return _mapper.Map<CreditCardConsumptionDto>(entity);
         }
     }
 }

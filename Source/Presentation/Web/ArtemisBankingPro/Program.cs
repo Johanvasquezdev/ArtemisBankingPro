@@ -4,6 +4,7 @@ using ABP.Infraestructure.Persistence.IoC;
 using ABP.Infraestructure.Shared.IoC;
 using ArtemisBankingPro.Filters;
 using Serilog;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +12,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add<HandleDomainExceptionFilter>();
-});
+    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+}).AddRazorRuntimeCompilation();
 
 builder.Host.UseSerilog((context, _, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
@@ -23,6 +25,7 @@ builder.Services.AddApplicationLayer();
 
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddMemoryCache();
 
 var app = builder.Build();
 
@@ -39,6 +42,12 @@ app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "cashier-root",
+    pattern: "Cashier/{action=Index}/{id?}",
+    defaults: new { area = "Cashier", controller = "CashierHome" })
+    .WithStaticAssets();
 
 app.MapControllerRoute(
     name: "areas",

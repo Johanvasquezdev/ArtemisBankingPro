@@ -17,6 +17,8 @@ namespace ABP.Infraestructure.Persistence.Context.Configuration
             builder.Property(li => li.InstallmentAmount).IsRequired().HasPrecision(18,2);
             builder.Property(li => li.InstallmentNumber).IsRequired();
             builder.Property(li => li.AmountPaid).IsRequired().HasPrecision(18,2).HasDefaultValue(0m);
+            builder.Property(li => li.PrincipalPortion).IsRequired().HasPrecision(18,2).HasDefaultValue(0m);
+            builder.Property(li => li.InterestPortion).IsRequired().HasPrecision(18,2).HasDefaultValue(0m);
             builder.Property(li => li.IsOverdue).IsRequired().HasDefaultValue(false);
             #endregion
 

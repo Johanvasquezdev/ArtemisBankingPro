@@ -35,7 +35,8 @@ namespace ABP.Infraestructure.Persistence.IoC
                 services.AddNpgsqlDataSource(connectionString);
                 services.AddDbContextPool<ArtemisBankDbContext>(opt =>
                 {
-                    opt.EnableSensitiveDataLogging();
+                    if (config.GetValue<bool>("EnableSensitiveDataLogging"))
+                        opt.EnableSensitiveDataLogging();
                     opt.UseNpgsql(npgsqlOptions =>
                     {
                         npgsqlOptions.MigrationsAssembly(typeof(ArtemisBankDbContext).Assembly.FullName);
@@ -55,6 +56,7 @@ namespace ABP.Infraestructure.Persistence.IoC
             services.AddScoped<ILoanInstallmentRepository, LoanInstallmentRepository>();
             services.AddScoped<ISavingsAccountRepository, SavingsAccountRepository>();
             services.AddScoped<ITransactionRepository, TransactionRepository>();
+            services.AddScoped<IIdempotencyRepository, IdempotencyRepository>();
             services.AddScoped<IUnitOfWork, UnitOfWork>();
             #endregion
         }

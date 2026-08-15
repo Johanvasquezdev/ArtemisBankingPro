@@ -25,9 +25,18 @@ namespace ABP.Infraestructure.Persistence.Repositories
 
         public async Task<IEnumerable<Loan>> GetActiveByClientIdAsync(string clientId)
         {
-            return await _dbSet.Include(l => l.Installments)
+            return await _dbSet.AsNoTracking()
                 .Where(l => l.ClientId == clientId && l.Status == LoanStatus.Active)
                 .OrderByDescending(l => l.CreatedAt).ToListAsync();
+        }
+
+        public async Task<IEnumerable<string>> GetActiveLoanClientIdsAsync()
+        {
+            return await _dbSet.AsNoTracking()
+                .Where(l => l.Status == LoanStatus.Active)
+                .Select(l => l.ClientId)
+                .Distinct()
+                .ToListAsync();
         }
 
         public async Task<Loan?> GetActiveLoanByClientIdAsync(string clientId)

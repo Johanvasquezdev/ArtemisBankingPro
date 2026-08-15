@@ -13,6 +13,7 @@ namespace ABP.Infraestructure.Persistence.Context
         public DbSet<LoanInstallment> Installments { get; set; }
         public DbSet<SavingsAccount> Savings { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
+        public DbSet<IdempotencyRecord> IdempotencyRecords { get; set; }
 
         protected override void OnModelCreating(ModelBuilder mb)
         {

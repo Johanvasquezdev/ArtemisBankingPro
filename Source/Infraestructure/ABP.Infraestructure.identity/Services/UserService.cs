@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System.Net;
 
 namespace ABP.Infraestructure.identity.Services
 {
@@ -171,18 +172,25 @@ namespace ABP.Infraestructure.identity.Services
 
             if (!result.Succeeded) return false;
 
-            await _userManager.AddToRoleAsync(user, UserRole.Commerce.ToString());
-
-            var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
-            user.ActivationToken = token;
-            await _userManager.UpdateAsync(user);
-
-            await _emailService.SendEmailAsync(new EmailRequest
+            var roleResult = await _userManager.AddToRoleAsync(user, UserRole.Commerce.ToString());
+            if (!roleResult.Succeeded)
             {
-                To = email,
-                Subject = "ArtemisBank - Commerce Account Activation",
-                Body = $"Your commerce account is ready. Use this token to activate: {token}"
-            });
+                await _userManager.DeleteAsync(user);
+                return false;
+            }
+
+            try
+            {
+                // Every commerce needs a settlement account for Hermes Pay deposits.
+                await _savingsAccountService.CreateAccountAsync(user.Id, "SYSTEM", 0);
+            }
+            catch
+            {
+                await _userManager.DeleteAsync(user);
+                return false;
+            }
+
+            await SendActivationEmailAsync(user);
 
             return true;
         }
@@ -261,7 +269,7 @@ namespace ABP.Infraestructure.identity.Services
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return false;
 
-            user.IsActive = !isActive; //admin activated o deactivated manually
+            user.IsActive = isActive;
 
             if (isActive)
             {
@@ -328,11 +336,97 @@ namespace ABP.Infraestructure.identity.Services
             user.ActivationToken = token;
             await _userManager.UpdateAsync(user);
 
-            await _emailService.SendAsync(
-                user.Email!,
-                "Activa tu cuenta - Artemis Banking",
-                $"Hola {user.FirstName}, haz clic en el siguiente enlace para activar tu cuenta: {BuildActivationLink(token)}");
+            var activationLink = BuildActivationLink(token);
+
+            await _emailService.SendEmailAsync(new EmailRequest
+            {
+                To = user.Email!,
+                Subject = "Tu acceso a Artemis Banking Pro está listo",
+                Body = BuildActivationEmailHtml(user, activationLink),
+                TextBody = BuildActivationEmailText(user, activationLink),
+                IsHtml = true
+            });
         }
+
+        private static string BuildActivationEmailHtml(ApplicationUser user, string activationLink)
+        {
+            var firstName = WebUtility.HtmlEncode(user.FirstName);
+            var username = WebUtility.HtmlEncode(user.UserName);
+            var role = WebUtility.HtmlEncode(GetRoleLabel(user.Role));
+            var safeActivationLink = WebUtility.HtmlEncode(activationLink);
+
+            return $$"""
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tu acceso a Artemis Banking Pro</title>
+</head>
+<body style="margin:0; padding:0; background:#f5f3ee; color:#141414; font-family:Georgia,'Times New Roman',serif;">
+  <span style="display:none; max-height:0; overflow:hidden; opacity:0; color:transparent;">Tu cuenta está lista. Activa tu acceso seguro a Artemis Banking Pro.</span>
+  <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="background:#f5f3ee; padding:32px 12px;">
+    <tr>
+      <td align="center">
+        <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="max-width:620px; background:#ffffff; border:1px solid #e6dfd2; border-radius:16px; overflow:hidden;">
+          <tr>
+            <td style="padding:30px 38px; background:#151515;">
+              <div style="font-family:Georgia,'Times New Roman',serif; font-size:25px; line-height:1.1; color:#ffffff;">Artemis <span style="color:#c5a059; font-style:italic;">Banking</span></div>
+              <div style="margin-top:8px; color:#dfc48c; font-size:11px; letter-spacing:3px;">PRIVATE WEALTH</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:42px 38px 36px;">
+              <div style="display:inline-block; padding:8px 12px; border-radius:999px; background:#fbf6e9; color:#9c7b3e; font-size:11px; font-weight:bold; letter-spacing:1.5px;">CUENTA CREADA</div>
+              <h1 style="margin:22px 0 12px; font-family:Georgia,'Times New Roman',serif; font-size:34px; line-height:1.15; font-weight:normal; color:#141414;">Bienvenido, {{firstName}}</h1>
+              <p style="margin:0; color:#5f625f; font-size:16px; line-height:1.65;">Tu cuenta de Artemis Banking Pro está lista. Activa tus credenciales para comenzar a administrar tus productos financieros de forma segura.</p>
+
+              <table role="presentation" width="100%" cellspacing="0" cellpadding="0" style="margin:28px 0; border:1px solid #ece7dd; border-radius:10px; background:#faf9f6;">
+                <tr>
+                  <td style="padding:16px 18px; border-bottom:1px solid #ece7dd; color:#77736b; font-size:12px; letter-spacing:1px;">USUARIO</td>
+                  <td align="right" style="padding:16px 18px; border-bottom:1px solid #ece7dd; color:#141414; font-size:14px; font-weight:bold;">{{username}}</td>
+                </tr>
+                <tr>
+                  <td style="padding:16px 18px; color:#77736b; font-size:12px; letter-spacing:1px;">PERFIL</td>
+                  <td align="right" style="padding:16px 18px; color:#9c7b3e; font-size:14px; font-weight:bold;">{{role}}</td>
+                </tr>
+              </table>
+
+              <p style="margin:0 0 22px; color:#5f625f; font-size:15px; line-height:1.6;">Cuando estés listo, utiliza el botón para confirmar tu correo y habilitar el acceso.</p>
+              <table role="presentation" cellspacing="0" cellpadding="0">
+                <tr>
+                  <td style="border-radius:8px; background:#c5a059;">
+                    <a href="{{safeActivationLink}}" style="display:inline-block; padding:15px 24px; color:#141414; font-size:15px; font-weight:bold; text-decoration:none;">Activar mi cuenta&nbsp; →</a>
+                  </td>
+                </tr>
+              </table>
+
+              <div style="margin-top:30px; padding:16px 18px; border:1px solid #e6d7b7; border-radius:8px; background:#fbf8ee; color:#67645d; font-size:13px; line-height:1.6;">Este enlace es personal y de un solo uso. Si no reconoces esta solicitud, puedes ignorar este mensaje.</div>
+            </td>
+          </tr>
+          <tr>
+            <td style="padding:22px 38px; border-top:1px solid #eeeae2; background:#faf9f6; color:#88847b; font-size:12px; line-height:1.6;">Artemis Banking Pro · Private Wealth<br>Este mensaje fue enviado automáticamente; por favor, no respondas a este correo.</td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</body>
+</html>
+""";
+        }
+
+        private static string BuildActivationEmailText(ApplicationUser user, string activationLink) =>
+            $"Hola {user.FirstName},\n\nTu cuenta de Artemis Banking Pro está lista. Activa tus credenciales para comenzar.\n\nUsuario: {user.UserName}\nPerfil: {GetRoleLabel(user.Role)}\n\nActiva tu cuenta aquí:\n{activationLink}\n\nEste enlace es personal y de un solo uso. Si no reconoces esta solicitud, puedes ignorar este mensaje.\n\nArtemis Banking Pro · Private Wealth";
+
+        private static string GetRoleLabel(UserRole role) => role switch
+        {
+            UserRole.Client => "Cliente",
+            UserRole.Commerce => "Comercio",
+            UserRole.Cashier => "Cajero",
+            UserRole.Admin => "Administrador",
+            _ => role.ToString()
+        };
 
         private async Task<bool> TryResendConfirmationEmailAsync(ApplicationUser user)
         {

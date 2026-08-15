@@ -40,7 +40,8 @@ namespace ArtemisBankingPro.Controllers
                 ClientId = clientId,
                 SourceAccountNumber = model.SourceAccountNumber,
                 DestinationAccountNumber = model.DestinationAccountNumber,
-                Amount = model.Amount
+                Amount = model.Amount,
+                IdempotencyKey = model.IdempotencyKey
             }));
 
             SetSuccessMessage(ExpressSuccess, result.EmailNotificationFailed);
@@ -80,7 +81,8 @@ namespace ArtemisBankingPro.Controllers
                 ClientId = clientId,
                 SourceAccountNumber = model.SourceAccountNumber,
                 CreditCardNumber = card.CardNumber,
-                Amount = model.Amount
+                Amount = model.Amount,
+                IdempotencyKey = model.IdempotencyKey
             }));
 
             SetSuccessMessage(PayCardSuccess, result.EmailNotificationFailed);
@@ -120,7 +122,8 @@ namespace ArtemisBankingPro.Controllers
                 ClientId = clientId,
                 SourceAccountNumber = model.SourceAccountNumber,
                 LoanNumber = loan.LoanNumber,
-                Amount = model.Amount
+                Amount = model.Amount,
+                IdempotencyKey = model.IdempotencyKey
             }));
 
             SetSuccessMessage(PayLoanSuccess, result.EmailNotificationFailed);
@@ -150,7 +153,8 @@ namespace ArtemisBankingPro.Controllers
                 ClientId = clientId,
                 BeneficiaryId = model.BeneficiaryId,
                 SourceAccountNumber = model.SourceAccountNumber,
-                Amount = model.Amount
+                Amount = model.Amount,
+                IdempotencyKey = model.IdempotencyKey
             }));
 
             SetSuccessMessage(PayBeneficiarySuccess, result.EmailNotificationFailed);

@@ -11,7 +11,19 @@ namespace ABP.Infraestructure.Persistence.Repositories
     {
         public async Task<IEnumerable<LoanInstallment>> GetByLoanIdAsync(int loanId)
         {
-            return await _dbSet.Where(li => li.LoanId == loanId).OrderBy(li => li.DueDate).ToListAsync();
+            return await _dbSet.AsNoTracking().Where(li => li.LoanId == loanId).OrderBy(li => li.DueDate).ToListAsync();
+        }
+
+        public async Task<IEnumerable<LoanInstallment>> GetByLoanIdsAsync(IEnumerable<int> loanIds)
+        {
+            var ids = loanIds.Distinct().ToArray();
+            if (ids.Length == 0) return [];
+
+            return await _dbSet.AsNoTracking()
+                .Where(li => ids.Contains(li.LoanId))
+                .OrderBy(li => li.LoanId)
+                .ThenBy(li => li.DueDate)
+                .ToListAsync();
         }
 
         public async Task<LoanInstallment?> GetFirstPendingInstallmentAsync(int loanId)

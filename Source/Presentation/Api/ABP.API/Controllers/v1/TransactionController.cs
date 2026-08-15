@@ -4,6 +4,7 @@ using ABP.Core.Application.Interfaces.IServices;
 using Asp.Versioning;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ABP.API.Controllers.v1
 {
@@ -19,6 +20,13 @@ namespace ABP.API.Controllers.v1
             _transactionService = transactionService;
             _dashboardService = dashboardService;
         }
+
+        private string CurrentUserId => User?.FindFirstValue("uid")
+            ?? User?.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? string.Empty;
+
+        private string IdempotencyKey => HttpContext?.Request.Headers["Idempotency-Key"].FirstOrDefault()
+            ?? Guid.NewGuid().ToString("N");
 
         /// <summary>
         /// Obtiene el dashboard (indicadores diarios) para el Cajero.
@@ -50,14 +58,17 @@ namespace ABP.API.Controllers.v1
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            request.PerformedByUserId = CurrentUserId;
+            request.IdempotencyKey = IdempotencyKey;
+
             try
             {
                 await _transactionService.DepositAsync(request);
                 return Ok(new { message = "Depósito completado exitosamente." });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new ProblemDetails { Status = 400, Title = "Operación rechazada", Detail = "No fue posible completar el depósito." });
             }
         }
 
@@ -72,14 +83,17 @@ namespace ABP.API.Controllers.v1
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            request.PerformedByUserId = CurrentUserId;
+            request.IdempotencyKey = IdempotencyKey;
+
             try
             {
                 await _transactionService.WithdrawAsync(request);
                 return Ok(new { message = "Retiro completado exitosamente." });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new ProblemDetails { Status = 400, Title = "Operación rechazada", Detail = "No fue posible completar el retiro." });
             }
         }
 
@@ -94,14 +108,17 @@ namespace ABP.API.Controllers.v1
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            request.PerformedByUserId = CurrentUserId;
+            request.IdempotencyKey = IdempotencyKey;
+
             try
             {
                 await _transactionService.CashierPayCreditCardAsync(request);
                 return Ok(new { message = "Pago de tarjeta de crédito completado exitosamente." });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new ProblemDetails { Status = 400, Title = "Operación rechazada", Detail = "No fue posible completar el pago de tarjeta." });
             }
         }
 
@@ -116,14 +133,17 @@ namespace ABP.API.Controllers.v1
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            request.PerformedByUserId = CurrentUserId;
+            request.IdempotencyKey = IdempotencyKey;
+
             try
             {
                 await _transactionService.CashierPayLoanAsync(request);
                 return Ok(new { message = "Pago de préstamo completado exitosamente." });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new ProblemDetails { Status = 400, Title = "Operación rechazada", Detail = "No fue posible completar el pago de préstamo." });
             }
         }
 
@@ -138,14 +158,17 @@ namespace ABP.API.Controllers.v1
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
 
+            request.PerformedByUserId = CurrentUserId;
+            request.IdempotencyKey = IdempotencyKey;
+
             try
             {
                 await _transactionService.CashierTransferAsync(request);
                 return Ok(new { message = "Transferencia completada exitosamente." });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return BadRequest(new { message = ex.Message });
+                return BadRequest(new ProblemDetails { Status = 400, Title = "Operación rechazada", Detail = "No fue posible completar la transferencia." });
             }
         }
     }

@@ -19,9 +19,20 @@ namespace ABP.Infraestructure.identity.Services
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return null!;
 
-            var roles = await _userManager.GetRolesAsync(user);
+            return MapToDto(user, user.Role.ToString());
+        }
 
-            return MapToDto(user, roles.FirstOrDefault());
+        public async Task<IEnumerable<UserDto>> GetByIdsAsync(IEnumerable<string> userIds)
+        {
+            var ids = userIds.Where(id => !string.IsNullOrWhiteSpace(id)).Distinct().ToArray();
+            if (ids.Length == 0) return [];
+
+            var users = await _userManager.Users
+                .Where(user => ids.Contains(user.Id))
+                .AsNoTracking()
+                .ToListAsync();
+
+            return users.Select(user => MapToDto(user, user.Role.ToString()));
         }
 
         public async Task<bool> ExistsByCedulaAsync(string cedula, string? excludingUserId = null)
@@ -64,21 +75,13 @@ namespace ABP.Infraestructure.identity.Services
 
             if (role.HasValue)
             {
-                var usersInRole = await _userManager.GetUsersInRoleAsync(role.Value.ToString());
-                var userIds = usersInRole.Select(u => u.Id).ToHashSet();
                 query = (IOrderedQueryable<ApplicationUser>)query.Where(u => u.Role == role.Value);
             }
 
             var totalCount = await query.CountAsync();
             var users = await query.OrderBy(u => u.UserName).Skip((page - 1) * pageSize).Take(pageSize).ToListAsync();
 
-            var userDtos = new List<UserDto>();
-
-            foreach (var user in users)
-            {
-                var roles = await _userManager.GetRolesAsync(user);
-                userDtos.Add(MapToDto(user, roles.FirstOrDefault()));
-            }
+            var userDtos = users.Select(user => MapToDto(user, user.Role.ToString())).ToList();
 
             return new PaginatedResult<UserDto>
             {
@@ -101,13 +104,7 @@ namespace ABP.Infraestructure.identity.Services
                 .Take(pageSize)
                 .ToListAsync();
 
-            var userDtos = new List<UserDto>();
-
-            foreach (var user in users)
-            {
-                var roles = await _userManager.GetRolesAsync(user);
-                userDtos.Add(MapToDto(user, roles.FirstOrDefault()));
-            }
+            var userDtos = users.Select(user => MapToDto(user, user.Role.ToString())).ToList();
 
             return new PaginatedResult<UserDto>
             {

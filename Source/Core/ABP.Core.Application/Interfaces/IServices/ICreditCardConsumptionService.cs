@@ -6,6 +6,7 @@ namespace ABP.Core.Application.Interfaces.IServices
     {
         Task<CreditCardConsumptionDto> GetByIdAsync(int id);
         Task<IEnumerable<CreditCardConsumptionDto>> GetByCardIdAsync(int creditCardId);
-        Task AddAsync(CreditCardConsumptionDto dto);
+        Task<IEnumerable<CreditCardConsumptionDto>> GetByCommerceIdAsync(int commerceId);
+        Task<CreditCardConsumptionDto> AddAsync(CreditCardConsumptionDto dto);
     }
 }

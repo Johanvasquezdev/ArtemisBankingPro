@@ -17,5 +17,6 @@ builder.ConfigureFunctionsWebApplication();
 builder.Services.AddPersistenceInfrastructure(builder.Configuration);
 builder.Services.AddSharedInfrastructure(builder.Configuration);
 builder.Services.AddApplicationLayer();
+builder.Services.AddMemoryCache();
 
 builder.Build().Run();

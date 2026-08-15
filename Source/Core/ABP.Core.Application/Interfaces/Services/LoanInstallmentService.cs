@@ -29,6 +29,12 @@ namespace ABP.Core.Application.Interfaces.Services
             return _mapper.Map<IEnumerable<LoanInstallmentDto>>(entities);
         }
 
+        public async Task<IEnumerable<LoanInstallmentDto>> GetByLoanIdsAsync(IEnumerable<int> loanIds)
+        {
+            var entities = await _repo.GetByLoanIdsAsync(loanIds);
+            return _mapper.Map<IEnumerable<LoanInstallmentDto>>(entities);
+        }
+
         public async Task<LoanInstallmentDto?> GetFirstPendingAsync(int loanId)
         {
             var entity = await _repo.GetFirstPendingInstallmentAsync(loanId);

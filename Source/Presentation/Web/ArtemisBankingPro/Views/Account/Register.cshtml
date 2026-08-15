@@ -4,81 +4,81 @@
     Layout = "~/Views/Shared/_AuthLayout.cshtml";
 }
 
-<div class="abp-panel" style="animation: fadeUp 0.6s ease-out; max-width: 40rem; margin: 0 auto;">
-    <div class="abp-panel-header text-center pb-2">
-        <h2 class="h4 mb-1">Crea tu cuenta</h2>
-        <p class="text-muted small">Únete a Artemis Banking Pro y gestiona tu patrimonio</p>
-    </div>
-
-    @if (Model.HasError)
-    {
-        <div class="abp-alert abp-alert-danger mb-4">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-            @Model.Error
-        </div>
-    }
-
-    <form asp-action="Register" method="post" class="abp-form">
-        
-        <div class="row">
-            <div class="col-md-6 form-group mb-3">
-                <label asp-for="FirstName" class="form-label">Nombre</label>
-                <input asp-for="FirstName" class="form-control" placeholder="John" autofocus />
-                <span asp-validation-for="FirstName" class="text-danger small"></span>
+<main class="flex min-h-screen items-center justify-center px-6 py-12">
+    <div class="w-full max-w-2xl rounded-2xl border border-gold/20 bg-panel p-8 shadow-xl sm:p-10">
+        <div class="mb-8 text-center">
+            <div class="mx-auto mb-5 w-56">
+                <partial name="_BrandLogo" model='"dark"' />
             </div>
-            
-            <div class="col-md-6 form-group mb-3">
-                <label asp-for="LastName" class="form-label">Apellido</label>
-                <input asp-for="LastName" class="form-control" placeholder="Doe" />
-                <span asp-validation-for="LastName" class="text-danger small"></span>
-            </div>
+            <h1 class="font-serif text-3xl font-semibold tracking-tight text-obsidian">Crea tu cuenta</h1>
+            <p class="mt-2 text-sm text-obsidian/60">Únete a Artemis Banking Pro y gestiona tu patrimonio</p>
         </div>
 
-        <div class="row">
-            <div class="col-md-6 form-group mb-3">
-                <label asp-for="Cedula" class="form-label">Cédula</label>
-                <input asp-for="Cedula" class="form-control" placeholder="00000000000" />
-                <span asp-validation-for="Cedula" class="text-danger small"></span>
+        @if (Model.HasError)
+        {
+            <div class="mb-6 flex items-center gap-3 rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800" role="alert">
+                <svg class="shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                <span>@Model.Error</span>
+            </div>
+        }
+
+        <form asp-action="Register" method="post" class="space-y-5">
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div>
+                    <label asp-for="FirstName" class="mb-2 block text-sm font-medium text-obsidian">Nombre</label>
+                    <input asp-for="FirstName" class="w-full rounded-lg border border-obsidian/15 bg-panel px-3 py-2.5 text-sm text-obsidian outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20" placeholder="John" autofocus />
+                    <span asp-validation-for="FirstName" class="mt-1 block text-xs text-red-600"></span>
+                </div>
+                <div>
+                    <label asp-for="LastName" class="mb-2 block text-sm font-medium text-obsidian">Apellido</label>
+                    <input asp-for="LastName" class="w-full rounded-lg border border-obsidian/15 bg-panel px-3 py-2.5 text-sm text-obsidian outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20" placeholder="Doe" />
+                    <span asp-validation-for="LastName" class="mt-1 block text-xs text-red-600"></span>
+                </div>
             </div>
 
-            <div class="col-md-6 form-group mb-3">
-                <label asp-for="Username" class="form-label">Usuario</label>
-                <input asp-for="Username" class="form-control" placeholder="johndoe" autocomplete="username" />
-                <span asp-validation-for="Username" class="text-danger small"></span>
-            </div>
-        </div>
-
-        <div class="form-group mb-3">
-            <label asp-for="Email" class="form-label">Correo Electrónico</label>
-            <input asp-for="Email" class="form-control" placeholder="john.doe@example.com" autocomplete="email" />
-            <span asp-validation-for="Email" class="text-danger small"></span>
-        </div>
-
-        <div class="row">
-            <div class="col-md-6 form-group mb-4">
-                <label asp-for="Password" class="form-label">Contraseña</label>
-                <input asp-for="Password" class="form-control" placeholder="••••••••" autocomplete="new-password" />
-                <span asp-validation-for="Password" class="text-danger small"></span>
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div>
+                    <label asp-for="Cedula" class="mb-2 block text-sm font-medium text-obsidian">Cédula</label>
+                    <input asp-for="Cedula" class="w-full rounded-lg border border-obsidian/15 bg-panel px-3 py-2.5 text-sm text-obsidian outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20" placeholder="00000000000" />
+                    <span asp-validation-for="Cedula" class="mt-1 block text-xs text-red-600"></span>
+                </div>
+                <div>
+                    <label asp-for="Username" class="mb-2 block text-sm font-medium text-obsidian">Usuario</label>
+                    <input asp-for="Username" class="w-full rounded-lg border border-obsidian/15 bg-panel px-3 py-2.5 text-sm text-obsidian outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20" placeholder="johndoe" autocomplete="username" />
+                    <span asp-validation-for="Username" class="mt-1 block text-xs text-red-600"></span>
+                </div>
             </div>
 
-            <div class="col-md-6 form-group mb-4">
-                <label asp-for="ConfirmPassword" class="form-label">Confirmar Contraseña</label>
-                <input asp-for="ConfirmPassword" class="form-control" placeholder="••••••••" autocomplete="new-password" />
-                <span asp-validation-for="ConfirmPassword" class="text-danger small"></span>
+            <div>
+                <label asp-for="Email" class="mb-2 block text-sm font-medium text-obsidian">Correo electrónico</label>
+                <input asp-for="Email" class="w-full rounded-lg border border-obsidian/15 bg-panel px-3 py-2.5 text-sm text-obsidian outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20" placeholder="john.doe@example.com" autocomplete="email" />
+                <span asp-validation-for="Email" class="mt-1 block text-xs text-red-600"></span>
             </div>
-        </div>
 
-        <button type="submit" class="abp-btn abp-btn-primary w-100 mb-4 py-2">
-            Registrarme
-        </button>
+            <div class="grid grid-cols-1 gap-5 md:grid-cols-2">
+                <div>
+                    <label asp-for="Password" class="mb-2 block text-sm font-medium text-obsidian">Contraseña</label>
+                    <input asp-for="Password" class="w-full rounded-lg border border-obsidian/15 bg-panel px-3 py-2.5 text-sm text-obsidian outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20" placeholder="••••••••" autocomplete="new-password" />
+                    <span asp-validation-for="Password" class="mt-1 block text-xs text-red-600"></span>
+                </div>
+                <div>
+                    <label asp-for="ConfirmPassword" class="mb-2 block text-sm font-medium text-obsidian">Confirmar contraseña</label>
+                    <input asp-for="ConfirmPassword" class="w-full rounded-lg border border-obsidian/15 bg-panel px-3 py-2.5 text-sm text-obsidian outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20" placeholder="••••••••" autocomplete="new-password" />
+                    <span asp-validation-for="ConfirmPassword" class="mt-1 block text-xs text-red-600"></span>
+                </div>
+            </div>
 
-        <div class="text-center">
-            <p class="text-muted small mb-0">
-                ¿Ya tienes una cuenta? <a asp-controller="Login" asp-action="Index" class="text-primary text-decoration-none fw-medium">Inicia sesión</a>
+            <button type="submit" class="w-full rounded-lg bg-obsidian px-4 py-3 text-sm font-semibold text-white transition hover:bg-obsidian-light focus:outline-none focus:ring-2 focus:ring-gold/40">
+                Registrarme
+            </button>
+
+            <p class="text-center text-sm text-obsidian/60">
+                ¿Ya tienes una cuenta?
+                <a asp-controller="Login" asp-action="Index" class="font-medium text-gold underline-offset-4 hover:underline">Inicia sesión</a>
             </p>
-        </div>
-    </form>
-</div>
+        </form>
+    </div>
+</main>
 
 @section Scripts {
     @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}

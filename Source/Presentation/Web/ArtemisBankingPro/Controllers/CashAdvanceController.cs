@@ -42,7 +42,8 @@ namespace ArtemisBankingPro.Controllers
                 ClientId = clientId,
                 CreditCardId = model.CreditCardId,
                 SavingsAccountId = model.SavingsAccountId,
-                Amount = model.Amount
+                Amount = model.Amount,
+                IdempotencyKey = model.IdempotencyKey
             }));
 
             TempData["SuccessMessage"] = result.EmailNotificationFailed

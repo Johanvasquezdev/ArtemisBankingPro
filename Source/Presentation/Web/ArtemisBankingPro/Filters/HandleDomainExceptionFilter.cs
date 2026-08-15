@@ -3,6 +3,7 @@ using FluentValidation;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
+using Microsoft.AspNetCore.Mvc.Routing;
 
 namespace ArtemisBankingPro.Filters
 {
@@ -21,7 +22,9 @@ namespace ArtemisBankingPro.Filters
             tempData.Save();
 
             var referer = context.HttpContext.Request.Headers["Referer"].ToString();
-            if (!string.IsNullOrWhiteSpace(referer) && Uri.TryCreate(referer, UriKind.Absolute, out _))
+            var urlHelperFactory = context.HttpContext.RequestServices.GetRequiredService<IUrlHelperFactory>();
+            var urlHelper = urlHelperFactory.GetUrlHelper(context);
+            if (!string.IsNullOrWhiteSpace(referer) && urlHelper.IsLocalUrl(referer))
             {
                 context.Result = new RedirectResult(referer);
             }

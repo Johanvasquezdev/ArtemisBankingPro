@@ -4,6 +4,9 @@ using ABP.Core.Application.ViewModels.Account;
 using ABP.Core.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Security.Claims;
 
 namespace ArtemisBankingPro.Areas.Admin.Controllers
@@ -12,10 +15,12 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
     [Authorize(Roles = "Admin")]
     [Route("Admin/[controller]")]
     public class SavingsAccountManagementController(ISavingsAccountService accountService,
-        IUserReadOnlyService userReadOnlyService) : Controller
+        IUserReadOnlyService userReadOnlyService,
+        ILogger<SavingsAccountManagementController>? logger = null) : Controller
     {
         private readonly ISavingsAccountService _accountService = accountService;
         private readonly IUserReadOnlyService _userReadOnlyService = userReadOnlyService;
+        private readonly ILogger<SavingsAccountManagementController> _logger = logger ?? NullLogger<SavingsAccountManagementController>.Instance;
 
         [HttpGet("")]
         [HttpGet("Index")]
@@ -68,9 +73,26 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
                 InitialBalance = model.InitialBalance
             };
 
-            await _accountService.AssignSecondaryAsync(dto);
-            TempData["SuccessMessage"] = "Cuenta de ahorro secundaria creada correctamente.";
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _accountService.AssignSecondaryAsync(dto);
+                TempData["SuccessMessage"] = "Cuenta de ahorro secundaria creada correctamente.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Error de base de datos al asignar una cuenta secundaria para el cliente {ClientId}", model.ClientId);
+                model.HasError = true;
+                model.Error = "No se pudo guardar la cuenta. Verifica la conexión y vuelve a intentarlo.";
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al asignar una cuenta secundaria para el cliente {ClientId}", model.ClientId);
+                model.HasError = true;
+                model.Error = "No se pudo completar la asignación. Vuelve a intentarlo.";
+                return View(model);
+            }
         }
 
         [HttpGet("Details/{accountNumber}")]

@@ -1,4 +1,4 @@
-﻿using System.Security.Claims;
+using System.Security.Claims;
 using ABP.Core.Application.DTOs;
 using ABP.Core.Application.DTOs.User;
 using ABP.Core.Application.Interfaces.IServices;
@@ -102,7 +102,7 @@ namespace ABP.Unit.Tests.Controllers.Presentation
 
             // Assert
             result.Should().BeOfType<RedirectToActionResult>();
-            _controller.TempData["ErrorMessage"].Should().Be("No puede editar su propia cuenta desde este mÃ³dulo.");
+            _controller.TempData["ErrorMessage"].Should().Be("No puede editar su propia cuenta desde este módulo.");
         }
     }
 }

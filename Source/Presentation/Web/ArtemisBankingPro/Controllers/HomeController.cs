@@ -16,7 +16,7 @@ namespace ArtemisBankingPro.Controllers
         {
             var clientId = User.GetUserId();
             if (string.IsNullOrEmpty(clientId))
-                return RedirectToAction(nameof(AccessDenied));
+                return RedirectToAction("AccessDenied", "Login");
 
             var model = await mediator.Send(new GetClientHomeQuery(clientId));
             return View(model);
@@ -27,16 +27,12 @@ namespace ArtemisBankingPro.Controllers
         {
             var clientId = User.GetUserId();
             if (string.IsNullOrEmpty(clientId))
-                return RedirectToAction(nameof(AccessDenied));
+                return RedirectToAction("AccessDenied", "Login");
 
             var model = await mediator.Send(new GetAccountDetailQuery(clientId, accountNumber, dateFrom, dateTo));
             return View(model);
         }
 
-        public IActionResult AccessDenied()
-        {
-            return View();
-        }
 
         public IActionResult Privacy()
         {

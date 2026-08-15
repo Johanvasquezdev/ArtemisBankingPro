@@ -21,5 +21,10 @@ namespace ABP.Core.Domain.Entities
         public string DestinationAccountNumber { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public string Description { get; set; } = string.Empty;
+        /// <summary>
+        /// Identity user that physically performed the operation (for example, a cashier).
+        /// It is nullable because client/system operations do not have a cashier actor.
+        /// </summary>
+        public string? PerformedByUserId { get; set; }
     }
 }

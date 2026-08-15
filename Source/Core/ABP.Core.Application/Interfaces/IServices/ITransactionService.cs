@@ -10,6 +10,8 @@ namespace ABP.Core.Application.Interfaces.IServices
     {
         Task<TransactionDto> GetByIdAsync(int id);
         Task<IEnumerable<TransactionDto>> GetByAccountIdAsync(int savingsAccountId);
+        Task<IEnumerable<TransactionDto>> GetByAccountIdsAsync(IEnumerable<int> savingsAccountIds);
+        Task<IEnumerable<TransactionDto>> GetHistoryAsync(int take = 100);
 
         // Client module operations
         Task<CommandResult> MakeExpressTransactionAsync(MakeExpressTransactionDto dto);

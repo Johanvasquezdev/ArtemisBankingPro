@@ -31,6 +31,36 @@ namespace ABP.Core.Application.Interfaces.Services
             return entity is null ? null : _mapper.Map<CreditCardDto>(entity);
         }
 
+        public async Task<bool> VerifyCvcAsync(int cardId, string cvc)
+        {
+            if (string.IsNullOrWhiteSpace(cvc) || cvc.Length != 3 || !cvc.All(char.IsDigit))
+                return false;
+
+            var card = await _repo.GetByIdAsync(cardId);
+            if (card == null || string.IsNullOrWhiteSpace(card.CVCHash))
+                return false;
+
+            var actualHash = Convert.FromHexString(card.CVCHash);
+            var providedHash = SHA256.HashData(Encoding.UTF8.GetBytes(cvc));
+            return CryptographicOperations.FixedTimeEquals(actualHash, providedHash);
+        }
+
+        public async Task<bool> ChargeAsync(int cardId, decimal amount)
+        {
+            if (amount <= 0) return false;
+
+            var card = await _repo.GetByIdAsync(cardId);
+            if (card == null || card.Status != CardStatus.Active)
+                return false;
+
+            if (amount > card.CreditLimit - card.AmountOwed)
+                return false;
+
+            card.AmountOwed += amount;
+            await _repo.UpdateAsync(card);
+            return true;
+        }
+
         public async Task<IEnumerable<CreditCardDto>> GetActiveByClientIdAsync(string clientId)
         {
             var entities = await _repo.GetActiveCardsByClientIdAsync(clientId);
@@ -41,10 +71,12 @@ namespace ABP.Core.Application.Interfaces.Services
         {
             var entities = await _repo.GetAllPagedAsync(page, pageSize, status, cedula);
             var items = _mapper.Map<IEnumerable<CreditCardDto>>(entities);
+            var usersById = (await _userService.GetByIdsAsync(items.Select(item => item.ClientId)))
+                .ToDictionary(user => user.Id);
 
             foreach (var item in items)
             {
-                var user = await _userService.GetByIdAsync(item.ClientId);
+                usersById.TryGetValue(item.ClientId, out var user);
                 if (user != null)
                     item.ClientFullName = $"{user.FirstName} {user.LastName}";
             }

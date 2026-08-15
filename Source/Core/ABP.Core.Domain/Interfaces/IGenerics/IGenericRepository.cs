@@ -6,7 +6,10 @@ namespace ABP.Core.Domain.Interfaces.IGenerics
         IQueryable<Entity> GetAll();
         Task<IEnumerable<Entity>> GetAllAsync();
         Task AddAsync(Entity entity);
+        Task AddWithoutSaveAsync(Entity entity);
         Task DeleteAsync(Entity entity);
+        Task DeleteWithoutSaveAsync(Entity entity);
         Task UpdateAsync(Entity entity);
+        Task UpdateWithoutSaveAsync(Entity entity);
     }
 }

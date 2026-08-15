@@ -30,5 +30,13 @@ namespace ABP.Infraestructure.Persistence.Repositories
         {
             return await _dbSet.FirstOrDefaultAsync(c => c.Id == commerceId);
         }
+
+        public async Task<string?> GetActiveUserIdAsync(int commerceId)
+        {
+            return await _identity.Users
+                .Where(u => u.CommerceId == commerceId && u.IsActive && u.EmailConfirmed)
+                .Select(u => u.Id)
+                .FirstOrDefaultAsync();
+        }
     }
 }

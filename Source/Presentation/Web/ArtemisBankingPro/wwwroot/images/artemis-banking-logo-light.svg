@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 520 140" role="img" aria-labelledby="title desc">
+  <title id="title">Artemis Banking Pro</title>
+  <desc id="desc">Monograma Artemis en dorado champagne junto al nombre Artemis Banking Pro.</desc>
+
+  <defs>
+    <linearGradient id="champagne" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#E0C58D"/>
+      <stop offset="0.48" stop-color="#C5A059"/>
+      <stop offset="1" stop-color="#9C7B3E"/>
+    </linearGradient>
+  </defs>
+
+  <g fill="none" stroke="url(#champagne)" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M26 96C8 72 14 38 39 22C62 7 94 13 108 35" stroke-width="3" opacity=".9"/>
+    <path d="M32 112C60 130 96 121 112 95" stroke-width="2" opacity=".65"/>
+    <path d="M39 104 68 22l31 82" stroke-width="8"/>
+    <path d="M51 73h35" stroke-width="6"/>
+    <path d="M68 22v82" stroke-width="3" opacity=".8"/>
+  </g>
+
+  <g fill="#FAF9F6">
+    <text x="140" y="68" font-family="Georgia, 'Times New Roman', serif" font-size="46" letter-spacing="-.8">Artemis</text>
+    <text x="144" y="101" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="600" letter-spacing="5.2">BANKING PRO</text>
+  </g>
+</svg>

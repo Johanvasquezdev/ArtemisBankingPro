@@ -6,189 +6,148 @@
         => cardNumber.Length >= 4 ? $"•••• •••• •••• {cardNumber[^4..]}" : cardNumber;
 }
 
-<div class="abp-content-header abp-flex abp-justify-between abp-items-center abp-mb-xl">
-    <h1 class="abp-heading-xl abp-font-serif">Hola, @Model.ClientFullName</h1>
-    <h3 class="abp-heading-md abp-text-gold abp-font-serif">Patrimonio Total: @Model.TotalBalance.ToString("C2", culture)</h3>
+<!-- Welcome Section -->
+<div class="flex flex-col md:flex-row md:justify-between md:items-end mb-10 gap-4">
+    <div>
+        <h1 class="font-serif text-4xl text-obsidian font-medium mb-1">Hola, @Model.ClientFullName</h1>
+        <p class="text-obsidian/60 text-sm">Resumen de su portafolio privado</p>
+    </div>
+    <div class="text-right">
+        <h3 class="text-xs uppercase tracking-widest text-obsidian/60 mb-1">Patrimonio Total</h3>
+        <p class="font-serif text-3xl text-gold">@Model.TotalBalance.ToString("C2", culture)</p>
+    </div>
 </div>
 
 @if (Model.HasDelinquentLoans)
 {
-    <div class="abp-alert-warning abp-mb-xl">
-        Tiene préstamo(s) en mora. Le recomendamos realizar el pago de sus cuotas pendientes lo antes posible.
+    <div class="mb-10 p-4 bg-red-50 border border-red-200 text-red-800 rounded-lg flex items-start gap-3 shadow-sm">
+        <svg class="mt-0.5 shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <span class="text-sm font-medium">Tiene préstamo(s) en mora. Le recomendamos realizar el pago de sus cuotas pendientes lo antes posible para mantener su estatus de élite.</span>
     </div>
 }
 
-<div class="abp-grid-3 abp-mb-xl">
-    <a asp-controller="Transactions" asp-action="Express" class="abp-quick-action" style="text-decoration: none;">
-        <div class="qa-icon">
-            <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3v18"/><path d="M3 17l4 4 4-4"/><path d="M7 21V3"/><path d="M21 7l-4-4-4 4"/></svg>
+<!-- Quick Actions -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-12">
+    <a asp-controller="Transactions" asp-action="Express" class="group relative flex min-h-32 items-center justify-between overflow-hidden rounded-2xl border border-gold/20 bg-panel p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/50 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/50 focus-visible:ring-offset-2 no-underline">
+        <div class="flex items-center gap-4">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gold/20 bg-gold/10 text-gold transition-all duration-300 group-hover:bg-gold group-hover:text-white">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3v18"/><path d="M3 17l4 4 4-4"/><path d="M7 21V3"/><path d="M21 7l-4-4-4 4"/></svg>
+            </div>
+            <div>
+                <h4 class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-gold-dark">Transferir</h4>
+                <h3 class="mt-1 font-serif text-xl font-medium tracking-tight text-obsidian">Express</h3>
+            </div>
         </div>
-        <div>
-            <h4 class="abp-eyebrow">Transferir</h4>
-            <h3 class="abp-heading-sm">Transacción Express</h3>
-        </div>
-        <div class="qa-arrow">→</div>
+        <span class="flex h-9 w-9 items-center justify-center rounded-full border border-obsidian/10 text-obsidian/40 transition-all duration-300 group-hover:border-gold/40 group-hover:bg-gold/10 group-hover:text-gold" aria-hidden="true">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </span>
     </a>
-    <a asp-controller="Transactions" asp-action="PayCreditCard" class="abp-quick-action" style="text-decoration: none;">
-        <div class="qa-icon">
-            <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+    <a asp-controller="Transactions" asp-action="PayCreditCard" class="group relative flex min-h-32 items-center justify-between overflow-hidden rounded-2xl border border-gold/20 bg-panel p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/50 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/50 focus-visible:ring-offset-2 no-underline">
+        <div class="flex items-center gap-4">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gold/20 bg-gold/10 text-gold transition-all duration-300 group-hover:bg-gold group-hover:text-white">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            </div>
+            <div>
+                <h4 class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-gold-dark">Pagar</h4>
+                <h3 class="mt-1 font-serif text-xl font-medium tracking-tight text-obsidian">Tarjeta</h3>
+            </div>
         </div>
-        <div>
-            <h4 class="abp-eyebrow">Pagar</h4>
-            <h3 class="abp-heading-sm">Tarjeta de Crédito</h3>
-        </div>
-        <div class="qa-arrow">→</div>
+        <span class="flex h-9 w-9 items-center justify-center rounded-full border border-obsidian/10 text-obsidian/40 transition-all duration-300 group-hover:border-gold/40 group-hover:bg-gold/10 group-hover:text-gold" aria-hidden="true">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </span>
     </a>
-    <a asp-controller="CashAdvance" asp-action="Index" class="abp-quick-action" style="text-decoration: none;">
-        <div class="qa-icon">
-            <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+    <a asp-controller="CashAdvance" asp-action="Index" class="group relative flex min-h-32 items-center justify-between overflow-hidden rounded-2xl border border-gold/20 bg-panel p-5 shadow-sm transition-all duration-300 hover:-translate-y-0.5 hover:border-gold/50 hover:shadow-lg focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/50 focus-visible:ring-offset-2 no-underline">
+        <div class="flex items-center gap-4">
+            <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl border border-gold/20 bg-gold/10 text-gold transition-all duration-300 group-hover:bg-gold group-hover:text-white">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            </div>
+            <div>
+                <h4 class="text-[0.65rem] font-semibold uppercase tracking-[0.2em] text-gold-dark">Retirar</h4>
+                <h3 class="mt-1 font-serif text-xl font-medium tracking-tight text-obsidian">Avance</h3>
+            </div>
         </div>
-        <div>
-            <h4 class="abp-eyebrow">Retirar</h4>
-            <h3 class="abp-heading-sm">Avance de Efectivo</h3>
-        </div>
-        <div class="qa-arrow">→</div>
+        <span class="flex h-9 w-9 items-center justify-center rounded-full border border-obsidian/10 text-obsidian/40 transition-all duration-300 group-hover:border-gold/40 group-hover:bg-gold/10 group-hover:text-gold" aria-hidden="true">
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14"/><path d="m13 6 6 6-6 6"/></svg>
+        </span>
     </a>
 </div>
 
-<div class="abp-mb-xl">
-    <div class="abp-flex abp-items-center abp-gap-sm abp-mb-md">
-        <svg class="abp-icon abp-text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
-        <h2 class="abp-heading-md abp-font-serif">Cuentas de Ahorro</h2>
-    </div>
-    @if (Model.Accounts.Count == 0)
-    {
-        <p class="abp-text-muted">No posee cuentas de ahorro.</p>
-    }
-    else
-    {
-        <div class="abp-grid-3">
-            @foreach (var account in Model.Accounts)
-            {
-                <div class="abp-panel abp-panel-highlight abp-flex" style="flex-direction: column; justify-content: space-between;">
-                    <div>
-                        <div class="abp-flex abp-justify-between abp-items-center abp-mb-sm">
-                            <span class="abp-eyebrow">Cuenta de Ahorro</span>
-                            <span class="@(account.Status == AccountStatus.Active ? "abp-badge-success" : "abp-badge-neutral")">@account.Status</span>
-                        </div>
-                        <div class="abp-font-mono abp-text-muted abp-mb-md">@account.AccountNumber</div>
-                        <div class="abp-heading-lg abp-font-serif abp-text-gold abp-mb-md">@account.Balance.ToString("C2", culture)</div>
-                    </div>
-                    <a asp-controller="Home" asp-action="AccountDetail" asp-route-accountNumber="@account.AccountNumber" class="abp-btn-outline abp-btn-sm" style="text-align: center; display: block;">Ver detalles</a>
-                </div>
-            }
+<!-- Primary Row: Accounts & Transactions -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+    <!-- Accounts -->
+    <div class="lg:col-span-2">
+        <div class="flex items-center gap-2 mb-6">
+            <svg class="text-gold" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+            <h2 class="font-serif text-2xl font-medium text-obsidian">Liquidez</h2>
         </div>
-    }
-</div>
-
-<div class="abp-mb-xl">
-    <div class="abp-flex abp-items-center abp-gap-sm abp-mb-md">
-        <svg class="abp-icon abp-text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-        <h2 class="abp-heading-md abp-font-serif">Tarjetas de Crédito</h2>
-    </div>
-    @if (Model.CreditCards.Count == 0)
-    {
-        <p class="abp-text-muted">No posee tarjetas de crédito.</p>
-    }
-    else
-    {
-        <div class="abp-grid-3">
-            @foreach (var card in Model.CreditCards)
-            {
-                <div class="abp-credit-card">
-                    <div class="abp-flex abp-justify-between abp-items-center abp-mb-md">
-                        <span class="abp-eyebrow" style="color: rgba(255,255,255,0.7);">Artemis Black</span>
-                        <svg class="abp-icon" style="color: var(--abp-gold);" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
-                    </div>
-                    <div class="abp-font-mono abp-mb-md" style="font-size: 1.25rem; letter-spacing: 0.1em;">@MaskCard(card.CardNumber)</div>
-                    <div class="abp-grid-2 abp-gap-sm" style="font-size: 0.875rem;">
-                        <div>
-                            <div style="color: rgba(255,255,255,0.7); text-transform: uppercase; font-size: 0.75rem;">Límite</div>
-                            <div>@card.CreditLimit.ToString("C2", culture)</div>
-                        </div>
-                        <div>
-                            <div style="color: rgba(255,255,255,0.7); text-transform: uppercase; font-size: 0.75rem;">Deuda</div>
-                            <div class="abp-text-danger">@card.AmountOwed.ToString("C2", culture)</div>
-                        </div>
-                    </div>
-                </div>
-            }
-        </div>
-    }
-</div>
-
-<div class="abp-grid-2 abp-mb-xl">
-    <div>
-        <div class="abp-flex abp-items-center abp-gap-sm abp-mb-md">
-            <svg class="abp-icon abp-text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            <h2 class="abp-heading-md abp-font-serif">Préstamos</h2>
-        </div>
-        @if (Model.Loans.Count == 0)
+        
+        @if (Model.Accounts.Count == 0)
         {
-            <div class="abp-panel"><p class="abp-text-muted abp-mb-0">No posee préstamos activos.</p></div>
+            <div class="p-8 bg-panel border border-obsidian/10 rounded-xl text-center text-obsidian/60">
+                No posee cuentas de ahorro.
+            </div>
         }
         else
         {
-            <div class="abp-flex" style="flex-direction: column; gap: 1rem;">
-                @foreach (var loan in Model.Loans)
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                @foreach (var account in Model.Accounts)
                 {
-                    <div class="abp-panel abp-flex" style="flex-direction: column;">
-                        <div class="abp-flex abp-justify-between abp-items-center abp-mb-sm">
-                            <span class="abp-heading-sm abp-font-serif">Préstamo @loan.LoanNumber</span>
-                            @if (loan.IsOnTime)
-                            {
-                                <span class="abp-badge-success">Al día</span>
-                            }
-                            else
-                            {
-                                <span class="abp-badge-danger">En mora</span>
-                            }
+                    <div class="bg-panel border border-obsidian/10 rounded-xl p-6 flex flex-col justify-between hover:shadow-lg hover:border-gold/30 transition-all">
+                        <div>
+                            <div class="flex justify-between items-center mb-4">
+                                <span class="text-[0.65rem] uppercase tracking-widest text-obsidian/60">Cuenta de Ahorro</span>
+                                @if (account.Status == AccountStatus.Active) {
+                                    <span class="px-2 py-1 text-[0.65rem] uppercase tracking-wider bg-green-50 text-green-700 rounded-full border border-green-200">Activa</span>
+                                } else {
+                                    <span class="px-2 py-1 text-[0.65rem] uppercase tracking-wider bg-gray-50 text-gray-600 rounded-full border border-gray-200">Inactiva</span>
+                                }
+                            </div>
+                            <div class="font-mono text-sm text-obsidian/70 mb-6 tracking-wider">@account.AccountNumber</div>
+                            <div class="font-serif text-3xl text-obsidian mb-6">@account.Balance.ToString("C2", culture)</div>
                         </div>
-                        <div class="abp-flex abp-justify-between abp-mb-xs">
-                            <span class="abp-text-muted" style="font-size: 0.875rem;">Progreso: @loan.PaidInstallments de @loan.TotalInstallments cuotas</span>
-                            <span class="abp-text-danger" style="font-weight: 600;">@loan.PendingAmount.ToString("C2", culture) pendientes</span>
-                        </div>
-                        <div class="abp-progress abp-mb-md">
-                            @{
-                                var progressPercent = loan.TotalInstallments > 0 ? (int)((double)loan.PaidInstallments / loan.TotalInstallments * 100) : 0;
-                            }
-                            <div class="abp-progress-bar" style="width: @(progressPercent)%;"></div>
-                        </div>
-                        <a asp-controller="Transactions" asp-action="PayLoan" class="abp-btn-outline abp-btn-sm" style="text-align: center;">Pagar Cuota</a>
+                        <a asp-controller="Home" asp-action="AccountDetail" asp-route-accountNumber="@account.AccountNumber" class="block w-full text-center py-2.5 px-4 text-sm font-medium border border-obsidian/20 text-obsidian rounded-lg hover:bg-obsidian/5 transition-colors">
+                            Ver detalles
+                        </a>
                     </div>
                 }
             </div>
         }
     </div>
 
-    <div>
-        <div class="abp-flex abp-items-center abp-gap-sm abp-mb-md">
-            <svg class="abp-icon abp-text-gold" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-            <h2 class="abp-heading-md abp-font-serif">Transacciones Recientes</h2>
+    <!-- Recent Transactions -->
+    <div class="lg:col-span-1">
+        <div class="flex items-center gap-2 mb-6">
+            <svg class="text-gold" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+            <h2 class="font-serif text-2xl font-medium text-obsidian">Recientes</h2>
         </div>
-        <div class="abp-panel">
+        
+        <div class="bg-panel border border-obsidian/10 rounded-xl p-1 overflow-hidden">
             @if (Model.RecentTransactions.Count == 0)
             {
-                <p class="abp-text-muted abp-mb-0">Aún no tiene transacciones.</p>
+                <div class="p-8 text-center text-sm text-obsidian/60">Aún no tiene transacciones.</div>
             }
             else
             {
-                <div class="abp-txn-list">
+                <div class="divide-y divide-obsidian/5">
                     @foreach (var txn in Model.RecentTransactions)
                     {
                         var isDebit = txn.Type == TransactionType.Debit;
-                        <div class="abp-txn-item abp-flex abp-justify-between abp-items-center" style="padding: 1rem 0; border-bottom: 1px solid var(--abp-border-subtle);">
+                        <div class="p-4 flex justify-between items-center hover:bg-obsidian/[0.02] transition-colors">
                             <div>
-                                <div style="font-weight: 600;">@txn.Description</div>
-                                <div class="abp-text-muted" style="font-size: 0.875rem;">@txn.TransactionDate.ToString("dd/MM/yyyy HH:mm") · @txn.Beneficiary</div>
+                                <div class="font-medium text-sm text-obsidian mb-1">@txn.Description</div>
+                                <div class="text-xs text-obsidian/50">@txn.TransactionDate.ToString("dd/MM/yyyy") · @txn.Beneficiary</div>
                             </div>
-                            <div style="text-align: right;">
-                                <div class="@(isDebit ? "abp-text-danger" : "abp-text-success")" style="font-weight: 600; font-size: 1.125rem;">
+                            <div class="text-right">
+                                <div class="font-medium text-base @(isDebit ? "text-obsidian" : "text-green-600")">
                                     @(isDebit ? "-" : "+")@txn.Amount.ToString("C2", culture)
                                 </div>
-                                <span class="@(txn.Status == TransactionStatus.Approved ? "abp-badge-success" : "abp-badge-danger")" style="font-size: 0.75rem; padding: 0.125rem 0.5rem;">
-                                    @(txn.Status == TransactionStatus.Approved ? "Aprobada" : "Rechazada")
-                                </span>
+                                @if (txn.Status == TransactionStatus.Approved) {
+                                    <span class="text-[0.65rem] text-green-600 uppercase tracking-wider">Aprobada</span>
+                                } else {
+                                    <span class="text-[0.65rem] text-red-500 uppercase tracking-wider">Rechazada</span>
+                                }
                             </div>
                         </div>
                     }
@@ -196,4 +155,100 @@
             }
         </div>
     </div>
+</div>
+
+<!-- Secondary Row: Credit Cards & Loans -->
+<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-8 border-t border-obsidian/10">
+    
+    <!-- Credit Cards -->
+    <div>
+        <div class="flex items-center gap-2 mb-6">
+            <svg class="text-gold opacity-70" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <h2 class="font-serif text-xl font-medium text-obsidian/80">Tarjetas de Crédito</h2>
+        </div>
+        
+        @if (Model.CreditCards.Count == 0)
+        {
+            <div class="text-sm text-obsidian/50">No posee tarjetas de crédito.</div>
+        }
+        else
+        {
+            <div class="space-y-4">
+                @foreach (var card in Model.CreditCards)
+                {
+                    <div class="bg-obsidian text-white rounded-xl p-6 relative overflow-hidden shadow-xl">
+                        <!-- Card Background Effects -->
+                        <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-20"></div>
+                        <div class="absolute -right-16 -top-16 w-32 h-32 bg-gold blur-3xl opacity-20 rounded-full"></div>
+                        
+                        <div class="relative z-10">
+                            <div class="flex justify-between items-center mb-6">
+                                <span class="text-xs uppercase tracking-widest text-white/70">Artemis Black</span>
+                                <svg class="text-gold" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                            </div>
+                            <div class="font-mono text-lg tracking-[0.15em] mb-6">@MaskCard(card.CardNumber)</div>
+                            <div class="flex justify-between items-end">
+                                <div>
+                                    <div class="text-[0.65rem] uppercase tracking-widest text-white/50 mb-1">Límite</div>
+                                    <div class="text-sm">@card.CreditLimit.ToString("C2", culture)</div>
+                                </div>
+                                <div class="text-right">
+                                    <div class="text-[0.65rem] uppercase tracking-widest text-white/50 mb-1">Deuda</div>
+                                    <div class="text-base text-gold">@card.AmountOwed.ToString("C2", culture)</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
+    <!-- Loans -->
+    <div>
+        <div class="flex items-center gap-2 mb-6">
+            <svg class="text-gold opacity-70" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+            <h2 class="font-serif text-xl font-medium text-obsidian/80">Préstamos</h2>
+        </div>
+        
+        @if (Model.Loans.Count == 0)
+        {
+            <div class="text-sm text-obsidian/50">No posee préstamos activos.</div>
+        }
+        else
+        {
+            <div class="space-y-4">
+                @foreach (var loan in Model.Loans)
+                {
+                    <div class="bg-panel border border-obsidian/10 rounded-xl p-5">
+                        <div class="flex justify-between items-center mb-3">
+                            <span class="font-serif font-medium text-obsidian">Préstamo @loan.LoanNumber</span>
+                            @if (loan.IsOnTime)
+                            {
+                                <span class="px-2 py-0.5 text-[0.65rem] uppercase tracking-wider bg-green-50 text-green-700 rounded-full border border-green-200">Al día</span>
+                            }
+                            else
+                            {
+                                <span class="px-2 py-0.5 text-[0.65rem] uppercase tracking-wider bg-red-50 text-red-700 rounded-full border border-red-200">En mora</span>
+                            }
+                        </div>
+                        <div class="flex justify-between text-xs mb-2">
+                            <span class="text-obsidian/60">Progreso: @loan.PaidInstallments / @loan.TotalInstallments</span>
+                            <span class="font-medium text-obsidian">@loan.PendingAmount.ToString("C2", culture) pendientes</span>
+                        </div>
+                        @{
+                            var progressPercent = loan.TotalInstallments > 0 ? (int)((double)loan.PaidInstallments / loan.TotalInstallments * 100) : 0;
+                        }
+                        <div class="w-full h-1.5 bg-obsidian/5 rounded-full overflow-hidden mb-4">
+                            <div class="h-full bg-gold rounded-full" style="width: @(progressPercent)%;"></div>
+                        </div>
+                        <a asp-controller="Transactions" asp-action="PayLoan" class="block w-full text-center py-2 px-4 text-xs font-medium border border-obsidian/20 text-obsidian rounded-lg hover:bg-obsidian/5 transition-colors">
+                            Pagar Cuota
+                        </a>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+
 </div>

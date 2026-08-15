@@ -26,6 +26,7 @@ namespace ArtemisBankingPro.Controllers
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> Index(LoginViewModel model)
         {
             if (!ModelState.IsValid)
@@ -45,21 +46,62 @@ namespace ArtemisBankingPro.Controllers
             return View(model);
         }
 
+        [HttpGet]
+        public IActionResult ForgotPassword()
+        {
+            return View(new ForgotPasswordViewModel());
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> ForgotPassword(ForgotPasswordViewModel model)
+        {
+            if (!ModelState.IsValid)
+            {
+                return View(model);
+            }
+
+            // Since GeneratePasswordResetTokenAsync sends an email, we just show a success message regardless of actual existence (security best practice)
+            await _userService.GeneratePasswordResetTokenAsync(model.Username);
+            
+            TempData["SuccessMessage"] = "Si el usuario existe, se ha enviado un enlace de recuperación.";
+            return RedirectToAction("Index");
+        }
+
         public async Task<IActionResult> Logout()
         {
             await _userService.LogoutAsync();
-            return RedirectToAction("Index", "Login");
+            return RedirectToAction("LoggedOut", "Login");
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> Reauthenticate()
+        {
+            await _userService.LogoutAsync();
+            return RedirectToAction(nameof(Index));
+        }
+
+        [HttpGet("/LoggedOut")]
+        public IActionResult LoggedOut()
+        {
+            return View();
+        }
+
+        [HttpGet("/AccessDenied")]
+        public IActionResult AccessDenied()
+        {
+            return View();
         }
 
         private IActionResult RedirectToDashboard(bool isAdmin, bool isCashier)
         {
             if (isAdmin)
             {
-                return RedirectToAction("Index", "Home", new { area = "Admin" });
+                return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
             }
             if (isCashier)
             {
-                return RedirectToAction("Index", "Home", new { area = "Cashier" });
+                return RedirectToAction("Index", "CashierHome", new { area = "Cashier" });
             }
             return RedirectToAction("Index", "Home");
         }
