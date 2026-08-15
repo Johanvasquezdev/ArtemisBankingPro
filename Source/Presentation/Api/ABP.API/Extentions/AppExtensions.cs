@@ -12,7 +12,7 @@ namespace ABP.API.Extentions
                     foreach (var apiVersion in versionDescription) 
                     {
                         var url = $"/swagger/{apiVersion.GroupName}/swagger.json";
-                        var name = $"ArtemisBank API - {apiVersion.GroupName.ToUpperInvariant()}";
+                        var name = $"ArtemisPro Bank API - {apiVersion.GroupName.ToUpperInvariant()}";
 
                         opt.SwaggerEndpoint(url, name);
                     }

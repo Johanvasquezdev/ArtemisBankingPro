@@ -1,6 +1,11 @@
-@ArtemisBankingPro.API_HostAddress = http://localhost:5177
+@host = http://localhost:5165
+@contentType = application/json
 
-GET {{ArtemisBankingPro.API_HostAddress}}/weatherforecast/
-Accept: application/json
+POST {{host}}/api/v1/Account/login
+Content-Type: {{contentType}}
+{
+  "userName": "AdminUser",
+  "password": "Admin123!"
+}
 
 ###

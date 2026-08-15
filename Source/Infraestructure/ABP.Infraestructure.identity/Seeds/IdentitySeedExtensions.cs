@@ -15,13 +15,28 @@ namespace ABP.Infraestructure.identity.Seeds
         {
             using var scope = host.Services.CreateScope();
             var services = scope.ServiceProvider;
+            var loggerFactory = services.GetRequiredService<ILoggerFactory>();
+            var logger = loggerFactory.CreateLogger("IdentitySeed");
+
+            var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
+            var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+            var commerceRepository = services.GetRequiredService<ICommerceRepository>();
 
             try
             {
-                var commerceRepository = services.GetRequiredService<ICommerceRepository>();
-                var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
-                var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+                await DefaultRoles.SeedAsync(roleManager);
+                await DefaultUsers.SeedAsync(userManager, null);
+                logger.LogInformation("Roles y usuario administrador sembrados correctamente.");
+            }
+            catch (Exception ex)
+            {
+                logger.LogCritical(ex, "FALLO sembrando roles/usuario admin. El login NO va a funcionar hasta corregir esto.");
+                throw;
+            }
 
+            int? defaultCommerceId = null;
+            try
+            {
                 var defaultCommerce = (await commerceRepository.GetAllAsync())
                     .FirstOrDefault(c => c.Name == "Default Commerce");
 
@@ -35,19 +50,23 @@ namespace ABP.Infraestructure.identity.Seeds
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow
                     };
-
                     await commerceRepository.AddAsync(defaultCommerce);
                 }
 
-                await DefaultRoles.SeedAsync(roleManager);
-                await DefaultUsers.SeedAsync(userManager, defaultCommerce.Id);
+                defaultCommerceId = defaultCommerce.Id;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex, "No se pudo sembrar el comercio por defecto. Verifica que las migraciones de ArtemisBankDbContext esten aplicadas.");
+            }
+
+            try
+            {
                 await EnsureDefaultClientAccountAsync(userManager, services.GetRequiredService<ISavingsAccountService>());
             }
             catch (Exception ex)
             {
-                var loggerFactory = services.GetRequiredService<ILoggerFactory>();
-                var logger = loggerFactory.CreateLogger("IdentitySeed");
-                logger.LogError(ex, "An error occurred during Identity seeding.");
+                logger.LogError(ex, "No se pudo sembrar la cuenta demo del cliente.");
             }
         }
 
