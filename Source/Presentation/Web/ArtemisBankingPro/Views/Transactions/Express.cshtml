@@ -20,7 +20,7 @@
 else
 {
     <div class="abp-panel" style="max-width: 600px;">
-        <form asp-action="Express" method="post">
+        <form asp-action="Express" method="post" data-loading-form data-loading-text="Procesando transferencia...">
             <div class="abp-mb-md">
                 <label asp-for="SourceAccountNumber" class="abp-label">Cuenta de origen</label>
                 <select asp-for="SourceAccountNumber" class="abp-select" asp-items="@(new SelectList(Model.Options.Accounts, "AccountNumber", "AccountNumber"))">
@@ -39,6 +39,10 @@ else
                 <span asp-validation-for="Amount" class="abp-text-danger"></span>
             </div>
             <button type="submit" class="abp-btn-gold">Realizar Transacción</button>
+            <div class="abp-loading-status abp-mt-sm" role="status" aria-live="polite">
+                <span class="abp-loading-spinner" aria-hidden="true"></span>
+                <span>Validando cuentas y procesando la transferencia...</span>
+            </div>
         </form>
     </div>
 }
