@@ -7,15 +7,15 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ABP.API.Controllers.v1.Admin
 {
-    [Route("api/v{version:apiVersion}/credit-card")]
+    [Route("api/v{version:apiVersion}/Admin/credit-card")]
     [Authorize(Roles = "Admin")]
-    public class CreditCardApiController(ICreditCardService creditCardService,
+    public class CreditCardController(ICreditCardService creditCardService,
         ICreditCardConsumptionService consumptionService) : BaseApiController
     {
         private readonly ICreditCardService _creditCardService = creditCardService;
         private readonly ICreditCardConsumptionService _consumptionService = consumptionService;
 
-        // GET /api/v1/credit-card
+        // GET /api/v1/Admin/credit-card
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20,
             [FromQuery] string status = "activa", [FromQuery] string? identification = null)
@@ -37,7 +37,7 @@ namespace ABP.API.Controllers.v1.Admin
             return Ok(result);
         }
 
-        // POST /api/v1/credit-card
+        // POST /api/v1/Admin/credit-card
         [HttpPost]
         public async Task<IActionResult> Assign([FromBody] AssignCreditCardApiDto request)
         {
@@ -51,7 +51,7 @@ namespace ABP.API.Controllers.v1.Admin
             return StatusCode(201, created);
         }
 
-        // GET /api/v1/credit-card/{id}
+        // GET /api/v1/Admin/credit-card/{id}
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -63,7 +63,7 @@ namespace ABP.API.Controllers.v1.Admin
             return Ok(new { card, consumptions });
         }
 
-        // PATCH /api/v1/credit-card/{id}/limit
+        // PATCH /api/v1/Admin/credit-card/{id}/limit
         [HttpPatch("{id:int}/limit")]
         public async Task<IActionResult> UpdateLimit(int id, [FromBody] UpdateLimitRequest request)
         {
@@ -85,7 +85,7 @@ namespace ABP.API.Controllers.v1.Admin
             }
         }
 
-        // PATCH /api/v1/credit-card/{id}/cancel
+        // PATCH /api/v1/Admin/credit-card/{id}/cancel
         [HttpPatch("{id:int}/cancel")]
         public async Task<IActionResult> Cancel(int id)
         {

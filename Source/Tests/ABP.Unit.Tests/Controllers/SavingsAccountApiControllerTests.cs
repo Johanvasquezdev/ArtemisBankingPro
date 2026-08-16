@@ -18,14 +18,14 @@ namespace ABP.Unit.Tests.Controllers
     {
         private readonly Mock<ISavingsAccountService> _mockAccountService;
         private readonly Mock<IUserReadOnlyService> _mockUserReadOnlyService;
-        private readonly SavingsAccountApiController _controller;
+        private readonly SavingsAccountController _controller;
 
         public SavingsAccountApiControllerTests()
         {
             _mockAccountService = new Mock<ISavingsAccountService>();
             _mockUserReadOnlyService = new Mock<IUserReadOnlyService>();
 
-            _controller = new SavingsAccountApiController(_mockAccountService.Object, _mockUserReadOnlyService.Object)
+            _controller = new SavingsAccountController(_mockAccountService.Object, _mockUserReadOnlyService.Object)
             {
                 ControllerContext = new ControllerContext
                 {

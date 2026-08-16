@@ -6,13 +6,13 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ABP.API.Controllers.v1.Admin
 {
-    [Route("api/v{version:apiVersion}/commerce")]
+    [Route("api/v{version:apiVersion}/Admin/commerce")]
     [Authorize(Roles = "Admin")]
-    public class CommerceApiController(ICommerceService commerceService) : BaseApiController
+    public class CommerceController(ICommerceService commerceService) : BaseApiController
     {
         private readonly ICommerceService _commerceService = commerceService;
 
-        // GET /api/v1/commerce
+        // GET /api/v1/Admin/commerce
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string status = "activo")
         {
@@ -40,7 +40,7 @@ namespace ABP.API.Controllers.v1.Admin
             });
         }
 
-        // GET /api/v1/commerce/{id}
+        // GET /api/v1/Admin/commerce/{id}
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -49,7 +49,7 @@ namespace ABP.API.Controllers.v1.Admin
             return Ok(commerce);
         }
 
-        // POST /api/v1/commerce
+        // POST /api/v1/Admin/commerce
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateCommerceRequest request)
         {
@@ -64,7 +64,7 @@ namespace ABP.API.Controllers.v1.Admin
             return StatusCode(201, dto);
         }
 
-        // PUT /api/v1/commerce/{id}
+        // PUT /api/v1/Admin/commerce/{id}
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateCommerceRequest request)
         {
@@ -79,7 +79,7 @@ namespace ABP.API.Controllers.v1.Admin
             return NoContent();
         }
 
-        // PATCH /api/v1/commerce/{id}/status
+        // PATCH /api/v1/Admin/commerce/{id}/status
         [HttpPatch("{id:int}/status")]
         public async Task<IActionResult> ChangeStatus(int id, [FromBody] ChangeCommerceStatusRequest request)
         {

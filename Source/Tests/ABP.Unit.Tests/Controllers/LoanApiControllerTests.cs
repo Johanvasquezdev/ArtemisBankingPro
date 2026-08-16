@@ -14,13 +14,13 @@ namespace ABP.Unit.Tests.Controllers
     public class LoanApiControllerTests
     {
         private readonly Mock<ILoanService> _mockLoanService;
-        private readonly LoanApiController _controller;
+        private readonly LoanController _controller;
 
         public LoanApiControllerTests()
         {
             _mockLoanService = new Mock<ILoanService>();
 
-            _controller = new LoanApiController(_mockLoanService.Object)
+            _controller = new LoanController(_mockLoanService.Object)
             {
                 ControllerContext = new ControllerContext
                 {

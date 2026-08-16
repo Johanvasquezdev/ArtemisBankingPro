@@ -6,14 +6,14 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ABP.API.Controllers.v1.Admin
 {
-    [Route("api/v{version:apiVersion}/users")]
+    [Route("api/v{version:apiVersion}/Admin/users")]
     [Authorize(Roles = "Admin")]
     public class UsersController(IUserService userService, IUserReadOnlyService userReadOnlyService) : BaseApiController
     {
         private readonly IUserService _userService = userService;
         private readonly IUserReadOnlyService _userReadOnlyService = userReadOnlyService;
 
-        // GET /api/v1/users
+        // GET /api/v1/Admin/users
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? role = null)
         {
@@ -32,7 +32,7 @@ namespace ABP.API.Controllers.v1.Admin
             return Ok(result);
         }
 
-        // GET /api/v1/users/commerce
+        // GET /api/v1/Admin/users/commerce
         [HttpGet("commerce")]
         public async Task<IActionResult> GetCommerceUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
@@ -43,7 +43,7 @@ namespace ABP.API.Controllers.v1.Admin
             return Ok(result);
         }
 
-        // GET /api/v1/users/{id}
+        // GET /api/v1/Admin/users/{id}
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
@@ -52,7 +52,7 @@ namespace ABP.API.Controllers.v1.Admin
             return Ok(user);
         }
 
-        // POST /api/v1/users
+        // POST /api/v1/Admin/users
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
         {
@@ -74,7 +74,7 @@ namespace ABP.API.Controllers.v1.Admin
             return StatusCode(201, new { message = "Usuario creado exitosamente. Se envió un correo electrónico de activación." });
         }
 
-        // POST /api/v1/users/commerce/{commerceId}
+        // POST /api/v1/Admin/users/commerce/{commerceId}
         [HttpPost("commerce/{commerceId:int}")]
         public async Task<IActionResult> CreateCommerceUser(int commerceId, [FromBody] CreateCommerceUserRequest request)
         {
@@ -87,7 +87,7 @@ namespace ABP.API.Controllers.v1.Admin
             return StatusCode(201, new { message = "Usuario de comercio creado exitosamente." });
         }
 
-        // PUT /api/v1/users/{id}
+        // PUT /api/v1/Admin/users/{id}
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(string id, [FromBody] UpdateUserRequest request)
         {
@@ -110,7 +110,7 @@ namespace ABP.API.Controllers.v1.Admin
             return NoContent();
         }
 
-        // PATCH /api/v1/users/{id}/status
+        // PATCH /api/v1/Admin/users/{id}/status
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> ChangeStatus(string id, [FromBody] ChangeUserStatusRequest request)
         {

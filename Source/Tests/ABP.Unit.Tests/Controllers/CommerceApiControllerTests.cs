@@ -13,12 +13,12 @@ namespace ABP.Unit.Tests.Controllers
     public class CommerceApiControllerTests
     {
         private readonly Mock<ICommerceService> _mockCommerceService;
-        private readonly CommerceApiController _controller;
+        private readonly CommerceController _controller;
 
         public CommerceApiControllerTests()
         {
             _mockCommerceService = new Mock<ICommerceService>();
-            _controller = new CommerceApiController(_mockCommerceService.Object);
+            _controller = new CommerceController(_mockCommerceService.Object);
         }
 
         [Fact]

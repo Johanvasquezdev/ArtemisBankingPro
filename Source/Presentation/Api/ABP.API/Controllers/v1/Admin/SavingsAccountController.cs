@@ -7,15 +7,15 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ABP.API.Controllers.v1.Admin
 {
-    [Route("api/v{version:apiVersion}/savings-account")]
+    [Route("api/v{version:apiVersion}/Admin/savings-account")]
     [Authorize(Roles = "Admin")]
-    public class SavingsAccountApiController(ISavingsAccountService accountService,
+    public class SavingsAccountController(ISavingsAccountService accountService,
         IUserReadOnlyService userReadOnlyService) : BaseApiController
     {
         private readonly ISavingsAccountService _accountService = accountService;
         private readonly IUserReadOnlyService _userReadOnlyService = userReadOnlyService;
 
-        // GET /api/v1/savings-account
+        // GET /api/v1/Admin/savings-account
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20,
             [FromQuery] string? identification = null, [FromQuery] string status = "activa", [FromQuery] string type = "todas")
@@ -47,7 +47,7 @@ namespace ABP.API.Controllers.v1.Admin
             return Ok(result);
         }
 
-        // POST /api/v1/savings-account
+        // POST /api/v1/Admin/savings-account
         [HttpPost]
         public async Task<IActionResult> AssignSecondary([FromBody] AssignSavingsAccountApiDto request)
         {
@@ -77,7 +77,7 @@ namespace ABP.API.Controllers.v1.Admin
             return StatusCode(201, new { message = "Cuenta secundaria creada exitosamente." });
         }
 
-        // GET /api/v1/savings-account/{accountNumber}/transactions
+        // GET /api/v1/Admin/savings-account/{accountNumber}/transactions
         [HttpGet("{accountNumber}/transactions")]
         public async Task<IActionResult> GetTransactions(string accountNumber, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
@@ -106,7 +106,7 @@ namespace ABP.API.Controllers.v1.Admin
             });
         }
 
-        // PATCH /api/v1/savings-account/{accountNumber}/cancel
+        // PATCH /api/v1/Admin/savings-account/{accountNumber}/cancel
         [HttpPatch("{accountNumber}/cancel")]
         public async Task<IActionResult> Cancel(string accountNumber)
         {

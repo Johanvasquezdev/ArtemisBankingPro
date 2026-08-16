@@ -13,13 +13,13 @@ namespace ABP.Unit.Tests.Controllers
     {
         private readonly Mock<ICreditCardService> _mockCardService;
         private readonly Mock<ICreditCardConsumptionService> _mockConsumptionService;
-        private readonly CreditCardApiController _controller;
+        private readonly CreditCardController _controller;
 
         public CreditCardApiControllerTests()
         {
             _mockCardService = new Mock<ICreditCardService>();
             _mockConsumptionService = new Mock<ICreditCardConsumptionService>();
-            _controller = new CreditCardApiController(_mockCardService.Object, _mockConsumptionService.Object);
+            _controller = new CreditCardController(_mockCardService.Object, _mockConsumptionService.Object);
         }
 
         [Fact]

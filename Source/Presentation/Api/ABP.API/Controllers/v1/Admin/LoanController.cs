@@ -7,14 +7,14 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ABP.API.Controllers.v1.Admin
 {
-    [Route("api/v{version:apiVersion}/loan")]
+    [Route("api/v{version:apiVersion}/Admin/loan")]
     [Authorize(Roles = "Admin")]
-    public class LoanApiController(ILoanService loanService) : BaseApiController
+    public class LoanController(ILoanService loanService) : BaseApiController
     {
         private static readonly int[] AllowedTerms = { 6, 12, 24, 36, 48, 60 };
         private readonly ILoanService _loanService = loanService;
 
-        // GET /api/v1/loan
+        // GET /api/v1/Admin/loan
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20,
             [FromQuery] string status = "activos", [FromQuery] string? identification = null)
@@ -36,7 +36,7 @@ namespace ABP.API.Controllers.v1.Admin
             return Ok(result);
         }
 
-        // GET /api/v1/loan/{id}
+        // GET /api/v1/Admin/loan/{id}
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -45,7 +45,7 @@ namespace ABP.API.Controllers.v1.Admin
             return Ok(loan);
         }
 
-        // POST /api/v1/loan
+        // POST /api/v1/Admin/loan
         [HttpPost]
         public async Task<IActionResult> Assign([FromBody] AssignLoanApiDto request)
         {
@@ -97,7 +97,7 @@ namespace ABP.API.Controllers.v1.Admin
             }
         }
 
-        // PATCH /api/v1/loan/{id}/rate
+        // PATCH /api/v1/Admin/loan/{id}/rate
         [HttpPatch("{id:int}/rate")]
         public async Task<IActionResult> UpdateRate(int id, [FromBody] UpdateRateRequest request)
         {

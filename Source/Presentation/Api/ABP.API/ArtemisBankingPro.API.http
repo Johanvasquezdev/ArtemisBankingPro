@@ -5,7 +5,6 @@ POST {{host}}/api/v1/Account/login
 Content-Type: {{contentType}}
 {
   "userName": "AdminUser",
-  "password": "Admin123!"
+  "password": "123Pa$$word!"
 }
-
-###
+#################################################

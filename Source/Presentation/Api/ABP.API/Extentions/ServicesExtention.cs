@@ -35,8 +35,14 @@ namespace ABP.API.Extentions
                     Description = "Enter: Bearer {your JWT token}"
                 };
 
-                options.AddSecurityDefinition("Bearer", bearerScheme);
-
+                options.AddSecurityDefinition("Bearer", bearerScheme); 
+                options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+                {
+                    {
+                        new OpenApiSecuritySchemeReference("Bearer", document),
+                        new List<string>()
+                    }
+                });
                 options.DescribeAllParametersInCamelCase();
             });
         }
