@@ -22,7 +22,7 @@
   </g>
 
   <g fill="#141414">
-    <text x="140" y="68" font-family="Georgia, 'Times New Roman', serif" font-size="46" letter-spacing="-.8">Artemis</text>
-    <text x="144" y="101" font-family="Inter, Arial, sans-serif" font-size="15" font-weight="600" letter-spacing="5.2">BANKING PRO</text>
+    <text x="140" y="68" font-family="'Cormorant Garamond', 'Iowan Old Style', 'Palatino Linotype', Georgia, serif" font-size="46" letter-spacing="-.8">Artemis</text>
+    <text x="144" y="101" font-family="'DM Sans', Arial, sans-serif" font-size="15" font-weight="600" letter-spacing="5.2">BANKING PRO</text>
   </g>
 </svg>
