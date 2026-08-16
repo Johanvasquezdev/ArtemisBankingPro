@@ -1,4 +1,5 @@
 using Asp.Versioning;
+using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.OpenApi;
 
 namespace ABP.API.Extentions
