@@ -65,8 +65,8 @@
   --color-gold-light: #DFC48C;
   --color-gold-dark: #9C7B3E;
   
-  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
-  --font-serif: "Playfair Display", Georgia, serif;
+  --font-sans: "DM Sans", "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Cormorant Garamond", "Iowan Old Style", "Palatino Linotype", Georgia, serif;
 }
 
 /* Compatibility tokens used by the legacy cashier templates. Keeping them
