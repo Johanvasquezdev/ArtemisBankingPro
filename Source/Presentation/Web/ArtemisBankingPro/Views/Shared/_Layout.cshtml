@@ -18,9 +18,9 @@
 <body class="bg-ivory text-obsidian font-sans antialiased min-h-screen">
     <!-- Sidebar desktop -->
     <aside class="fixed inset-y-0 left-0 z-20 hidden h-screen w-64 flex-col bg-obsidian text-ivory shadow-xl lg:flex">
-        <div class="flex h-20 items-center border-b border-white/10 px-6">
+        <div class="flex h-20 items-center border-b border-white/10 px-4">
             <a asp-area="" asp-controller="Home" asp-action="Index" class="flex items-center gap-3 no-underline">
-                <span class="block w-52 shrink-0">
+                <span class="block w-56 shrink-0">
                     <partial name="_BrandLogo" model='"light"' />
                 </span>
             </a>
@@ -81,7 +81,7 @@
                             <a asp-controller="Beneficiaries" asp-action="Index" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Beneficiarios</a>
                         </nav>
                     </details>
-                    <div class="client-mobile-brand lg:hidden w-44 shrink-0">
+                    <div class="client-mobile-brand lg:hidden w-48 shrink-0">
                         <div class="client-mobile-logo-dark">
                             <partial name="_BrandLogo" model='"dark"' />
                         </div>
