@@ -25,7 +25,7 @@
   </PropertyGroup>
 
   <Target Name="BuildTailwind" BeforeTargets="Build">
-    <Exec Command="npm run build:css" />
+    <!--<Exec Command="npm run build:css" />-->
   </Target>
 
 </Project>

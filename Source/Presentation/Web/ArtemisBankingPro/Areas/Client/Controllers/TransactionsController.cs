@@ -7,8 +7,9 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ArtemisBankingPro.Controllers
+namespace ArtemisBankingPro.Areas.Client.Controllers
 {
+    [Area("Client")]
     [Authorize(Roles = "Client")]
     public class TransactionsController(IMediator mediator) : Controller
     {

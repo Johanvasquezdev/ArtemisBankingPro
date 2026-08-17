@@ -5,8 +5,9 @@ using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Diagnostics;
 
-namespace ArtemisBankingPro.Controllers
+namespace ArtemisBankingPro.Areas.Client.Controllers
 {
+    [Area("Client")]
     [Authorize(Roles = "Client")]
     public class HomeController(IMediator mediator, ILogger<HomeController> logger) : Controller
     {
@@ -16,7 +17,7 @@ namespace ArtemisBankingPro.Controllers
         {
             var clientId = User.GetUserId();
             if (string.IsNullOrEmpty(clientId))
-                return RedirectToAction("AccessDenied", "Login");
+                return RedirectToAction("AccessDenied", "Login", new { area = "" });
 
             var model = await mediator.Send(new GetClientHomeQuery(clientId));
             return View(model);
@@ -27,7 +28,7 @@ namespace ArtemisBankingPro.Controllers
         {
             var clientId = User.GetUserId();
             if (string.IsNullOrEmpty(clientId))
-                return RedirectToAction("AccessDenied", "Login");
+                return RedirectToAction("AccessDenied", "Login", new { area = "" });
 
             var model = await mediator.Send(new GetAccountDetailQuery(clientId, accountNumber, dateFrom, dateTo));
             return View(model);

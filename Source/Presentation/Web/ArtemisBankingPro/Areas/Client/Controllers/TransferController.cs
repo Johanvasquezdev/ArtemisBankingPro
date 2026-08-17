@@ -1,54 +1,48 @@
-using ABP.Core.Application.DTOs.CreditCard;
+using ABP.Core.Application.DTOs.Transaction;
 using ABP.Core.Application.Features.Client.Commands;
 using ABP.Core.Application.Features.Client.Queries;
 using ABP.Core.Application.ViewModels.Client;
-using ABP.Core.Application.ViewModels.CreditCard;
 using ArtemisBankingPro.Extensions;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace ArtemisBankingPro.Controllers
+namespace ArtemisBankingPro.Areas.Client.Controllers
 {
+    [Area("Client")]
     [Authorize(Roles = "Client")]
-    public class CashAdvanceController(IMediator mediator) : Controller
+    public class TransferController(IMediator mediator) : Controller
     {
         [HttpGet]
         public async Task<IActionResult> Index()
         {
             var options = await GetOptionsAsync();
-            return View(new CashAdvanceViewModel
-            {
-                UserAccounts = options.Accounts,
-                UserCreditCards = options.CreditCards
-            });
+            return View(new TransferOwnAccountsViewModel { Options = options });
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public async Task<IActionResult> Index(CashAdvanceViewModel model)
+        public async Task<IActionResult> Index(TransferOwnAccountsViewModel model)
         {
             var clientId = User.GetUserId();
             if (!ModelState.IsValid)
             {
-                var options = await GetOptionsAsync();
-                model.UserAccounts = options.Accounts;
-                model.UserCreditCards = options.CreditCards;
+                model.Options = await GetOptionsAsync();
                 return View(model);
             }
 
-            var result = await mediator.Send(new CashAdvanceCommand(new CashAdvanceDto
+            var result = await mediator.Send(new TransferOwnAccountsCommand(new TransferOwnAccountsDto
             {
                 ClientId = clientId,
-                CreditCardId = model.CreditCardId,
-                SavingsAccountId = model.SavingsAccountId,
+                SourceAccountNumber = model.SourceAccountNumber,
+                DestinationAccountNumber = model.DestinationAccountNumber,
                 Amount = model.Amount,
                 IdempotencyKey = model.IdempotencyKey
             }));
 
             TempData["SuccessMessage"] = result.EmailNotificationFailed
-                ? "Avance de efectivo realizado exitosamente. No se pudo enviar la notificación por correo electrónico."
-                : "Avance de efectivo realizado exitosamente.";
+                ? "Transferencia realizada exitosamente. No se pudo enviar la notificación por correo electrónico."
+                : "Transferencia realizada exitosamente.";
 
             return RedirectToAction(nameof(Index));
         }
