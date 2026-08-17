@@ -5,6 +5,7 @@ using ABP.Core.Application.ViewModels.Loan;
 using ABP.Core.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Security.Claims;
 
 namespace ArtemisBankingPro.Areas.Admin.Controllers
@@ -15,12 +16,12 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
     public class LoanManagementController(
         ILoanService loanService,
         ILoanInstallmentService installmentService,
-        ILogger<LoanManagementController> logger) : Controller
+        ILogger<LoanManagementController>? logger = null) : Controller
     {
         private static readonly int[] AllowedTerms = [6, 12, 18, 24, 30, 36, 42, 48, 54, 60];
         private readonly ILoanService _loanService = loanService;
         private readonly ILoanInstallmentService _installmentService = installmentService;
-        private readonly ILogger<LoanManagementController> _logger = logger;
+        private readonly ILogger<LoanManagementController> _logger = logger ?? NullLogger<LoanManagementController>.Instance;
 
         [HttpGet("")]
         [HttpGet("Index")]

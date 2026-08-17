@@ -54,27 +54,34 @@ namespace ABP.API.Controllers.v1.Admin
             if (request.InitialBalance < 0)
                 return BadRequest(new { message = "El balance inicial no puede ser negativo." });
 
-            var matches = await _userReadOnlyService.GetActiveClientsAsync(request.CedulaClient);
-            var client = matches.FirstOrDefault(c => c.Cedula == request.CedulaClient);
-
-            if (client == null)
-                return NotFound(new { message = "No se encontró ningún cliente activo con esta Cédula." });
-
-            var primaryAccount = await _accountService.GetPrimaryAccountByClientIdAsync(client.Id);
-            if (primaryAccount == null)
-                return BadRequest(new { message = "El cliente debe tener una cuenta principal activa antes de poder asignarle una cuenta secundaria." });
-
-            var adminId = User.FindFirst("uid")?.Value ?? string.Empty;
-
-            var dto = new AssignSavingsAccountDto
+            try
             {
-                ClientId = client.Id,
-                AdminId = adminId,
-                InitialBalance = request.InitialBalance
-            };
+                var matches = await _userReadOnlyService.GetActiveClientsAsync(request.CedulaClient);
+                var client = matches.FirstOrDefault(c => c.Cedula == request.CedulaClient);
 
-            await _accountService.AssignSecondaryAsync(dto);
-            return StatusCode(201, new { message = "Cuenta secundaria creada exitosamente." });
+                if (client == null)
+                    return NotFound(new { message = "No se encontró ningún cliente activo con esta Cédula." });
+
+                var primaryAccount = await _accountService.GetPrimaryAccountByClientIdAsync(client.Id);
+                if (primaryAccount == null)
+                    return BadRequest(new { message = "El cliente debe tener una cuenta principal activa antes de poder asignarle una cuenta secundaria." });
+
+                var adminId = User.FindFirst("uid")?.Value ?? string.Empty;
+
+                var dto = new AssignSavingsAccountDto
+                {
+                    ClientId = client.Id,
+                    AdminId = adminId,
+                    InitialBalance = request.InitialBalance
+                };
+
+                await _accountService.AssignSecondaryAsync(dto);
+                return StatusCode(201, new { message = "Cuenta secundaria creada exitosamente." });
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         // GET /api/v1/Admin/savings-account/{accountNumber}/transactions

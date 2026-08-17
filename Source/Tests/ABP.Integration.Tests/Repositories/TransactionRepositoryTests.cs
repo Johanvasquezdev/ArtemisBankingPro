@@ -71,10 +71,10 @@ namespace ABP.Integration.Tests.Repositories
 
             var transactions = new[]
             {
-                new Transaction { Amount = 100, Type = TransactionType.Credit, SavingAccountId = acc1.Id, TransactionDate = DateTime.UtcNow },
-                new Transaction { Amount = 200, Type = TransactionType.Debit, SavingAccountId = acc1.Id, TransactionDate = DateTime.UtcNow },
-                new Transaction { Amount = 300, Type = TransactionType.Credit, SavingAccountId = acc2.Id, TransactionDate = DateTime.UtcNow },
-                new Transaction { Amount = 400, Type = TransactionType.Credit, SavingAccountId = acc1.Id, TransactionDate = DateTime.UtcNow.AddDays(-1) }
+                new Transaction { Amount = 100, Type = TransactionType.Credit, SavingAccountId = acc1.Id, PerformedByUserId = cashierId, TransactionDate = DateTime.UtcNow },
+                new Transaction { Amount = 200, Type = TransactionType.Debit, SavingAccountId = acc1.Id, PerformedByUserId = cashierId, TransactionDate = DateTime.UtcNow },
+                new Transaction { Amount = 300, Type = TransactionType.Credit, SavingAccountId = acc2.Id, PerformedByUserId = otherId, TransactionDate = DateTime.UtcNow },
+                new Transaction { Amount = 400, Type = TransactionType.Credit, SavingAccountId = acc1.Id, PerformedByUserId = cashierId, TransactionDate = DateTime.UtcNow.AddDays(-1) }
             };
 
             await _dbContext.Transactions.AddRangeAsync(transactions);

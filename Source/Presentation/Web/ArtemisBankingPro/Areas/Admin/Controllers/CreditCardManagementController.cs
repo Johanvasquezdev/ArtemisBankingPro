@@ -5,6 +5,8 @@ using ABP.Core.Application.ViewModels.CreditCard;
 using ABP.Core.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ArtemisBankingPro.Areas.Admin.Controllers
 {
@@ -12,11 +14,13 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
     [Authorize(Roles = "Admin")]
     [Route("Admin/[controller]")]
     public class CreditCardManagementController(ICreditCardService creditCardService,
-        ICreditCardConsumptionService consumptionService, IUserReadOnlyService userReadOnlyService) : Controller
+        ICreditCardConsumptionService consumptionService, IUserReadOnlyService userReadOnlyService,
+        ILogger<CreditCardManagementController>? logger = null) : Controller
     {
         private readonly ICreditCardService _creditCardService = creditCardService;
         private readonly ICreditCardConsumptionService _consumptionService = consumptionService;
         private readonly IUserReadOnlyService _userReadOnlyService = userReadOnlyService;
+        private readonly ILogger<CreditCardManagementController> _logger = logger ?? NullLogger<CreditCardManagementController>.Instance;
 
         [HttpGet("")]
         [HttpGet("Index")]
@@ -50,9 +54,32 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
 
             var dto = new AssignCreditCardDto { ClientId = model.ClientId, CreditLimit = model.CreditLimit };
 
-            await _creditCardService.AssignAsync(dto);
-            TempData["SuccessMessage"] = "Tarjeta de crédito asignada correctamente.";
-            return RedirectToAction(nameof(Index));
+            try
+            {
+                await _creditCardService.AssignAsync(dto);
+                TempData["SuccessMessage"] = "Tarjeta de crédito asignada correctamente.";
+                return RedirectToAction(nameof(Index));
+            }
+            catch (InvalidOperationException ex)
+            {
+                model.HasError = true;
+                model.Error = ex.Message;
+                return View(model);
+            }
+            catch (DbUpdateException ex)
+            {
+                _logger.LogError(ex, "Error de base de datos al asignar tarjeta para el cliente {ClientId}", model.ClientId);
+                model.HasError = true;
+                model.Error = "No se pudo guardar la tarjeta. Verifica la conexión y vuelve a intentarlo.";
+                return View(model);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al asignar tarjeta para el cliente {ClientId}", model.ClientId);
+                model.HasError = true;
+                model.Error = "No se pudo completar la asignación de la tarjeta. Vuelve a intentarlo.";
+                return View(model);
+            }
         }
 
         [HttpGet("Details/{id:int}")]

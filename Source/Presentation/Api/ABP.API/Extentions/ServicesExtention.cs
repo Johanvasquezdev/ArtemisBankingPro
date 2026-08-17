@@ -1,5 +1,4 @@
 using Asp.Versioning;
-using Microsoft.EntityFrameworkCore.ChangeTracking.Internal;
 using Microsoft.OpenApi;
 
 namespace ABP.API.Extentions
@@ -36,13 +35,10 @@ namespace ABP.API.Extentions
                     Description = "Enter: Bearer {your JWT token}"
                 };
 
-                options.AddSecurityDefinition("Bearer", bearerScheme); 
+                options.AddSecurityDefinition("Bearer", bearerScheme);
                 options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
                 {
-                    {
-                        new OpenApiSecuritySchemeReference("Bearer", document),
-                        new List<string>()
-                    }
+                    [new OpenApiSecuritySchemeReference("Bearer", document, null)] = new List<string>()
                 });
                 options.DescribeAllParametersInCamelCase();
             });

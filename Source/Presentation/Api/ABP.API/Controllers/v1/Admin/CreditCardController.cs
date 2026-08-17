@@ -41,14 +41,24 @@ namespace ABP.API.Controllers.v1.Admin
         [HttpPost]
         public async Task<IActionResult> Assign([FromBody] AssignCreditCardApiDto request)
         {
+            if (request.CreditLimit <= 0)
+                return BadRequest(new { message = "El límite de crédito debe ser mayor que cero." });
+
             var dto = new AssignCreditCardDto
             {
                 ClientId = request.ClientId,
                 CreditLimit = request.CreditLimit
             };
 
-            var created = await _creditCardService.AssignAsync(dto);
-            return StatusCode(201, created);
+            try
+            {
+                var created = await _creditCardService.AssignAsync(dto);
+                return StatusCode(201, created);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return BadRequest(new { message = ex.Message });
+            }
         }
 
         // GET /api/v1/Admin/credit-card/{id}

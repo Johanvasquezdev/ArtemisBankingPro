@@ -49,45 +49,45 @@ namespace ABP.API.Controllers.v1.Admin
         [HttpPost]
         public async Task<IActionResult> Assign([FromBody] AssignLoanApiDto request)
         {
-            if (!AllowedTerms.Contains(request.MonthsInstallments))
-                return BadRequest(new { message = "El plazo seleccionado no es válido." });
-
-            if (request.Amount <= 0)
-                return BadRequest(new { message = "El monto del préstamo debe ser mayor que cero." });
-
-            if (request.AnnualRate < 0)
-                return BadRequest(new { message = "La tasa de interés anual no puede ser negativa." });
-
-            if (await _loanService.ClientHasActiveLoanAsync(request.ClientId))
-                return BadRequest(new { message = "El cliente ya tiene un préstamo activo." });
-
-            var (isHighRisk, averageDebt, currentDebt) = await _loanService.EvaluateRiskAsync(
-                request.ClientId, request.Amount, request.AnnualRate, request.MonthsInstallments);
-
-            if (isHighRisk && !request.ConfirmHighRisk)
-            {
-                return Conflict(new
-                {
-                    message = "Asignar este préstamo convertirá al cliente en alto riesgo, ya que su deuda superará el promedio del sistema.",
-                    riskType = currentDebt > averageDebt ? "CurrentHighRisk" : "ProjectedHighRisk",
-                    currentDebt,
-                    averageDebt
-                });
-            }
-
-            var adminId = User.FindFirst("uid")?.Value ?? string.Empty;
-
-            var dto = new AssignLoanDto
-            {
-                ClientId = request.ClientId,
-                Amount = request.Amount,
-                AnnualInterestRate = request.AnnualRate,
-                TermInMonths = request.MonthsInstallments,
-                AdminId = adminId
-            };
-
             try
             {
+                if (!AllowedTerms.Contains(request.MonthsInstallments))
+                    return BadRequest(new { message = "El plazo seleccionado no es válido." });
+
+                if (request.Amount <= 0)
+                    return BadRequest(new { message = "El monto del préstamo debe ser mayor que cero." });
+
+                if (request.AnnualRate < 0)
+                    return BadRequest(new { message = "La tasa de interés anual no puede ser negativa." });
+
+                if (await _loanService.ClientHasActiveLoanAsync(request.ClientId))
+                    return BadRequest(new { message = "El cliente ya tiene un préstamo activo." });
+
+                var (isHighRisk, averageDebt, currentDebt) = await _loanService.EvaluateRiskAsync(
+                    request.ClientId, request.Amount, request.AnnualRate, request.MonthsInstallments);
+
+                if (isHighRisk && !request.ConfirmHighRisk)
+                {
+                    return Conflict(new
+                    {
+                        message = "Asignar este préstamo convertirá al cliente en alto riesgo, ya que su deuda superará el promedio del sistema.",
+                        riskType = currentDebt > averageDebt ? "CurrentHighRisk" : "ProjectedHighRisk",
+                        currentDebt,
+                        averageDebt
+                    });
+                }
+
+                var adminId = User.FindFirst("uid")?.Value ?? string.Empty;
+
+                var dto = new AssignLoanDto
+                {
+                    ClientId = request.ClientId,
+                    Amount = request.Amount,
+                    AnnualInterestRate = request.AnnualRate,
+                    TermInMonths = request.MonthsInstallments,
+                    AdminId = adminId
+                };
+
                 var created = await _loanService.AssignAsync(dto);
                 return StatusCode(201, created);
             }
