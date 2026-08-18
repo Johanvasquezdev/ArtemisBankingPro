@@ -23,7 +23,7 @@ namespace ABP.Core.Application.Features.Client.Commands
         }
     }
 
-    public class PayLoanCommandHandler(ITransactionService transactionService)
+    public class PayLoanCommandHandler(IClientTransactionService transactionService)
         : IRequestHandler<PayLoanCommand, CommandResult>
     {
         public Task<CommandResult> Handle(PayLoanCommand request, CancellationToken cancellationToken)

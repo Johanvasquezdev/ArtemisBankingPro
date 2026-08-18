@@ -1,6 +1,8 @@
 using System.Net;
 using System.Text.Json;
-using ValidationException = FluentValidation.ValidationException;
+using ABP.Core.Domain.Exceptions;
+using FluentValidation;
+using Microsoft.AspNetCore.Mvc;
 
 namespace ABP.API.Middlewares
 {
@@ -24,43 +26,31 @@ namespace ABP.API.Middlewares
             catch (Exception error)
             {
                 var response = context.Response;
-                response.ContentType = "application/json";
-
-                object responseModel;
-
-                switch (error)
+                var (status, title, detail) = error switch
                 {
-                    case ValidationException validationException:
-                        // Lanzada por ValidationBehavior<TRequest,TResponse> cuando un
-                        // Command/Query no pasa las reglas de FluentValidation.
-                        response.StatusCode = (int)HttpStatusCode.BadRequest;
-                        responseModel = new
-                        {
-                            message = "Uno o mas campos no son validos.",
-                            success = false,
-                            errors = validationException.Errors.Select(e => new { field = e.PropertyName, error = e.ErrorMessage })
-                        };
-                        break;
-                    case ApplicationException:
-                        // custom application error
-                        response.StatusCode = (int)HttpStatusCode.BadRequest;
-                        responseModel = new { message = error.Message, success = false };
-                        break;
-                    case KeyNotFoundException:
-                        // not found error
-                        response.StatusCode = (int)HttpStatusCode.NotFound;
-                        responseModel = new { message = error.Message, success = false };
-                        break;
-                    default:
-                        // unhandled error
-                        _logger.LogError(error, "An unhandled exception occurred.");
-                        response.StatusCode = (int)HttpStatusCode.InternalServerError;
-                        responseModel = new { message = error.Message, success = false };
-                        break;
-                }
+                    DomainException or ValidationException or ApplicationException or InvalidOperationException =>
+                        ((int)HttpStatusCode.BadRequest, "Solicitud inválida", error.Message),
+                    KeyNotFoundException =>
+                        ((int)HttpStatusCode.NotFound, "Recurso no encontrado", "El recurso solicitado no existe."),
+                    _ => ((int)HttpStatusCode.InternalServerError, "Error interno", "Ocurrió un error inesperado. Intente nuevamente más tarde.")
+                };
 
-                var result = JsonSerializer.Serialize(responseModel);
-                await response.WriteAsync(result);
+                if (status >= 500)
+                    _logger.LogError(error, "Unhandled API exception. TraceId: {TraceId}", context.TraceIdentifier);
+                else
+                    _logger.LogWarning(error, "Handled API exception. TraceId: {TraceId}", context.TraceIdentifier);
+
+                response.StatusCode = status;
+                response.ContentType = "application/problem+json";
+                var problem = new ProblemDetails
+                {
+                    Status = status,
+                    Title = title,
+                    Detail = detail,
+                    Instance = context.Request.Path
+                };
+                problem.Extensions["traceId"] = context.TraceIdentifier;
+                await JsonSerializer.SerializeAsync(response.Body, problem);
             }
         }
     }

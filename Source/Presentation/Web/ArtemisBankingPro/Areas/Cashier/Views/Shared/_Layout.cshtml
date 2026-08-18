@@ -8,16 +8,27 @@
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
     
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/abp-polish.css" asp-append-version="true" />
+
+    <script>
+        (function() {
+            try {
+                var theme = localStorage.getItem('artemis-theme');
+                var isDark = theme === 'light' ? false : true;
+                document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+            } catch (e) {}
+        })();
+    </script>
 </head>
-<body class="bg-ivory text-obsidian font-sans antialiased selection:bg-gold/20 selection:text-obsidian flex min-h-screen">
+<body class="abp-shell abp-shell-cashier bg-ivory text-obsidian font-sans antialiased selection:bg-gold/20 selection:text-obsidian flex min-h-screen">
 
     <!-- Sidebar -->
-    <aside class="fixed inset-y-0 z-10 flex w-64 flex-col border-r border-white/10 bg-obsidian text-ivory shadow-xl">
+    <aside class="abp-sidebar fixed inset-y-0 z-10 flex w-64 flex-col border-r border-white/10 bg-obsidian text-ivory shadow-xl">
         <div class="flex h-20 items-center border-b border-white/10 px-4">
-            <div class="w-56 shrink-0">
+            <div class="abp-brand-lockup w-56 shrink-0">
                 <partial name="_BrandLogo" model='"light"' />
             </div>
         </div>
@@ -96,7 +107,7 @@
     <!-- Main Content -->
     <main class="flex-1 ml-64 min-h-screen">
         <div class="max-w-7xl mx-auto px-8 py-8">
-            <header class="flex items-center justify-between mb-10">
+            <header class="abp-topbar flex items-center justify-between mb-10">
                 <div>
                     <div class="text-xs font-semibold tracking-wider text-gold uppercase mb-1">Portal del Cajero</div>
                     <h1 class="text-3xl font-serif font-bold text-obsidian tracking-tight">Hola, @(ViewBag.CashierName ?? "Cajero")</h1>
@@ -140,7 +151,9 @@
                 </div>
             }
             
-            @RenderBody()
+            <div class="abp-main">
+                @RenderBody()
+            </div>
         </div>
     </main>
 

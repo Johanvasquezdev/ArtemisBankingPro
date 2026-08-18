@@ -1,7 +1,6 @@
 using ABP.Core.Domain.Entities;
 using ABP.Core.Domain.Enums;
 using ABP.Infraestructure.Persistence.Context;
-using ABP.Infraestructure.identity.Context;
 using ABP.Infraestructure.Persistence.Repositories;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +11,6 @@ namespace ABP.Integration.Tests.Repositories
     public class SavingsAccountRepositoryTests : IDisposable
     {
         private readonly ArtemisBankingDbContext _dbContext;
-        private readonly IdentityContext _identityContext;
         private readonly SavingsAccountRepository _repository;
 
         public SavingsAccountRepositoryTests()
@@ -24,14 +22,7 @@ namespace ABP.Integration.Tests.Repositories
             _dbContext = new ArtemisBankingDbContext(dbOptions);
             _dbContext.Database.EnsureCreated();
 
-            var idOptions = new DbContextOptionsBuilder<IdentityContext>()
-                .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
-                .Options;
-
-            _identityContext = new IdentityContext(idOptions);
-            _identityContext.Database.EnsureCreated();
-
-            _repository = new SavingsAccountRepository(_dbContext, _identityContext);
+            _repository = new SavingsAccountRepository(_dbContext);
         }
 
         [Fact]
@@ -51,6 +42,7 @@ namespace ABP.Integration.Tests.Repositories
 
             // Act
             await _repository.AddAsync(account);
+            await _dbContext.SaveChangesAsync();
 
             // Assert
             account.Id.Should().BeGreaterThan(0);
@@ -80,6 +72,7 @@ namespace ABP.Integration.Tests.Repositories
             // Act
             account.Balance = 2000m;
             await _repository.UpdateAsync(account);
+            await _dbContext.SaveChangesAsync();
 
             // Assert
             var dbAccount = await _dbContext.Savings.AsNoTracking().FirstOrDefaultAsync(a => a.Id == account.Id);
@@ -91,8 +84,6 @@ namespace ABP.Integration.Tests.Repositories
         {
             _dbContext.Database.EnsureDeleted();
             _dbContext.Dispose();
-            _identityContext.Database.EnsureDeleted();
-            _identityContext.Dispose();
         }
     }
 }

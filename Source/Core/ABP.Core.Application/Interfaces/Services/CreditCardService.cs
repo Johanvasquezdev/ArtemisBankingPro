@@ -11,7 +11,7 @@ using System.Text;
 
 namespace ABP.Core.Application.Interfaces.Services
 {
-    public class CreditCardService(ICreditCardRepository repo, ICreditCardConsumptionRepository consumptionService, ISavingsAccountRepository accountRepo, IMapper mapper, IUserReadOnlyService user, IEmailServices email, ILogger<CreditCardService> logger) : ICreditCardService
+    public class CreditCardService(ICreditCardRepository repo, ICreditCardConsumptionRepository consumptionService, ISavingsAccountRepository accountRepo, IMapper mapper, IUserReadOnlyService user, IEmailServices email, ILogger<CreditCardService> logger, IUnitOfWork unitOfWork) : ICreditCardService
     {
         private readonly ICreditCardRepository _repo = repo;
         private readonly ICreditCardConsumptionRepository _consumptionRepo = consumptionService;
@@ -20,6 +20,7 @@ namespace ABP.Core.Application.Interfaces.Services
         private readonly IUserReadOnlyService _userService = user;
         private readonly IEmailServices _emailService = email;
         private readonly ILogger<CreditCardService> _logger = logger;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<CreditCardDto> GetByIdAsync(int id)
         {
@@ -49,6 +50,14 @@ namespace ABP.Core.Application.Interfaces.Services
 
         public async Task<bool> ChargeAsync(int cardId, decimal amount)
         {
+            var charged = await ChargeWithoutSaveAsync(cardId, amount);
+            if (charged)
+                await _unitOfWork.SaveChangesAsync();
+            return charged;
+        }
+
+        public async Task<bool> ChargeWithoutSaveAsync(int cardId, decimal amount)
+        {
             if (amount <= 0) return false;
 
             var card = await _repo.GetByIdAsync(cardId);
@@ -59,7 +68,7 @@ namespace ABP.Core.Application.Interfaces.Services
                 return false;
 
             card.AmountOwed += amount;
-            await _repo.UpdateAsync(card);
+            await _repo.UpdateWithoutSaveAsync(card);
             return true;
         }
 
@@ -71,7 +80,10 @@ namespace ABP.Core.Application.Interfaces.Services
 
         public async Task<PaginatedResult<CreditCardDto>> GetAllPagedAsync(int page, int pageSize = 20, CardStatus? status = null, string? cedula = null)
         {
-            var entities = await _repo.GetAllPagedAsync(page, pageSize, status, cedula);
+            var clientId = string.IsNullOrWhiteSpace(cedula)
+                ? null
+                : await _userService.GetUserIdByCedulaAsync(cedula);
+            var entities = await _repo.GetAllPagedAsync(page, pageSize, status, clientId);
             var items = _mapper.Map<IEnumerable<CreditCardDto>>(entities);
             var usersById = (await _userService.GetByIdsAsync(items.Select(item => item.ClientId)))
                 .ToDictionary(user => user.Id);
@@ -118,7 +130,10 @@ namespace ABP.Core.Application.Interfaces.Services
                 AssignedByAdminId = string.Empty
             };
 
-            await _repo.AddAsync(card);
+            await using var assignmentTransaction = await _unitOfWork.BeginTransactionAsync();
+            await _repo.AddWithoutSaveAsync(card);
+            await _unitOfWork.SaveChangesAsync();
+            await assignmentTransaction.CommitAsync();
             return _mapper.Map<CreditCardDto>(card);
         }
 
@@ -128,7 +143,8 @@ namespace ABP.Core.Application.Interfaces.Services
             if (entity == null) return false;
 
             entity.Status = status;
-            await _repo.UpdateAsync(entity);
+            await _repo.UpdateWithoutSaveAsync(entity);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
@@ -147,8 +163,11 @@ namespace ABP.Core.Application.Interfaces.Services
             account.Balance -= paymentAmount;
             card.AmountOwed -= paymentAmount;
 
-            await _accountRepo.UpdateAsync(account);
-            await _repo.UpdateAsync(card);
+            await using var paymentTransaction = await _unitOfWork.BeginTransactionAsync();
+            await _accountRepo.UpdateWithoutSaveAsync(account);
+            await _repo.UpdateWithoutSaveAsync(card);
+            await _unitOfWork.SaveChangesAsync();
+            await paymentTransaction.CommitAsync();
             return true;
         }
 
@@ -171,10 +190,11 @@ namespace ABP.Core.Application.Interfaces.Services
             card.AmountOwed += totalWithInterest;
             account.Balance += dto.Amount;
 
-            await _repo.UpdateAsync(card);
-            await _accountRepo.UpdateAsync(account);
+            await using var advanceTransaction = await _unitOfWork.BeginTransactionAsync();
+            await _repo.UpdateWithoutSaveAsync(card);
+            await _accountRepo.UpdateWithoutSaveAsync(account);
 
-            await _consumptionRepo.AddAsync(new CreditCardConsumption
+            await _consumptionRepo.AddWithoutSaveAsync(new CreditCardConsumption
             {
                 Amount = dto.Amount,
                 TransactionDate = DateTime.UtcNow,
@@ -184,6 +204,8 @@ namespace ABP.Core.Application.Interfaces.Services
                 CommerceId = null
             });
 
+            await _unitOfWork.SaveChangesAsync();
+            await advanceTransaction.CommitAsync();
             return true;
         }
 
@@ -223,7 +245,8 @@ namespace ABP.Core.Application.Interfaces.Services
             }
 
             card.CreditLimit = newCreditLimit;
-            await _repo.UpdateAsync(card);
+            await _repo.UpdateWithoutSaveAsync(card);
+            await _unitOfWork.SaveChangesAsync();
 
             var user = await _userService.GetByIdAsync(card.ClientId);
             if (user == null || string.IsNullOrWhiteSpace(user.Email))
@@ -258,7 +281,8 @@ namespace ABP.Core.Application.Interfaces.Services
             card.Status = CardStatus.Cancelled;
             card.CreditLimit = 0;
 
-            await _repo.UpdateAsync(card);
+            await _repo.UpdateWithoutSaveAsync(card);
+            await _unitOfWork.SaveChangesAsync();
 
             var user = await _userService.GetByIdAsync(card.ClientId);
             if (user != null && !string.IsNullOrEmpty(user.Email))

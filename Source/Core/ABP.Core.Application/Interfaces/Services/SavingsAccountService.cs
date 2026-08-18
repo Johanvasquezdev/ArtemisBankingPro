@@ -45,6 +45,13 @@ namespace ABP.Core.Application.Interfaces.Services
         public async Task<PaginatedResult<SavingsAccountDto>> GetAllPagedAsync(int page, int pageSize = 20, AccountStatus? status = null, AccountType? type = null, string? cedula = null)
         {
             var entities = await _repo.GetAllPagedAsync(page, pageSize, status, type);
+            if (!string.IsNullOrWhiteSpace(cedula))
+            {
+                var clientId = await _userService.GetUserIdByCedulaAsync(cedula);
+                entities = clientId is null
+                    ? []
+                    : entities.Where(account => account.UserId == clientId);
+            }
             var items = _mapper.Map<IEnumerable<SavingsAccountDto>>(entities);
             var usersById = (await _userService.GetByIdsAsync(items.Select(item => item.UserId)))
                 .ToDictionary(user => user.Id);
@@ -88,6 +95,7 @@ namespace ABP.Core.Application.Interfaces.Services
             };
 
             await _repo.AddAsync(account);
+            await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<SavingsAccountDto>(account);
         }
 
@@ -97,7 +105,17 @@ namespace ABP.Core.Application.Interfaces.Services
             if (entity == null) return;
 
             _mapper.Map(dto, entity);
-            await _repo.UpdateAsync(entity);
+            await _repo.UpdateWithoutSaveAsync(entity);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task UpdateWithoutSaveAsync(SavingsAccountDto dto)
+        {
+            var entity = await _repo.GetByIdAsync(dto.Id);
+            if (entity == null) return;
+
+            _mapper.Map(dto, entity);
+            await _repo.UpdateWithoutSaveAsync(entity);
         }
 
         public async Task<bool> ChangeStatusAsync(int accountId, AccountStatus status)
@@ -106,7 +124,8 @@ namespace ABP.Core.Application.Interfaces.Services
             if (entity == null) return false;
 
             entity.Status = status;
-            await _repo.UpdateAsync(entity);
+            await _repo.UpdateWithoutSaveAsync(entity);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
@@ -118,7 +137,8 @@ namespace ABP.Core.Application.Interfaces.Services
             if (account == null || account.Status != AccountStatus.Active) return false;
 
             account.Balance += amount;
-            await _repo.UpdateAsync(account);
+            await _repo.UpdateWithoutSaveAsync(account);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
@@ -131,7 +151,8 @@ namespace ABP.Core.Application.Interfaces.Services
             if (account.Balance < amount) return false;
 
             account.Balance -= amount;
-            await _repo.UpdateAsync(account);
+            await _repo.UpdateWithoutSaveAsync(account);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
@@ -226,6 +247,8 @@ namespace ABP.Core.Application.Interfaces.Services
                 Status = AccountStatus.Active,
                 CreatedAt = DateTime.UtcNow
             };
+
+            await using var assignmentTransaction = await _unitOfWork.BeginTransactionAsync();
             await _repo.AddWithoutSaveAsync(account);
 
             if (dto.InitialBalance > 0)
@@ -250,6 +273,7 @@ namespace ABP.Core.Application.Interfaces.Services
             }
 
             await _unitOfWork.SaveChangesAsync();
+            await assignmentTransaction.CommitAsync();
         }
 
         public async Task CancelAsync(string accountNumber)

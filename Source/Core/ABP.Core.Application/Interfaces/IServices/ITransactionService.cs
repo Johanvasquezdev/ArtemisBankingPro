@@ -6,29 +6,12 @@ using ABP.Core.Application.DTOs.Transaction;
 
 namespace ABP.Core.Application.Interfaces.IServices
 {
-    public interface ITransactionService
-    {
-        Task<TransactionDto> GetByIdAsync(int id);
-        Task<IEnumerable<TransactionDto>> GetByAccountIdAsync(int savingsAccountId);
-        Task<IEnumerable<TransactionDto>> GetByAccountIdsAsync(IEnumerable<int> savingsAccountIds);
-        Task<IEnumerable<TransactionDto>> GetHistoryAsync(int take = 100);
-
-        // Client module operations
-        Task<CommandResult> MakeExpressTransactionAsync(MakeExpressTransactionDto dto);
-        Task<CommandResult> PayCreditCardAsync(PayCreditCardDto dto);
-        Task<CommandResult> PayLoanAsync(PayLoanDto dto);
-        Task<CommandResult> PayBeneficiaryAsync(PayBeneficiaryDto dto);
-        Task<CommandResult> TransferOwnAccountsAsync(TransferOwnAccountsDto dto);
-        Task<CommandResult> CashAdvanceAsync(CashAdvanceDto dto);
-
-        Task<int> GetTodayTransactionsCountAsync();
-        Task<int> GetTotalTransactionsCountAsync();
-        Task<int> GetTodayPaymentsCountAsync();
-        Task<int> GetTotalPaymentsCountAsync();
-        Task DepositAsync(CashierDepositDto cashierDepositDto);
-        Task WithdrawAsync(CashierWithdrawalDto dto);
-        Task CashierPayCreditCardAsync(CashierPayCreditCardDto dto);
-        Task CashierPayLoanAsync(CashierPayLoanDto Dto);
-        Task CashierTransferAsync(CashierTransferDto dto);
-    }
+// Compatibility contract for legacy callers. New features should depend on
+// the narrow query/client/cashier contracts instead.
+public interface ITransactionService :
+    ITransactionQueryService,
+    IClientTransactionService,
+    ICashierTransactionService
+{
+}
 }

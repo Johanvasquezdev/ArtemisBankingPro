@@ -34,8 +34,8 @@ public class PaymentProcessorServiceTests
         _unitOfWork.Setup(x => x.SaveChangesAsync(It.IsAny<CancellationToken>())).ReturnsAsync(0);
         _transaction.Setup(x => x.CommitAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
         _transaction.Setup(x => x.RollbackAsync(It.IsAny<CancellationToken>())).Returns(Task.CompletedTask);
-        _transactionRepository.Setup(x => x.AddAsync(It.IsAny<ABP.Core.Domain.Entities.Transaction>())).Returns(Task.CompletedTask);
-        _accountService.Setup(x => x.UpdateAsync(It.IsAny<SavingsAccountDto>())).Returns(Task.CompletedTask);
+        _transactionRepository.Setup(x => x.AddWithoutSaveAsync(It.IsAny<ABP.Core.Domain.Entities.Transaction>())).Returns(Task.CompletedTask);
+        _accountService.Setup(x => x.UpdateWithoutSaveAsync(It.IsAny<SavingsAccountDto>())).Returns(Task.CompletedTask);
         _emailService.Setup(x => x.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
         _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>())).ReturnsAsync(new UserDto { Email = "user@example.com" });
 
@@ -60,7 +60,7 @@ public class PaymentProcessorServiceTests
 
         result.Success.Should().BeFalse();
         result.Message.Should().Be("Invalid card security code.");
-        _cardService.Verify(x => x.ChargeAsync(It.IsAny<int>(), It.IsAny<decimal>()), Times.Never);
+        _cardService.Verify(x => x.ChargeWithoutSaveAsync(It.IsAny<int>(), It.IsAny<decimal>()), Times.Never);
     }
 
     [Fact]
@@ -69,7 +69,7 @@ public class PaymentProcessorServiceTests
         var card = BuildCard();
         SetupValidPayment(card);
         _consumptionService
-            .Setup(x => x.AddAsync(It.IsAny<CreditCardConsumptionDto>()))
+            .Setup(x => x.AddWithoutSaveAsync(It.IsAny<CreditCardConsumptionDto>()))
             .ReturnsAsync(new CreditCardConsumptionDto { Id = 55, CreditCardId = card.Id, CommerceId = 10, Amount = 100 });
 
         var result = await _service.ProcessPaymentAsync(10, BuildPayment(card));
@@ -77,9 +77,9 @@ public class PaymentProcessorServiceTests
         result.Success.Should().BeTrue();
         result.TransactionId.Should().Be(55);
         result.NewBalance.Should().Be(900);
-        _cardService.Verify(x => x.ChargeAsync(card.Id, 100), Times.Once);
-        _consumptionService.Verify(x => x.AddAsync(It.Is<CreditCardConsumptionDto>(c => c.CommerceId == 10 && c.Amount == 100)), Times.Once);
-        _accountService.Verify(x => x.UpdateAsync(It.Is<SavingsAccountDto>(a => a.Balance == 600)), Times.Once);
+        _cardService.Verify(x => x.ChargeWithoutSaveAsync(card.Id, 100), Times.Once);
+        _consumptionService.Verify(x => x.AddWithoutSaveAsync(It.Is<CreditCardConsumptionDto>(c => c.CommerceId == 10 && c.Amount == 100 && c.Status == ConsumptionStatus.Approved)), Times.Once);
+        _accountService.Verify(x => x.UpdateWithoutSaveAsync(It.Is<SavingsAccountDto>(a => a.Balance == 600)), Times.Once);
         _transaction.Verify(x => x.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
     }
 
@@ -95,7 +95,9 @@ public class PaymentProcessorServiceTests
 
         result.Success.Should().BeFalse();
         result.Message.Should().Contain("settlement account");
-        _unitOfWork.Verify(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Never);
+        _unitOfWork.Verify(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>()), Times.Once);
+        _consumptionService.Verify(x => x.AddWithoutSaveAsync(It.Is<CreditCardConsumptionDto>(c =>
+            c.CommerceId == 10 && c.Status == ConsumptionStatus.Rejected)), Times.Once);
     }
 
     [Fact]
@@ -124,7 +126,7 @@ public class PaymentProcessorServiceTests
         _commerceService.Setup(x => x.GetActiveUserIdAsync(10)).ReturnsAsync("commerce-user");
         _cardService.Setup(x => x.GetByCardNumberAsync(card.CardNumber)).ReturnsAsync(card);
         _cardService.Setup(x => x.VerifyCvcAsync(card.Id, "123")).ReturnsAsync(true);
-        _cardService.Setup(x => x.ChargeAsync(card.Id, 100)).ReturnsAsync(true);
+        _cardService.Setup(x => x.ChargeWithoutSaveAsync(card.Id, 100)).ReturnsAsync(true);
         _accountService.Setup(x => x.GetPrimaryAccountByClientIdAsync("commerce-user"))
             .ReturnsAsync(new SavingsAccountDto { Id = 3, AccountNumber = "123456789", Balance = 500, Status = AccountStatus.Active });
     }

@@ -1,5 +1,6 @@
 using ABP.Core.Application.DTOs.Cashier;
 using ABP.Core.Application.Interfaces.IServices;
+using FluentValidation;
 using MediatR;
 
 namespace ABP.Core.Application.Features.Cashier.Commands
@@ -10,7 +11,65 @@ namespace ABP.Core.Application.Features.Cashier.Commands
     public sealed record PayCashierLoanCommand(CashierPayLoanDto Dto) : IRequest<Unit>;
     public sealed record TransferCashierCommand(CashierTransferDto Dto) : IRequest<Unit>;
 
-    public sealed class DepositCashierCommandHandler(ITransactionService transactionService)
+    public sealed class DepositCashierCommandValidator : AbstractValidator<DepositCashierCommand>
+    {
+        public DepositCashierCommandValidator()
+        {
+            RuleFor(x => x.Dto.AccountNumber).NotEmpty();
+            RuleFor(x => x.Dto.Amount).GreaterThan(0);
+            RuleFor(x => x.Dto.PerformedByUserId).NotEmpty();
+            RuleFor(x => x.Dto.IdempotencyKey).NotEmpty().MaximumLength(200);
+        }
+    }
+
+    public sealed class WithdrawCashierCommandValidator : AbstractValidator<WithdrawCashierCommand>
+    {
+        public WithdrawCashierCommandValidator()
+        {
+            RuleFor(x => x.Dto.AccountNumber).NotEmpty();
+            RuleFor(x => x.Dto.Amount).GreaterThan(0);
+            RuleFor(x => x.Dto.PerformedByUserId).NotEmpty();
+            RuleFor(x => x.Dto.IdempotencyKey).NotEmpty().MaximumLength(200);
+        }
+    }
+
+    public sealed class PayCashierCreditCardCommandValidator : AbstractValidator<PayCashierCreditCardCommand>
+    {
+        public PayCashierCreditCardCommandValidator()
+        {
+            RuleFor(x => x.Dto.SourceAccountNumber).NotEmpty();
+            RuleFor(x => x.Dto.CardNumber).NotEmpty();
+            RuleFor(x => x.Dto.Amount).GreaterThan(0);
+            RuleFor(x => x.Dto.PerformedByUserId).NotEmpty();
+            RuleFor(x => x.Dto.IdempotencyKey).NotEmpty().MaximumLength(200);
+        }
+    }
+
+    public sealed class PayCashierLoanCommandValidator : AbstractValidator<PayCashierLoanCommand>
+    {
+        public PayCashierLoanCommandValidator()
+        {
+            RuleFor(x => x.Dto.SourceAccountNumber).NotEmpty();
+            RuleFor(x => x.Dto.LoanNumber).NotEmpty();
+            RuleFor(x => x.Dto.Amount).GreaterThan(0);
+            RuleFor(x => x.Dto.PerformedByUserId).NotEmpty();
+            RuleFor(x => x.Dto.IdempotencyKey).NotEmpty().MaximumLength(200);
+        }
+    }
+
+    public sealed class TransferCashierCommandValidator : AbstractValidator<TransferCashierCommand>
+    {
+        public TransferCashierCommandValidator()
+        {
+            RuleFor(x => x.Dto.SourceAccountNumber).NotEmpty();
+            RuleFor(x => x.Dto.DestinationAccountNumber).NotEmpty();
+            RuleFor(x => x.Dto.Amount).GreaterThan(0);
+            RuleFor(x => x.Dto.PerformedByUserId).NotEmpty();
+            RuleFor(x => x.Dto.IdempotencyKey).NotEmpty().MaximumLength(200);
+        }
+    }
+
+    public sealed class DepositCashierCommandHandler(ICashierTransactionService transactionService)
         : IRequestHandler<DepositCashierCommand, Unit>
     {
         public async Task<Unit> Handle(DepositCashierCommand request, CancellationToken cancellationToken)
@@ -20,7 +79,7 @@ namespace ABP.Core.Application.Features.Cashier.Commands
         }
     }
 
-    public sealed class WithdrawCashierCommandHandler(ITransactionService transactionService)
+    public sealed class WithdrawCashierCommandHandler(ICashierTransactionService transactionService)
         : IRequestHandler<WithdrawCashierCommand, Unit>
     {
         public async Task<Unit> Handle(WithdrawCashierCommand request, CancellationToken cancellationToken)
@@ -30,7 +89,7 @@ namespace ABP.Core.Application.Features.Cashier.Commands
         }
     }
 
-    public sealed class PayCashierCreditCardCommandHandler(ITransactionService transactionService)
+    public sealed class PayCashierCreditCardCommandHandler(ICashierTransactionService transactionService)
         : IRequestHandler<PayCashierCreditCardCommand, Unit>
     {
         public async Task<Unit> Handle(PayCashierCreditCardCommand request, CancellationToken cancellationToken)
@@ -40,7 +99,7 @@ namespace ABP.Core.Application.Features.Cashier.Commands
         }
     }
 
-    public sealed class PayCashierLoanCommandHandler(ITransactionService transactionService)
+    public sealed class PayCashierLoanCommandHandler(ICashierTransactionService transactionService)
         : IRequestHandler<PayCashierLoanCommand, Unit>
     {
         public async Task<Unit> Handle(PayCashierLoanCommand request, CancellationToken cancellationToken)
@@ -50,7 +109,7 @@ namespace ABP.Core.Application.Features.Cashier.Commands
         }
     }
 
-    public sealed class TransferCashierCommandHandler(ITransactionService transactionService)
+    public sealed class TransferCashierCommandHandler(ICashierTransactionService transactionService)
         : IRequestHandler<TransferCashierCommand, Unit>
     {
         public async Task<Unit> Handle(TransferCashierCommand request, CancellationToken cancellationToken)

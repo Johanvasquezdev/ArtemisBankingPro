@@ -127,8 +127,8 @@ namespace ABP.Unit.Tests.Services
             await _service.DepositAsync(request);
 
             account.Balance.Should().Be(600);
-            _accountRepo.Verify(x => x.UpdateAsync(account), Times.Once);
-            _transactionRepo.Verify(x => x.AddAsync(It.IsAny<Transaction>()), Times.Once);
+            _accountRepo.Verify(x => x.UpdateWithoutSaveAsync(account), Times.Once);
+            _transactionRepo.Verify(x => x.AddWithoutSaveAsync(It.IsAny<Transaction>()), Times.Once);
         }
 
         [Fact]
@@ -197,7 +197,7 @@ namespace ABP.Unit.Tests.Services
             result.Succeeded.Should().BeTrue();
             source.Balance.Should().Be(800m);
             destination.Balance.Should().Be(700m);
-            _transactionRecorder.Verify(x => x.RecordDoubleEntryAsync(
+            _transactionRecorder.Verify(x => x.RecordDoubleEntryWithoutSaveAsync(
                 It.Is<TransactionEntry>(e => e.Type == TransactionType.Debit && e.Amount == 200m),
                 It.Is<TransactionEntry>(e => e.Type == TransactionType.Credit && e.Amount == 200m)), Times.Once);
             _transaction.Verify(x => x.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -270,7 +270,7 @@ namespace ABP.Unit.Tests.Services
 
             source.Balance.Should().Be(900m);
             card.AmountOwed.Should().Be(0m);
-            _transactionRecorder.Verify(x => x.RecordAsync(It.Is<TransactionEntry>(e => e.Amount == 100m && e.Status == TransactionStatus.Approved)), Times.Once);
+            _transactionRecorder.Verify(x => x.RecordWithoutSaveAsync(It.Is<TransactionEntry>(e => e.Amount == 100m && e.Status == TransactionStatus.Approved)), Times.Once);
         }
 
         #endregion
@@ -299,9 +299,9 @@ namespace ABP.Unit.Tests.Services
 
             account.Balance.Should().Be(600m);
             card.AmountOwed.Should().Be(106.25m);
-            _consumptionRepo.Verify(x => x.AddAsync(It.Is<CreditCardConsumption>(c =>
+            _consumptionRepo.Verify(x => x.AddWithoutSaveAsync(It.Is<CreditCardConsumption>(c =>
                 c.Amount == 106.25m && c.CommerceName == "AVANCE")), Times.Once);
-            _transactionRecorder.Verify(x => x.RecordAsync(It.Is<TransactionEntry>(e =>
+            _transactionRecorder.Verify(x => x.RecordWithoutSaveAsync(It.Is<TransactionEntry>(e =>
                 e.Type == TransactionType.Credit && e.Amount == 100m && e.Status == TransactionStatus.Approved)), Times.Once);
         }
 
@@ -410,7 +410,7 @@ namespace ABP.Unit.Tests.Services
 
             installment1.Status.Should().Be(InstallmentStatus.Paid);
             loan.Status.Should().Be(LoanStatus.Completed);
-            _loanRepo.Verify(x => x.UpdateAsync(loan), Times.Once);
+            _loanRepo.Verify(x => x.UpdateWithoutSaveAsync(loan), Times.Once);
         }
 
         [Fact]
@@ -465,7 +465,7 @@ namespace ABP.Unit.Tests.Services
 
             source.Balance.Should().Be(750m);
             destination.Balance.Should().Be(350m);
-            _transactionRecorder.Verify(x => x.RecordDoubleEntryAsync(It.IsAny<TransactionEntry>(), It.IsAny<TransactionEntry>()), Times.Once);
+            _transactionRecorder.Verify(x => x.RecordDoubleEntryWithoutSaveAsync(It.IsAny<TransactionEntry>(), It.IsAny<TransactionEntry>()), Times.Once);
         }
 
         [Fact]
@@ -533,7 +533,7 @@ namespace ABP.Unit.Tests.Services
 
             source.Balance.Should().Be(700m);
             destination.Balance.Should().Be(400m);
-            _transactionRecorder.Verify(x => x.RecordDoubleEntryAsync(It.IsAny<TransactionEntry>(), It.IsAny<TransactionEntry>()), Times.Once);
+            _transactionRecorder.Verify(x => x.RecordDoubleEntryWithoutSaveAsync(It.IsAny<TransactionEntry>(), It.IsAny<TransactionEntry>()), Times.Once);
         }
 
         #endregion

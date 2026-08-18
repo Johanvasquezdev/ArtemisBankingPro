@@ -16,7 +16,7 @@ namespace ABP.Core.Application.Features.Cashier.Queries
 
     public sealed record GetCashierHistoryQuery(int Take = 100) : IRequest<IEnumerable<TransactionDto>>;
 
-    public sealed class GetCashierHistoryQueryHandler(ITransactionService transactionService)
+    public sealed class GetCashierHistoryQueryHandler(ITransactionQueryService transactionService)
         : IRequestHandler<GetCashierHistoryQuery, IEnumerable<TransactionDto>>
     {
         public Task<IEnumerable<TransactionDto>> Handle(GetCashierHistoryQuery request, CancellationToken cancellationToken)

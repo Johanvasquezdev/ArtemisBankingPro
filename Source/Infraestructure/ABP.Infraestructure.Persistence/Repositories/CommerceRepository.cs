@@ -1,23 +1,20 @@
 using ABP.Core.Domain.Entities;
 using ABP.Core.Domain.Interfaces;
-using ABP.Infraestructure.identity.Context;
 using ABP.Infraestructure.Persistence.Context;
 using ABP.Infraestructure.Persistence.Repositories.Generic;
 using Microsoft.EntityFrameworkCore;
 
 namespace ABP.Infraestructure.Persistence.Repositories
 {
-    public class CommerceRepository(ArtemisBankingDbContext context, IdentityContext identity) : GenericRepository<Commerce>(context), ICommerceRepository
+    public class CommerceRepository(ArtemisBankingDbContext context) : GenericRepository<Commerce>(context), ICommerceRepository
     {
-        private readonly IdentityContext _identity = identity;
-        public async Task<bool> CommerceHasActiveUserAsync(int commerceId)
+        public async Task<IEnumerable<Commerce>> GetAllPagedAsync(int? page = null, int? pageSize = null, bool? isActive = null)
         {
-            return await _identity.Users.AnyAsync(u => u.CommerceId == commerceId && u.IsActive);
-        }
+            var query = _dbSet.AsNoTracking().AsQueryable();
+            if (isActive.HasValue)
+                query = query.Where(c => c.IsActive == isActive.Value);
 
-        public async Task<IEnumerable<Commerce>> GetAllPagedAsync(int? page = null, int? pageSize = null)
-        {
-            var query = _dbSet.AsNoTracking().Where(c => c.IsActive).OrderByDescending(c => c.CreatedAt);
+            query = query.OrderByDescending(c => c.CreatedAt);
 
             if (page.HasValue && pageSize.HasValue)
             {
@@ -31,12 +28,11 @@ namespace ABP.Infraestructure.Persistence.Repositories
             return await _dbSet.FirstOrDefaultAsync(c => c.Id == commerceId);
         }
 
-        public async Task<string?> GetActiveUserIdAsync(int commerceId)
-        {
-            return await _identity.Users
-                .Where(u => u.CommerceId == commerceId && u.IsActive && u.EmailConfirmed)
-                .Select(u => u.Id)
-                .FirstOrDefaultAsync();
-        }
+        public Task<bool> ExistsByRncAsync(string rnc, int? excludingId = null) =>
+            _dbSet.AnyAsync(c => c.Rnc == rnc && (!excludingId.HasValue || c.Id != excludingId.Value));
+
+        public Task<bool> ExistsByEmailAsync(string email, int? excludingId = null) =>
+            _dbSet.AnyAsync(c => c.Email == email && (!excludingId.HasValue || c.Id != excludingId.Value));
+
     }
 }

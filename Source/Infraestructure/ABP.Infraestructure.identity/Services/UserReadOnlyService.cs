@@ -14,12 +14,20 @@ namespace ABP.Infraestructure.identity.Services
         private readonly UserManager<ApplicationUser> _userManager = userManager;
         #endregion
 
-        public async Task<UserDto> GetByIdAsync(string userId)
+        public async Task<UserDto?> GetByIdAsync(string userId)
         {
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return null!;
 
             return MapToDto(user, user.Role.ToString());
+        }
+
+        public Task<string?> GetUserIdByCedulaAsync(string cedula)
+        {
+            return _userManager.Users
+                .Where(user => user.Cedula == cedula)
+                .Select(user => user.Id)
+                .FirstOrDefaultAsync();
         }
 
         public async Task<IEnumerable<UserDto>> GetByIdsAsync(IEnumerable<string> userIds)

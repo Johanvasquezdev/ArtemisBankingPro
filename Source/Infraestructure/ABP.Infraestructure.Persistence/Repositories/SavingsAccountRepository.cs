@@ -4,13 +4,11 @@ using ABP.Core.Domain.Interfaces;
 using ABP.Infraestructure.Persistence.Context;
 using ABP.Infraestructure.Persistence.Repositories.Generic;
 using Microsoft.EntityFrameworkCore;
-using ABP.Infraestructure.identity.Context;
 
 namespace ABP.Infraestructure.Persistence.Repositories
 {
-    public class SavingsAccountRepository(ArtemisBankingDbContext context, IdentityContext identityContext) : GenericRepository<SavingsAccount>(context), ISavingsAccountRepository
+    public class SavingsAccountRepository(ArtemisBankingDbContext context) : GenericRepository<SavingsAccount>(context), ISavingsAccountRepository
     {
-        private readonly IdentityContext _identityContext = identityContext;
         public async Task<bool> AccountOrLoanNumberExistsAsync(string number)
         {
             bool existsAsAccount = await _dbSet.AnyAsync(a => a.AccountNumber == number);
@@ -54,28 +52,6 @@ namespace ABP.Infraestructure.Persistence.Repositories
         public async Task<SavingsAccount?> GetByAccountNumberAsync(string accountNumber)
         {
             return await _dbSet.FirstOrDefaultAsync(a => a.AccountNumber == accountNumber);
-        }
-
-        public async Task<IEnumerable<SavingsAccount>> GetByClientCedulaAsync(string cedula, AccountStatus? status = null, AccountType? type = null)
-        {
-            var clientId = await _identityContext.Users.Where(u => u.Cedula == cedula).Select(u => u.Id).FirstOrDefaultAsync();
-
-            if (clientId == null)
-            {
-                return [];
-            }
-
-            var query = _dbSet.AsNoTracking().Where(a => a.UserId == clientId);
-            if (status.HasValue) 
-            { 
-                query = query.Where(a => a.Status == status.Value);
-            }
-            if (type.HasValue)
-            {
-                query = query.Where(a => a.Type == type.Value);
-            }
-
-            return await query.OrderByDescending(a => a.CreatedAt).ThenByDescending(a => a.CreatedAt).ToListAsync();
         }
 
         public async Task<SavingsAccount?> GetPrimaryAccountByClientIdAsync(string clientId)

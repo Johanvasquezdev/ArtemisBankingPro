@@ -115,7 +115,7 @@
 
     const initializeTheme = () => {
         const savedTheme = localStorage.getItem(storageKey);
-        applyTheme(savedTheme === 'dark' ? 'dark' : 'light');
+        applyTheme(savedTheme === 'light' ? 'light' : 'dark');
 
         document.querySelectorAll('[data-theme-toggle]').forEach((toggle) => {
             toggle.addEventListener('click', () => {

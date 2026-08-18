@@ -14,17 +14,20 @@ namespace ABP.Core.Application.Interfaces.Services
         private readonly ISavingsAccountRepository _accountRepo;
         private readonly IUserReadOnlyService _userService;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork? _unitOfWork;
 
         public BeneficiaryService(
             IBeneficiaryRepository repo,
             ISavingsAccountRepository accountRepo,
             IUserReadOnlyService userService,
-            IMapper mapper)
+            IMapper mapper,
+            IUnitOfWork? unitOfWork = null)
         {
             _repo = repo;
             _accountRepo = accountRepo;
             _userService = userService;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<BeneficiaryDto> GetByIdAsync(int id)
@@ -67,6 +70,8 @@ namespace ABP.Core.Application.Interfaces.Services
             };
 
             await _repo.AddAsync(beneficiary);
+            if (_unitOfWork is not null)
+                await _unitOfWork.SaveChangesAsync();
             return _mapper.Map<BeneficiaryDto>(beneficiary);
         }
 
@@ -77,6 +82,8 @@ namespace ABP.Core.Application.Interfaces.Services
             if (entity.OwnerId != ownerId) return;
 
             await _repo.DeleteAsync(entity);
+            if (_unitOfWork is not null)
+                await _unitOfWork.SaveChangesAsync();
         }
 
         public async Task<bool> BeneficiaryExistsForOwnerAsync(string ownerId, string accountNumber)

@@ -10,11 +10,13 @@ namespace ABP.Core.Application.Interfaces.Services
     {
         private readonly ILoanInstallmentRepository _repo;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork? _unitOfWork;
 
-        public LoanInstallmentService(ILoanInstallmentRepository repo, IMapper mapper)
+        public LoanInstallmentService(ILoanInstallmentRepository repo, IMapper mapper, IUnitOfWork? unitOfWork = null)
         {
             _repo = repo;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<LoanInstallmentDto> GetByIdAsync(int id)
@@ -69,6 +71,8 @@ namespace ABP.Core.Application.Interfaces.Services
             }
 
             await _repo.UpdateAsync(installment);
+            if (_unitOfWork is not null)
+                await _unitOfWork.SaveChangesAsync();
             return true;
         }
 

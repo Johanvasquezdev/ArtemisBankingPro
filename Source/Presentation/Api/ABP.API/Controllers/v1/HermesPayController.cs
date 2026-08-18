@@ -1,7 +1,9 @@
 using ABP.Core.Application.DTOs.Payment;
-using ABP.Core.Application.Interfaces.IServices;
 using ABP.API.DTOs.Payment;
+using ABP.Core.Application.Features.Commerce.Commands;
+using ABP.Core.Application.Features.Commerce.Queries;
 using Asp.Versioning;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -13,11 +15,11 @@ namespace ABP.API.Controllers.v1
     [Route("api/v{version:apiVersion}/pay")]
     public class HermesPayController : BaseApiController
     {
-        private readonly IPaymentProcessorService _paymentProcessorService;
+        private readonly IMediator _mediator;
 
-        public HermesPayController(IPaymentProcessorService paymentProcessorService)
+        public HermesPayController(IMediator mediator)
         {
-            _paymentProcessorService = paymentProcessorService;
+            _mediator = mediator;
         }
 
         /// <summary>
@@ -44,7 +46,7 @@ namespace ABP.API.Controllers.v1
                 }
             }
 
-            var transactions = await _paymentProcessorService.GetCommerceTransactionsAsync(actualCommerceId);
+            var transactions = await _mediator.Send(new GetCommerceTransactionsQuery(actualCommerceId));
 
             return Ok(transactions);
         }
@@ -64,10 +66,11 @@ namespace ABP.API.Controllers.v1
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> ProcessPayment(
             [FromRoute] int commerceId,
-            [FromBody] ProcessPaymentRequest request)
+            [FromBody] ProcessPaymentRequest request,
+            [FromHeader(Name = "Idempotency-Key")] string? idempotencyKey = null)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return ValidationProblem();
 
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
             var actualCommerceId = commerceId;
@@ -87,13 +90,14 @@ namespace ABP.API.Controllers.v1
                 MonthExpirationCard = request.MonthExpirationCard,
                 YearExpirationCard = request.YearExpirationCard,
                 CVC = request.CVC,
-                TransactionAmount = request.TransactionAmount
+                TransactionAmount = request.TransactionAmount,
+                IdempotencyKey = idempotencyKey ?? string.Empty
             };
 
-            var result = await _paymentProcessorService.ProcessPaymentAsync(actualCommerceId, paymentDto);
+            var result = await _mediator.Send(new ProcessCommercePaymentCommand(actualCommerceId, paymentDto));
 
             if (!result.Success)
-                return BadRequest(new { message = result.Message });
+                return ApiProblem(400, "Pago rechazado", result.Message ?? "El pago no pudo procesarse.");
 
             return NoContent();
         }

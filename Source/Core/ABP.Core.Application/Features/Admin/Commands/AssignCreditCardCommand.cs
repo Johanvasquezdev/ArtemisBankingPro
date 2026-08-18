@@ -5,7 +5,11 @@ using MediatR;
 
 namespace ABP.Core.Application.Features.Admin.Commands
 {
-    public sealed record AssignCreditCardCommand(string ClientId, decimal CreditLimit) : IRequest<CreditCardDto>;
+    public sealed record AssignCreditCardCommand(string ClientId, decimal CreditLimit) : IRequest<CreditCardDto>
+    {
+        public AssignCreditCardCommand(AssignCreditCardDto card) : this(card.ClientId, card.CreditLimit) { Card = card; }
+        public AssignCreditCardDto Card { get; init; } = new() { ClientId = ClientId, CreditLimit = CreditLimit };
+    }
 
     public sealed class AssignCreditCardCommandValidator : AbstractValidator<AssignCreditCardCommand>
     {
@@ -23,8 +27,7 @@ namespace ABP.Core.Application.Features.Admin.Commands
 
         public async Task<CreditCardDto> Handle(AssignCreditCardCommand request, CancellationToken cancellationToken)
         {
-            var dto = new AssignCreditCardDto { ClientId = request.ClientId, CreditLimit = request.CreditLimit };
-            return await _creditCardService.AssignAsync(dto);
+            return await _creditCardService.AssignAsync(request.Card);
         }
     }
 }

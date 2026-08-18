@@ -12,15 +12,26 @@
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/abp-polish.css" asp-append-version="true" />
+
+    <script>
+        (function() {
+            try {
+                var theme = localStorage.getItem('artemis-theme');
+                var isDark = theme === 'light' ? false : true;
+                document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+            } catch (e) {}
+        })();
+    </script>
 </head>
-<body class="bg-ivory text-obsidian font-sans antialiased min-h-screen">
+<body class="abp-shell abp-shell-client bg-ivory text-obsidian font-sans antialiased min-h-screen">
     <!-- Sidebar desktop -->
-    <aside class="fixed inset-y-0 left-0 z-20 hidden h-screen w-64 flex-col bg-obsidian text-ivory shadow-xl lg:flex">
+    <aside class="abp-sidebar fixed inset-y-0 left-0 z-20 hidden h-screen w-64 flex-col bg-obsidian text-ivory shadow-xl lg:flex">
         <div class="flex h-20 items-center border-b border-white/10 px-4">
                 <a asp-area="Client" asp-controller="Home" asp-action="Index" class="flex items-center gap-3 no-underline">
-                <span class="block w-56 shrink-0">
+                <span class="abp-brand-lockup block w-56 shrink-0">
                     <partial name="_BrandLogo" model='"light"' />
                 </span>
             </a>
@@ -66,14 +77,14 @@
     </aside>
 
     <div class="flex min-h-screen flex-col lg:ml-64">
-        <header class="sticky top-0 z-10 border-b border-obsidian/5 bg-panel px-6 py-4 shadow-sm lg:px-8">
+        <header class="abp-topbar sticky top-0 z-10 border-b border-obsidian/5 bg-panel px-6 py-4 shadow-sm lg:px-8">
             <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
                     <details class="relative lg:hidden">
                         <summary class="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-full bg-obsidian/5 text-obsidian/70 hover:bg-gold/10 hover:text-gold" aria-label="Abrir menú">
                             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
                         </summary>
-                        <nav class="absolute left-0 top-12 z-30 w-56 rounded-xl border border-obsidian/10 bg-panel p-2 shadow-xl" aria-label="Navegación móvil">
+                        <nav class="abp-mobile-nav absolute left-0 top-12 z-30 w-56 rounded-xl border border-obsidian/10 bg-panel p-2 shadow-xl" aria-label="Navegación móvil">
                             <a asp-area="Client" asp-controller="Home" asp-action="Index" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Inicio</a>
                             <a asp-area="Client" asp-controller="Transactions" asp-action="Express" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Transacciones</a>
                             <a asp-area="Client" asp-controller="CashAdvance" asp-action="Index" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Avances</a>
@@ -104,7 +115,7 @@
             </div>
         </header>
 
-        <main class="mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-8">
+        <main class="abp-main mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-8">
             @if (TempData["SuccessMessage"] is string success && !string.IsNullOrEmpty(success))
             {
                 <div class="mb-6 flex items-center justify-between rounded-lg border border-gold/30 bg-panel p-4 text-obsidian shadow-sm">

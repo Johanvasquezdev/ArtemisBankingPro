@@ -1,23 +1,25 @@
 ﻿using ABP.Core.Application.DTOs.Dashboard;
 using ABP.Core.Application.Interfaces.IServices;
+using ABP.Core.Application.Features.Admin.Queries;
 using ABP.Core.Application.ViewModels.Dashboard;
 using ArtemisBankingPro.Areas.Admin.Controllers;
 using FluentAssertions;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
+using MediatR;
 using Xunit;
 
 namespace ABP.Unit.Tests.Controllers.Presentation
 {
     public class DashboardControllerTests
     {
-        private readonly Mock<IDashboardService> _mockDashboardService;
+        private readonly Mock<IMediator> _mockMediator;
         private readonly DashboardController _controller;
 
         public DashboardControllerTests()
         {
-            _mockDashboardService = new Mock<IDashboardService>();
-            _controller = new DashboardController(_mockDashboardService.Object);
+            _mockMediator = new Mock<IMediator>();
+            _controller = new DashboardController(_mockMediator.Object);
         }
 
         [Fact]
@@ -37,7 +39,8 @@ namespace ABP.Unit.Tests.Controllers.Presentation
                 InactiveClients = 3,
                 AverageDebt = 2500.50m
             };
-            _mockDashboardService.Setup(s => s.GetAdminDashboardAsync()).ReturnsAsync(dto);
+            _mockMediator.Setup(m => m.Send(It.IsAny<GetAdminDashboardQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(dto);
 
             // Act
             var result = await _controller.Index();

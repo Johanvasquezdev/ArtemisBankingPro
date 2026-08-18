@@ -1,11 +1,12 @@
-﻿using ABP.Core.Application.DTOs.CreditCard;
-using ABP.Core.Application.Interfaces.IServices;
+using ABP.Core.Application.DTOs.CreditCard;
+using ABP.Core.Application.Features.Admin.Commands;
+using ABP.Core.Application.Features.Admin.Queries;
 using ABP.Core.Application.ViewModels.Client;
 using ABP.Core.Application.ViewModels.CreditCard;
 using ABP.Core.Domain.Enums;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging.Abstractions;
 
 namespace ArtemisBankingPro.Areas.Admin.Controllers
@@ -13,20 +14,17 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
     [Area("Admin")]
     [Authorize(Roles = "Admin")]
     [Route("Admin/[controller]")]
-    public class CreditCardManagementController(ICreditCardService creditCardService,
-        ICreditCardConsumptionService consumptionService, IUserReadOnlyService userReadOnlyService,
+    public class CreditCardManagementController(IMediator mediator,
         ILogger<CreditCardManagementController>? logger = null) : Controller
     {
-        private readonly ICreditCardService _creditCardService = creditCardService;
-        private readonly ICreditCardConsumptionService _consumptionService = consumptionService;
-        private readonly IUserReadOnlyService _userReadOnlyService = userReadOnlyService;
+        private readonly IMediator _mediator = mediator;
         private readonly ILogger<CreditCardManagementController> _logger = logger ?? NullLogger<CreditCardManagementController>.Instance;
 
         [HttpGet("")]
         [HttpGet("Index")]
         public async Task<IActionResult> Index(int page = 1, CardStatus? status = CardStatus.Active, string? cedula = null)
         {
-            var result = await _creditCardService.GetAllPagedAsync(page, 20, status, cedula);
+            var result = await _mediator.Send(new GetAdminCreditCardsQuery(page, 20, status, cedula));
             ViewBag.CurrentStatus = status;
             ViewBag.CurrentCedula = cedula;
             return View(result);
@@ -35,7 +33,7 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
         [HttpGet("SelectClient")]
         public async Task<IActionResult> SelectClient(string? cedula = null)
         {
-            var clients = await _userReadOnlyService.GetActiveClientsAsync(cedula);
+            var clients = await _mediator.Send(new GetActiveClientsQuery(cedula));
             var vm = new SelectClientViewModel { Clients = clients, CurrentCedula = cedula };
             return View(vm);
         }
@@ -46,17 +44,15 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
             return View(new AssignCreditCardViewModel { ClientId = clientId });
         }
 
-        [HttpPost("Assign")]
+        [HttpPost("Assign/{clientId?}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Assign(AssignCreditCardViewModel model)
         {
             if (!ModelState.IsValid) return View(model);
 
-            var dto = new AssignCreditCardDto { ClientId = model.ClientId, CreditLimit = model.CreditLimit };
-
             try
             {
-                await _creditCardService.AssignAsync(dto);
+                await _mediator.Send(new AssignCreditCardCommand(model.ClientId, model.CreditLimit));
                 TempData["SuccessMessage"] = "Tarjeta de crédito asignada correctamente.";
                 return RedirectToAction(nameof(Index));
             }
@@ -64,13 +60,6 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
             {
                 model.HasError = true;
                 model.Error = ex.Message;
-                return View(model);
-            }
-            catch (DbUpdateException ex)
-            {
-                _logger.LogError(ex, "Error de base de datos al asignar tarjeta para el cliente {ClientId}", model.ClientId);
-                model.HasError = true;
-                model.Error = "No se pudo guardar la tarjeta. Verifica la conexión y vuelve a intentarlo.";
                 return View(model);
             }
             catch (Exception ex)
@@ -85,18 +74,16 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
         [HttpGet("Details/{id:int}")]
         public async Task<IActionResult> Details(int id)
         {
-            var card = await _creditCardService.GetByIdAsync(id);
-            if (card == null) return NotFound();
+            var details = await _mediator.Send(new GetAdminCreditCardDetailsQuery(id));
+            if (details == null) return NotFound();
 
-            var consumptions = await _consumptionService.GetByCardIdAsync(id);
-
-            return View(new CreditCardDetailViewModel { CreditCard = card, Consumptions = consumptions });
+            return View(new CreditCardDetailViewModel { CreditCard = details.Card, Consumptions = details.Consumptions });
         }
 
         [HttpGet("EditLimit/{id:int}")]
         public async Task<IActionResult> EditLimit(int id)
         {
-            var card = await _creditCardService.GetByIdAsync(id);
+            var card = (await _mediator.Send(new GetAdminCreditCardDetailsQuery(id)))?.Card;
             if (card == null) return NotFound();
 
             var vm = new EditCreditCardLimitViewModel
@@ -120,7 +107,7 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
 
             try
             {
-                await _creditCardService.UpdateLimitAsync(id, model.NewCreditLimit);
+                await _mediator.Send(new UpdateCreditCardLimitCommand(id, model.NewCreditLimit));
                 TempData["SuccessMessage"] = "Límite de crédito actualizado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
@@ -135,7 +122,7 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
         [HttpGet("Cancel/{id:int}")]
         public async Task<IActionResult> Cancel(int id)
         {
-            var card = await _creditCardService.GetByIdAsync(id);
+            var card = (await _mediator.Send(new GetAdminCreditCardDetailsQuery(id)))?.Card;
             if (card == null) return NotFound();
 
             var vm = new CancelCreditCardViewModel
@@ -154,7 +141,7 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
         {
             try
             {
-                await _creditCardService.CancelAsync(id);
+                await _mediator.Send(new CancelCreditCardCommand(id));
                 TempData["SuccessMessage"] = "Tarjeta cancelada correctamente.";
             }
             catch (InvalidOperationException ex)

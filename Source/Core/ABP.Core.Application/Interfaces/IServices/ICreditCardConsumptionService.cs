@@ -8,5 +8,7 @@ namespace ABP.Core.Application.Interfaces.IServices
         Task<IEnumerable<CreditCardConsumptionDto>> GetByCardIdAsync(int creditCardId);
         Task<IEnumerable<CreditCardConsumptionDto>> GetByCommerceIdAsync(int commerceId);
         Task<CreditCardConsumptionDto> AddAsync(CreditCardConsumptionDto dto);
+        /// <summary>Tracks a consumption in the current unit of work without flushing it.</summary>
+        Task<CreditCardConsumptionDto> AddWithoutSaveAsync(CreditCardConsumptionDto dto);
     }
 }

@@ -1,4 +1,5 @@
 using ABP.Core.Application.Interfaces.IServices;
+using ABP.Core.Application.DTOs.Account;
 using ABP.Core.Domain.Enums;
 using FluentValidation;
 using MediatR;
@@ -7,7 +8,8 @@ namespace ABP.Core.Application.Features.Admin.Commands
 {
     public sealed record CreateUserCommand(
         string FirstName, string LastName, string Cedula, string UserName, string Email,
-        string Password, string Role, string AdminId, decimal? InitialAmount) : IRequest<CreateUserResult>;
+        string Password, string Role, string AdminId, decimal? InitialAmount,
+        AccountEmailChannel EmailChannel = AccountEmailChannel.Api) : IRequest<CreateUserResult>;
 
     public sealed record CreateUserResult
     {
@@ -35,17 +37,26 @@ namespace ABP.Core.Application.Features.Admin.Commands
         }
     }
 
-    public sealed class CreateUserCommandHandler(IUserService userService, IUserReadOnlyService userReadOnlyService)
-        : IRequestHandler<CreateUserCommand, CreateUserResult>
+    public sealed class CreateUserCommandHandler : IRequestHandler<CreateUserCommand, CreateUserResult>
     {
+        private readonly IUserService _userService;
+        private readonly IUserReadOnlyService? _userReadOnlyService;
+
+        public CreateUserCommandHandler(IUserService userService, IUserReadOnlyService? userReadOnlyService = null)
+        {
+            _userService = userService;
+            _userReadOnlyService = userReadOnlyService;
+        }
+
         public async Task<CreateUserResult> Handle(CreateUserCommand request, CancellationToken cancellationToken)
         {
-            if (await userReadOnlyService.ExistsByCedulaAsync(request.Cedula))
+            if (_userReadOnlyService is not null && await _userReadOnlyService.ExistsByCedulaAsync(request.Cedula))
                 return new CreateUserResult { CedulaAlreadyExists = true };
 
-            var created = await userService.RegisterAsync(
+            var created = await _userService.RegisterAsync(
                 request.FirstName, request.LastName, request.Cedula, request.UserName,
-                request.Email, request.Password, request.Role, request.AdminId, request.InitialAmount ?? 0);
+                request.Email, request.Password, request.Role, request.AdminId, request.InitialAmount ?? 0,
+                request.EmailChannel);
 
             if (!created)
                 return new CreateUserResult { UsernameOrEmailAlreadyExists = true };

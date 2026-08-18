@@ -1,9 +1,19 @@
 using ABP.Core.Application.Interfaces.IServices;
+using FluentValidation;
 using MediatR;
 
 namespace ABP.Core.Application.Features.Admin.Commands
 {
     public sealed record ChangeUserStatusCommand(string AdminId, string UserId, bool Status) : IRequest<ChangeUserStatusResult>;
+
+    public sealed class ChangeUserStatusCommandValidator : AbstractValidator<ChangeUserStatusCommand>
+    {
+        public ChangeUserStatusCommandValidator()
+        {
+            RuleFor(x => x.AdminId).NotEmpty();
+            RuleFor(x => x.UserId).NotEmpty();
+        }
+    }
 
     public sealed record ChangeUserStatusResult
     {

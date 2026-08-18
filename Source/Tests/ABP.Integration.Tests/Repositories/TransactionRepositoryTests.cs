@@ -47,6 +47,7 @@ namespace ABP.Integration.Tests.Repositories
 
             // Act
             await _repository.AddAsync(transaction);
+            await _dbContext.SaveChangesAsync();
 
             // Assert
             transaction.Id.Should().BeGreaterThan(0);

@@ -18,6 +18,8 @@ namespace ABP.API.Controllers.v1.Admin
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20,
             [FromQuery] string status = "activa", [FromQuery] string? identification = null)
         {
+            if (page < 1 || pageSize is < 1 or > 20 || status is not ("activa" or "cancelada" or "todas"))
+                return ApiProblem(StatusCodes.Status400BadRequest, "Validación fallida", "Los parámetros de paginación o estado no son válidos.");
             var result = await _mediator.Send(new GetCreditCardsQuery(page, pageSize, status, identification));
             return Ok(result);
         }
@@ -33,7 +35,7 @@ namespace ABP.API.Controllers.v1.Admin
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return ApiProblem(StatusCodes.Status400BadRequest, "No se pudo asignar la tarjeta", ex.Message);
             }
         }
 
@@ -42,7 +44,7 @@ namespace ABP.API.Controllers.v1.Admin
         public async Task<IActionResult> GetById(int id)
         {
             var result = await _mediator.Send(new GetCreditCardByIdQuery(id));
-            if (result == null) return NotFound(new { message = "La tarjeta de crédito especificada no existe." });
+            if (result == null) return ApiProblem(StatusCodes.Status404NotFound, "Tarjeta no encontrada", "La tarjeta de crédito especificada no existe.");
             return Ok(new { card = result.Card, consumptions = result.Consumptions });
         }
 
@@ -50,6 +52,8 @@ namespace ABP.API.Controllers.v1.Admin
         [HttpPatch("{id:int}/limit")]
         public async Task<IActionResult> UpdateLimit(int id, [FromBody] UpdateLimitRequest request)
         {
+            if (id <= 0 || request.NewLimit <= 0)
+                return ApiProblem(StatusCodes.Status400BadRequest, "Límite inválido", "El límite de crédito debe ser mayor que cero.");
             try
             {
                 await _mediator.Send(new UpdateCreditCardLimitCommand(id, request.NewLimit));
@@ -57,11 +61,11 @@ namespace ABP.API.Controllers.v1.Admin
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return ApiProblem(StatusCodes.Status400BadRequest, "No se pudo actualizar el límite", ex.Message);
             }
             catch (Exception)
             {
-                return NotFound(new { message = "La tarjeta de crédito especificada no existe." });
+                return ApiProblem(StatusCodes.Status404NotFound, "Tarjeta no encontrada", "La tarjeta de crédito especificada no existe.");
             }
         }
 
@@ -76,11 +80,11 @@ namespace ABP.API.Controllers.v1.Admin
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return ApiProblem(StatusCodes.Status400BadRequest, "No se pudo cancelar la tarjeta", ex.Message);
             }
             catch (Exception)
             {
-                return NotFound(new { message = "La tarjeta de crédito especificada no existe." });
+                return ApiProblem(StatusCodes.Status404NotFound, "Tarjeta no encontrada", "La tarjeta de crédito especificada no existe.");
             }
         }
     }

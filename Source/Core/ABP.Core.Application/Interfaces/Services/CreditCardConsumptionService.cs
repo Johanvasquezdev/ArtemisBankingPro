@@ -10,11 +10,13 @@ namespace ABP.Core.Application.Interfaces.Services
     {
         private readonly ICreditCardConsumptionRepository _repo;
         private readonly IMapper _mapper;
+        private readonly IUnitOfWork _unitOfWork;
 
-        public CreditCardConsumptionService(ICreditCardConsumptionRepository repo, IMapper mapper)
+        public CreditCardConsumptionService(ICreditCardConsumptionRepository repo, IMapper mapper, IUnitOfWork unitOfWork)
         {
             _repo = repo;
             _mapper = mapper;
+            _unitOfWork = unitOfWork;
         }
 
         public async Task<CreditCardConsumptionDto> GetByIdAsync(int id)
@@ -40,6 +42,15 @@ namespace ABP.Core.Application.Interfaces.Services
             var entity = _mapper.Map<CreditCardConsumption>(dto);
             entity.TransactionDate = DateTime.UtcNow;
             await _repo.AddAsync(entity);
+            await _unitOfWork.SaveChangesAsync();
+            return _mapper.Map<CreditCardConsumptionDto>(entity);
+        }
+
+        public async Task<CreditCardConsumptionDto> AddWithoutSaveAsync(CreditCardConsumptionDto dto)
+        {
+            var entity = _mapper.Map<CreditCardConsumption>(dto);
+            entity.TransactionDate = dto.TransactionDate == default ? DateTime.UtcNow : dto.TransactionDate;
+            await _repo.AddWithoutSaveAsync(entity);
             return _mapper.Map<CreditCardConsumptionDto>(entity);
         }
     }

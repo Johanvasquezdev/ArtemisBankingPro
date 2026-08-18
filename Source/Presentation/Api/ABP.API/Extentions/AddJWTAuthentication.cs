@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json;
 
 namespace ABP.API.Extentions
 {
@@ -28,42 +30,46 @@ namespace ABP.API.Extentions
 
                 options.Events = new JwtBearerEvents
                 {
-                    OnAuthenticationFailed = context =>
-                    {
-                        Console.WriteLine($"[JWT DEBUG] Fallo de Autenticacion: {context.Exception.Message}");
-                        if (context.Exception.InnerException != null)
-                        {
-                            Console.WriteLine($"[JWT DEBUG] Detalles internos: {context.Exception.InnerException.Message}");
-                        }
-                        return Task.CompletedTask;
-                    },
                     OnChallenge = context =>
                     {
-                        Console.WriteLine($"[JWT DEBUG] OnChallenge gatillado. Error: {context.Error}, Descripcion: {context.ErrorDescription}");
-
                         context.HandleResponse();
-                        context.Response.StatusCode = 401;
-                        context.Response.ContentType = "application/json";
-
-                        var errorMessage = context.ErrorDescription ?? context.AuthenticateFailure?.Message ?? "Token invalido o no provisto.";
-                        var jsonResponse = System.Text.Json.JsonSerializer.Serialize(new
-                        {
-                            message = "No tienes autorizacion.",
-                            error_details = errorMessage
-                        });
-
-                        return context.Response.WriteAsync(jsonResponse);
+                        return WriteProblemDetailsAsync(
+                            context.HttpContext,
+                            StatusCodes.Status401Unauthorized,
+                            "Autenticación requerida",
+                            "Debes autenticarte para acceder a este recurso.");
                     },
                     OnForbidden = context =>
                     {
-                        Console.WriteLine("[JWT DEBUG] Acceso Prohibido (OnForbidden): El token es valido pero el usuario no tiene los roles/claims necesarios.");
-                        context.Response.StatusCode = 403;
-                        context.Response.ContentType = "application/json";
-                        return context.Response.WriteAsync("{\"message\":\"Access Denied.\"}");
+                        return WriteProblemDetailsAsync(
+                            context.HttpContext,
+                            StatusCodes.Status403Forbidden,
+                            "Acceso denegado",
+                            "No tienes permisos para acceder a este recurso.");
                     }
                 };
-
             });
+        }
+
+        private static Task WriteProblemDetailsAsync(
+            HttpContext httpContext,
+            int statusCode,
+            string title,
+            string detail)
+        {
+            var problem = new ProblemDetails
+            {
+                Status = statusCode,
+                Title = title,
+                Detail = detail,
+                Instance = httpContext.Request.Path
+            };
+            problem.Extensions["traceId"] = httpContext.TraceIdentifier;
+
+            httpContext.Response.StatusCode = statusCode;
+            httpContext.Response.ContentType = "application/problem+json; charset=utf-8";
+
+            return JsonSerializer.SerializeAsync(httpContext.Response.Body, problem);
         }
 
         #endregion

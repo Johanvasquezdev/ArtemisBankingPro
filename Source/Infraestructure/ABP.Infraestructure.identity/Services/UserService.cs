@@ -1,4 +1,5 @@
 using ABP.Core.Application.DTOs.User;
+using ABP.Core.Application.DTOs.Account;
 using ABP.Core.Application.Interfaces.IServices;
 using ABP.Core.Domain.Enums;
 using ABP.Infraestructure.identity.Entities;
@@ -12,13 +13,15 @@ using System.Net;
 
 namespace ABP.Infraestructure.identity.Services
 {
-    public class UserService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ICorreoServices emailServices, 
-        ISavingsAccountService savingsAccountService, IHttpContextAccessor httpContextAccessor, IConfiguration configuration) : IUserService
+    public class UserService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ICorreoServices emailServices,
+        ISavingsAccountService savingsAccountService, ICommerceService commerceService,
+        IHttpContextAccessor httpContextAccessor, IConfiguration configuration) : IUserService
     {
         private readonly UserManager<ApplicationUser> _userManager = userManager;
         private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
         private readonly ICorreoServices _emailService = emailServices;
         private readonly ISavingsAccountService _savingsAccountService = savingsAccountService;
+        private readonly ICommerceService _commerceService = commerceService;
         private readonly IHttpContextAccessor _httpContextAccessor = httpContextAccessor;
         private readonly IConfiguration _configuration = configuration;
 
@@ -83,7 +86,7 @@ namespace ABP.Infraestructure.identity.Services
         }
 
         public async Task<bool> RegisterAsync(string firstName, string lastName, string cedula, string username, string email, string password, 
-            string role, string adminId, decimal initialAmount = 0)
+            string role, string adminId, decimal initialAmount = 0, AccountEmailChannel emailChannel = AccountEmailChannel.Web)
         {
             var existingUser = await _userManager.FindByNameAsync(username);
             if (existingUser != null) return false;
@@ -132,12 +135,21 @@ namespace ABP.Infraestructure.identity.Services
                 return false;
             }
 
-            await SendActivationEmailAsync(user);
+            await SendActivationEmailAsync(user, emailChannel);
             return true;
         }
 
-        public async Task<bool> RegisterCommerceUserAsync(string firstName, string lastName, string cedula, string username, string email, string password, int commerceId)
+        public async Task<bool> RegisterCommerceUserAsync(string firstName, string lastName, string cedula, string username, string email, string password, int commerceId, AccountEmailChannel emailChannel = AccountEmailChannel.Api)
         {
+            var commerce = await _commerceService.GetByIdAsync(commerceId);
+            if (commerce is null || !commerce.IsActive)
+                return false;
+
+            var alreadyAssociated = await _userManager.Users.AnyAsync(user =>
+                user.Role == UserRole.Commerce && user.CommerceId == commerceId);
+            if (alreadyAssociated)
+                return false;
+
             var existingUser = await _userManager.FindByNameAsync(username);
             if (existingUser != null) return false;
 
@@ -190,7 +202,7 @@ namespace ABP.Infraestructure.identity.Services
                 return false;
             }
 
-            await SendActivationEmailAsync(user);
+            await SendActivationEmailAsync(user, emailChannel);
 
             return true;
         }
@@ -221,7 +233,7 @@ namespace ABP.Infraestructure.identity.Services
             return result.Succeeded;
         }
 
-        public async Task<bool> GeneratePasswordResetTokenAsync(string username)
+        public async Task<bool> GeneratePasswordResetTokenAsync(string username, AccountEmailChannel emailChannel = AccountEmailChannel.Web)
         {
             var user = await _userManager.FindByNameAsync(username);
             if (user == null) return false;
@@ -233,11 +245,16 @@ namespace ABP.Infraestructure.identity.Services
             user.ActivationToken = token;
             await _userManager.UpdateAsync(user);
 
+            var resetBody = emailChannel == AccountEmailChannel.Web
+                ? $"Click the following link to reset your password: {BuildResetPasswordLink(user.UserName!, token)}"
+                : $"Artemis Banking Pro API password reset\nUserId: {user.Id}\nToken: {token}";
+
             await _emailService.SendEmailAsync(new EmailRequest
             {
                 To = user.Email!,
                 Subject = "Reset your ArtemisBank Password",
-                Body = $"Click the following link to reset your password: {BuildResetPasswordLink(user.UserName!, token)}"
+                Body = resetBody,
+                IsHtml = false
             });
 
             return true;
@@ -268,6 +285,24 @@ namespace ABP.Infraestructure.identity.Services
 
             var user = await _userManager.FindByIdAsync(userId);
             if (user == null) return false;
+
+            if (user.Role == UserRole.Commerce && isActive)
+            {
+                if (!user.CommerceId.HasValue)
+                    return false;
+
+                var commerce = await _commerceService.GetByIdAsync(user.CommerceId.Value);
+                if (commerce is null || !commerce.IsActive)
+                    return false;
+
+                var anotherActiveUser = await _userManager.Users.AnyAsync(candidate =>
+                    candidate.Id != user.Id &&
+                    candidate.Role == UserRole.Commerce &&
+                    candidate.CommerceId == user.CommerceId &&
+                    candidate.IsActive);
+                if (anotherActiveUser)
+                    return false;
+            }
 
             user.IsActive = isActive;
 
@@ -330,23 +365,27 @@ namespace ABP.Infraestructure.identity.Services
         private static AuthenticationResult Fail(string error) =>
             new() { Success = false, Error = error };
 
-        private async Task SendActivationEmailAsync(ApplicationUser user)
+        private async Task SendActivationEmailAsync(ApplicationUser user, AccountEmailChannel emailChannel)
         {
             var token = await _userManager.GenerateEmailConfirmationTokenAsync(user);
             user.ActivationToken = token;
             await _userManager.UpdateAsync(user);
 
             var activationLink = BuildActivationLink(token);
+            var isWeb = emailChannel == AccountEmailChannel.Web;
 
             await _emailService.SendEmailAsync(new EmailRequest
             {
                 To = user.Email!,
                 Subject = "Tu acceso a Artemis Banking Pro está listo",
-                Body = BuildActivationEmailHtml(user, activationLink),
-                TextBody = BuildActivationEmailText(user, activationLink),
-                IsHtml = true
+                Body = isWeb ? BuildActivationEmailHtml(user, activationLink) : BuildApiTokenEmail(user, token),
+                TextBody = isWeb ? BuildActivationEmailText(user, activationLink) : BuildApiTokenEmail(user, token),
+                IsHtml = isWeb
             });
         }
+
+        private static string BuildApiTokenEmail(ApplicationUser user, string token) =>
+            $"Artemis Banking Pro API\n\nTu cuenta está lista. Usa este token en POST /api/v1/Account/confirm.\n\nUserId: {user.Id}\nToken: {token}\n\nNo compartas este token.";
 
         private static string BuildActivationEmailHtml(ApplicationUser user, string activationLink)
         {
@@ -434,7 +473,7 @@ namespace ABP.Infraestructure.identity.Services
 
             try
             {
-                await SendActivationEmailAsync(user);
+                await SendActivationEmailAsync(user, AccountEmailChannel.Web);
                 return true;
             }
             catch

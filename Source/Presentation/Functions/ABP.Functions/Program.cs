@@ -1,4 +1,5 @@
 using Microsoft.Azure.Functions.Worker.Builder;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using ABP.Core.Application.IoC;
@@ -6,6 +7,8 @@ using ABP.Infraestructure.Persistence.IoC;
 using ABP.Infraestructure.Shared.IoC;
 
 var builder = FunctionsApplication.CreateBuilder(args);
+
+builder.Configuration.AddJsonFile("appsettings.json", optional: true, reloadOnChange: true);
 
 builder.ConfigureFunctionsWebApplication();
 

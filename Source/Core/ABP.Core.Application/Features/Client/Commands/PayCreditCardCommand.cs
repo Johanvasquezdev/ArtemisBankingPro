@@ -24,7 +24,7 @@ namespace ABP.Core.Application.Features.Client.Commands
         }
     }
 
-    public class PayCreditCardCommandHandler(ITransactionService transactionService)
+    public class PayCreditCardCommandHandler(IClientTransactionService transactionService)
         : IRequestHandler<PayCreditCardCommand, CommandResult>
     {
         public Task<CommandResult> Handle(PayCreditCardCommand request, CancellationToken cancellationToken)

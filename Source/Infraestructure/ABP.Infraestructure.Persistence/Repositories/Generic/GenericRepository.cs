@@ -9,21 +9,20 @@ namespace ABP.Infraestructure.Persistence.Repositories.Generic
         protected readonly ArtemisBankingDbContext _context = context;
         protected readonly DbSet<Entity> _dbSet = context.Set<Entity>();
 
-        public virtual async Task AddAsync(Entity entity)
-        {
-            await _dbSet.AddAsync(entity);
-            await _context.SaveChangesAsync();
-        }
+        /// <summary>Stages an entity. The application unit of work owns the flush.</summary>
+        public virtual Task AddAsync(Entity entity)
+            => _dbSet.AddAsync(entity).AsTask();
 
         public virtual Task AddWithoutSaveAsync(Entity entity)
         {
             return _dbSet.AddAsync(entity).AsTask();
         }
 
-        public virtual async Task DeleteAsync(Entity entity)
+        /// <summary>Stages a deletion. The application unit of work owns the flush.</summary>
+        public virtual Task DeleteAsync(Entity entity)
         {
             _dbSet.Remove(entity);
-            await _context.SaveChangesAsync();
+            return Task.CompletedTask;
         }
 
         public virtual Task DeleteWithoutSaveAsync(Entity entity)
@@ -47,10 +46,11 @@ namespace ABP.Infraestructure.Persistence.Repositories.Generic
             return await _dbSet.FindAsync(id);
         }
 
-        public virtual async Task UpdateAsync(Entity entity)
+        /// <summary>Stages an update. The application unit of work owns the flush.</summary>
+        public virtual Task UpdateAsync(Entity entity)
         {
             _context.Entry(entity).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            return Task.CompletedTask;
         }
 
         public virtual Task UpdateWithoutSaveAsync(Entity entity)

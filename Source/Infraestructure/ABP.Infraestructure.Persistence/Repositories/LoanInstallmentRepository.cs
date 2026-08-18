@@ -45,6 +45,18 @@ namespace ABP.Infraestructure.Persistence.Repositories
                 .ToListAsync();
         }
 
+        public async Task<IEnumerable<LoanInstallment>> GetOverdueInstallmentsByLoanIdsAsync(IEnumerable<int> loanIds)
+        {
+            var ids = loanIds.Distinct().ToArray();
+            if (ids.Length == 0) return [];
+
+            return await _dbSet
+                .Where(li => ids.Contains(li.LoanId)
+                    && li.Status != InstallmentStatus.Paid
+                    && li.DueDate < DateTime.UtcNow)
+                .ToListAsync();
+        }
+
         public async Task<int> GetPaidInstallmentsCountAsync(int loanId)
         {
             return await _dbSet.CountAsync(li => li.LoanId == loanId && li.Status == InstallmentStatus.Paid);

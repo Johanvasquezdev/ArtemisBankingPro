@@ -4,6 +4,7 @@ using ABP.Core.Application.Interfaces.IServices;
 using ABP.Core.Domain.Entities;
 using ABP.Core.Domain.Enums;
 using ABP.Core.Domain.Interfaces;
+using Microsoft.Extensions.Logging;
 using System.Globalization;
 
 namespace ABP.Core.Application.Interfaces.Services
@@ -18,6 +19,8 @@ namespace ABP.Core.Application.Interfaces.Services
         private readonly IUnitOfWork _unitOfWork;
         private readonly IUserReadOnlyService _userService;
         private readonly IEmailServices _emailService;
+        private readonly IIdempotencyRepository? _idempotencyRepository;
+        private readonly ILogger<PaymentProcessorService> _logger;
 
         public PaymentProcessorService(
             ICreditCardService creditCardService,
@@ -27,7 +30,9 @@ namespace ABP.Core.Application.Interfaces.Services
             ITransactionRepository transactionRepository,
             IUnitOfWork unitOfWork,
             IUserReadOnlyService userService,
-            IEmailServices emailService)
+            IEmailServices emailService,
+            IIdempotencyRepository? idempotencyRepository = null,
+            ILogger<PaymentProcessorService>? logger = null)
         {
             _creditCardService = creditCardService;
             _commerceService = commerceService;
@@ -37,6 +42,8 @@ namespace ABP.Core.Application.Interfaces.Services
             _unitOfWork = unitOfWork;
             _userService = userService;
             _emailService = emailService;
+            _idempotencyRepository = idempotencyRepository;
+            _logger = logger ?? Microsoft.Extensions.Logging.Abstractions.NullLogger<PaymentProcessorService>.Instance;
         }
 
         public async Task<PaymentResultDto> ProcessPaymentAsync(int commerceId, ProcessPaymentDto paymentDto)
@@ -60,24 +67,42 @@ namespace ABP.Core.Application.Interfaces.Services
                 return Failure("Invalid card number.");
 
             if (card.Status != CardStatus.Active)
+            {
+                await RecordDeclinedConsumptionAsync(card.Id, commerceId, commerce.Name, paymentDto.TransactionAmount);
                 return Failure("Card is not active.");
+            }
 
             if (!IsMatchingAndCurrentExpiration(card.ExpirationDate, paymentDto))
+            {
+                await RecordDeclinedConsumptionAsync(card.Id, commerceId, commerce.Name, paymentDto.TransactionAmount);
                 return Failure("Card expiration is invalid or has expired.");
+            }
 
             if (!await _creditCardService.VerifyCvcAsync(card.Id, paymentDto.CVC))
+            {
+                await RecordDeclinedConsumptionAsync(card.Id, commerceId, commerce.Name, paymentDto.TransactionAmount);
                 return Failure("Invalid card security code.");
+            }
 
             var commerceUserId = await _commerceService.GetActiveUserIdAsync(commerceId);
             if (string.IsNullOrWhiteSpace(commerceUserId))
+            {
+                await RecordDeclinedConsumptionAsync(card.Id, commerceId, commerce.Name, paymentDto.TransactionAmount);
                 return Failure("Commerce does not have an active user.");
+            }
 
             var commerceAccount = await _accountService.GetPrimaryAccountByClientIdAsync(commerceUserId);
             if (commerceAccount == null || commerceAccount.Status != AccountStatus.Active)
+            {
+                await RecordDeclinedConsumptionAsync(card.Id, commerceId, commerce.Name, paymentDto.TransactionAmount);
                 return Failure("Commerce does not have an active settlement account.");
+            }
 
             if (paymentDto.TransactionAmount > card.AvailableBalance)
+            {
+                await RecordDeclinedConsumptionAsync(card.Id, commerceId, commerce.Name, paymentDto.TransactionAmount);
                 return Failure("Insufficient credit limit.");
+            }
 
             var consumption = new CreditCardConsumptionDto
             {
@@ -91,18 +116,27 @@ namespace ABP.Core.Application.Interfaces.Services
 
             await using var transaction = await _unitOfWork.BeginTransactionAsync();
 
-            if (!await _creditCardService.ChargeAsync(card.Id, paymentDto.TransactionAmount))
+            if (!await ReserveIdempotencyWithoutSaveAsync("hermes.pay", commerceUserId, paymentDto.IdempotencyKey))
             {
                 await transaction.RollbackAsync();
+                return Failure("This payment request has already been processed.");
+            }
+
+            if (!await _creditCardService.ChargeWithoutSaveAsync(card.Id, paymentDto.TransactionAmount))
+            {
+                await transaction.RollbackAsync();
+                await RecordDeclinedConsumptionAsync(card.Id, commerceId, commerce.Name, paymentDto.TransactionAmount);
                 return Failure("The payment could not be authorized.");
             }
 
-            var savedConsumption = await _consumptionService.AddAsync(consumption);
+            // Keep the consumption in the same DbContext transaction. AddAsync would
+            // flush it immediately and split Hermes Pay into multiple database writes.
+            var savedConsumption = await _consumptionService.AddWithoutSaveAsync(consumption);
 
             commerceAccount.Balance += paymentDto.TransactionAmount;
-            await _accountService.UpdateAsync(commerceAccount);
+            await _accountService.UpdateWithoutSaveAsync(commerceAccount);
 
-            await _transactionRepository.AddAsync(new Transaction
+            await _transactionRepository.AddWithoutSaveAsync(new Transaction
             {
                 Amount = paymentDto.TransactionAmount,
                 TransactionDate = DateTime.UtcNow,
@@ -119,6 +153,16 @@ namespace ABP.Core.Application.Interfaces.Services
 
             await _unitOfWork.SaveChangesAsync();
             await transaction.CommitAsync();
+
+            if (savedConsumption.Id == 0)
+            {
+                savedConsumption = (await _consumptionService.GetByCardIdAsync(card.Id))
+                    .Where(c => c.CommerceId == commerceId &&
+                                c.Status == ConsumptionStatus.Approved &&
+                                c.Amount == paymentDto.TransactionAmount)
+                    .OrderByDescending(c => c.TransactionDate)
+                    .FirstOrDefault() ?? savedConsumption;
+            }
 
             await SendNotificationsAsync(card.ClientId, commerceUserId, commerce.Name, paymentDto.TransactionAmount);
 
@@ -155,6 +199,50 @@ namespace ABP.Core.Application.Interfaces.Services
             Success = false,
             Message = message
         };
+
+        private async Task<bool> ReserveIdempotencyWithoutSaveAsync(string operation, string actorUserId, string? key)
+        {
+            if (_idempotencyRepository is null || string.IsNullOrWhiteSpace(key))
+                return true;
+
+            var normalizedKey = key.Trim();
+            var normalizedActor = string.IsNullOrWhiteSpace(actorUserId) ? "anonymous" : actorUserId;
+            if (await _idempotencyRepository.GetAsync(operation, normalizedKey, normalizedActor) is not null)
+                return false;
+
+            await _idempotencyRepository.AddWithoutSaveAsync(new IdempotencyRecord
+            {
+                Operation = operation,
+                Key = normalizedKey,
+                ActorUserId = normalizedActor,
+                CreatedAt = DateTime.UtcNow
+            });
+
+            return true;
+        }
+
+        private async Task RecordDeclinedConsumptionAsync(int cardId, int commerceId, string commerceName, decimal amount)
+        {
+            try
+            {
+                await using var transaction = await _unitOfWork.BeginTransactionAsync();
+                await _consumptionService.AddWithoutSaveAsync(new CreditCardConsumptionDto
+                {
+                    Amount = amount,
+                    TransactionDate = DateTime.UtcNow,
+                    CommerceName = commerceName,
+                    Status = ConsumptionStatus.Rejected,
+                    CreditCardId = cardId,
+                    CommerceId = commerceId
+                });
+                await _unitOfWork.SaveChangesAsync();
+                await transaction.CommitAsync();
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Unable to record a declined Hermes Pay consumption for card {CardId} and commerce {CommerceId}.", cardId, commerceId);
+            }
+        }
 
         private static bool IsMatchingAndCurrentExpiration(string storedExpiration, ProcessPaymentDto payment)
         {
@@ -199,9 +287,10 @@ namespace ABP.Core.Application.Interfaces.Services
                     if (user != null && !string.IsNullOrWhiteSpace(user.Email))
                         await _emailService.SendAsync(user.Email, recipient.Subject, recipient.Body);
                 }
-                catch
+                catch (Exception ex)
                 {
                     // El pago ya fue confirmado; una falla de correo no debe revertirlo.
+                    _logger.LogWarning(ex, "Hermes Pay notification failed for user {UserId}.", recipient.UserId);
                 }
             }
         }

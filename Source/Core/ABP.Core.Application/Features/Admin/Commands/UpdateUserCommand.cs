@@ -7,7 +7,18 @@ namespace ABP.Core.Application.Features.Admin.Commands
 {
     public sealed record UpdateUserCommand(
         string Id, string FirstName, string LastName, string Cedula, string Email, string UserName,
-        string? Password, string? ConfirmPassword, decimal? AdditionalAmount) : IRequest<bool>;
+        string? Password, string? ConfirmPassword, decimal? AdditionalAmount) : IRequest<bool>
+    {
+        public UpdateUserCommand(UpdateUserDto user)
+            : this(user.Id, user.FirstName, user.LastName, user.Cedula, user.Email, user.Username,
+                user.Password, user.ConfirmPassword, user.AdditionalAmount) { User = user; }
+        public UpdateUserDto User { get; init; } = new()
+        {
+            Id = Id, FirstName = FirstName, LastName = LastName, Cedula = Cedula,
+            Email = Email, Username = UserName, Password = Password,
+            ConfirmPassword = ConfirmPassword, AdditionalAmount = AdditionalAmount
+        };
+    }
 
     public sealed class UpdateUserCommandValidator : AbstractValidator<UpdateUserCommand>
     {
@@ -32,20 +43,7 @@ namespace ABP.Core.Application.Features.Admin.Commands
     {
         public Task<bool> Handle(UpdateUserCommand request, CancellationToken cancellationToken)
         {
-            var dto = new UpdateUserDto
-            {
-                Id = request.Id,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                Cedula = request.Cedula,
-                Email = request.Email,
-                Username = request.UserName,
-                Password = request.Password,
-                ConfirmPassword = request.ConfirmPassword,
-                AdditionalAmount = request.AdditionalAmount
-            };
-
-            return userService.UpdateAsync(dto);
+            return userService.UpdateAsync(request.User);
         }
     }
 }

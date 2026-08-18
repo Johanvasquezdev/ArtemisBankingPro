@@ -61,6 +61,7 @@ namespace ABP.Infraestructure.identity
             #region IOC
 
             services.AddTransient<IUserReadOnlyService, UserReadOnlyService>();
+            services.AddScoped<ICommerceUserDirectory, CommerceUserDirectory>();
             services.AddTransient<IUserService, UserService>();
             services.AddTransient<IJwtService, JwtService>();
             services.AddTransient<ICorreoServices, EmailService>();

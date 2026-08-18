@@ -12,7 +12,6 @@ namespace ABP.Core.Domain.Interfaces
         Task<IEnumerable<SavingsAccount>> GetAllAccountByClienteIdAsync(string clientId);
         Task<bool> AccountOrLoanNumberExistsAsync(string number);
         Task<IEnumerable<SavingsAccount>> GetAllPagedAsync(int page, int pageSize, AccountStatus? status = null, AccountType? type = null);
-        Task<IEnumerable<SavingsAccount>> GetByClientCedulaAsync(string cedula, AccountStatus? status = null, AccountType? type = null);
         Task<int> GetTotalActiveAccountsCountAsync();
     }
 }

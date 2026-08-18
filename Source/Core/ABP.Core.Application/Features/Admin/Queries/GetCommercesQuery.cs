@@ -26,16 +26,15 @@ namespace ABP.Core.Application.Features.Admin.Queries
 
         public async Task<GetCommercesResult> Handle(GetCommercesQuery request, CancellationToken cancellationToken)
         {
-            var result = await _commerceService.GetAllPagedAsync(request.Page, request.PageSize);
-
-            var filtered = request.Status switch
+            var isActive = request.Status switch
             {
-                "activo" => result.Items.Where(c => c.IsActive),
-                "inactivo" => result.Items.Where(c => !c.IsActive),
-                _ => result.Items
+                "activo" => (bool?)true,
+                "inactivo" => false,
+                _ => null
             };
 
-            return new GetCommercesResult(result.Page, result.PageSize, filtered.Count(), filtered);
+            var result = await _commerceService.GetAllPagedAsync(request.Page, request.PageSize, isActive);
+            return new GetCommercesResult(result.Page, result.PageSize, result.TotalCount, result.Items);
         }
     }
 }

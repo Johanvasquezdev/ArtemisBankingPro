@@ -17,6 +17,8 @@ namespace ABP.API.Controllers.v1.Admin
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? role = null)
         {
+            if (page < 1 || pageSize is < 1 or > 20)
+                return ApiProblem(StatusCodes.Status400BadRequest, "Validación fallida", "Los parámetros de paginación no son válidos.");
             var result = await _mediator.Send(new GetUsersQuery(page, pageSize, role));
             return Ok(result);
         }
@@ -34,7 +36,7 @@ namespace ABP.API.Controllers.v1.Admin
         public async Task<IActionResult> GetById(string id)
         {
             var user = await _mediator.Send(new GetUserByIdQuery(id));
-            if (user == null) return NotFound(new { message = "El usuario especificado no existe." });
+            if (user == null) return ApiProblem(StatusCodes.Status404NotFound, "Usuario no encontrado", "El usuario especificado no existe.");
             return Ok(user);
         }
 
@@ -42,6 +44,8 @@ namespace ABP.API.Controllers.v1.Admin
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
         {
+            if (string.Equals(request.Role, "Commerce", StringComparison.OrdinalIgnoreCase))
+                return ApiProblem(StatusCodes.Status400BadRequest, "Rol inválido", "Los usuarios de comercio deben crearse mediante el endpoint de comercio.");
             var adminId = User.FindFirst("uid")?.Value ?? string.Empty;
 
             var result = await _mediator.Send(new CreateUserCommand(
@@ -49,10 +53,10 @@ namespace ABP.API.Controllers.v1.Admin
                 request.Email, request.Password, request.Role, adminId, request.InitialAmount));
 
             if (result.CedulaAlreadyExists)
-                return Conflict(new { message = "Ya existe un usuario con esta Cédula." });
+                return ApiProblem(StatusCodes.Status409Conflict, "Cédula duplicada", "Ya existe un usuario con esta Cédula.");
 
             if (result.UsernameOrEmailAlreadyExists)
-                return Conflict(new { message = "El nombre de usuario o correo electrónico ya se encuentra registrado." });
+                return ApiProblem(StatusCodes.Status409Conflict, "Usuario duplicado", "El nombre de usuario o correo electrónico ya se encuentra registrado.");
 
             return StatusCode(201, new { message = "Usuario creado exitosamente. Se envió un correo electrónico de activación." });
         }
@@ -65,7 +69,7 @@ namespace ABP.API.Controllers.v1.Admin
                 request.FirstName, request.LastName, request.Cedula, request.UserName, request.Email, request.Password, commerceId));
 
             if (!created)
-                return Conflict(new { message = "El comercio ya tiene un usuario asociado, o el nombre de usuario/correo/cédula ya se encuentra registrado." });
+                return ApiProblem(StatusCodes.Status409Conflict, "Usuario de comercio no creado", "El comercio ya tiene un usuario asociado, o el nombre de usuario, correo o Cédula ya se encuentra registrado.");
 
             return StatusCode(201, new { message = "Usuario de comercio creado exitosamente." });
         }
@@ -79,7 +83,7 @@ namespace ABP.API.Controllers.v1.Admin
                 request.Password, request.ConfirmPassword, request.AdditionalAmount));
 
             if (!updated)
-                return Conflict(new { message = "No se pudo actualizar el usuario. Verifique que el usuario exista y que los datos sean únicos." });
+                return ApiProblem(StatusCodes.Status409Conflict, "Usuario no actualizado", "No se pudo actualizar el usuario. Verifique que el usuario exista y que los datos sean únicos.");
 
             return NoContent();
         }
@@ -90,10 +94,15 @@ namespace ABP.API.Controllers.v1.Admin
         {
             var adminId = User.FindFirst("uid")?.Value ?? string.Empty;
 
+            if (adminId == id)
+                return ApiProblem(StatusCodes.Status403Forbidden, "Operación no permitida", "No puede modificar su propia cuenta.");
+
             var result = await _mediator.Send(new ChangeUserStatusCommand(adminId, id, request.Status));
 
-            if (result.SelfModificationForbidden) return Forbid();
-            if (result.UserNotFound) return NotFound(new { message = "El usuario especificado no existe." });
+            if (result.SelfModificationForbidden)
+                return ApiProblem(StatusCodes.Status403Forbidden, "Operación no permitida", "No puede modificar su propia cuenta.");
+            if (result.UserNotFound)
+                return ApiProblem(StatusCodes.Status404NotFound, "Usuario no encontrado", "El usuario especificado no existe.");
 
             return NoContent();
         }

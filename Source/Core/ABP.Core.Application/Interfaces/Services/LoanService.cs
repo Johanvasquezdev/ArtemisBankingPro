@@ -65,7 +65,10 @@ namespace ABP.Core.Application.Interfaces.Services
 
         public async Task<PaginatedResult<LoanDto>> GetAllPagedAsync(int page, int pageSize = 20, LoanStatus? status = null, string? cedula = null)
         {
-            var entities = await _repo.GetAllPagedAsync(page, pageSize, status, cedula);
+            var clientId = string.IsNullOrWhiteSpace(cedula)
+                ? null
+                : await _userService.GetUserIdByCedulaAsync(cedula);
+            var entities = await _repo.GetAllPagedAsync(page, pageSize, status, clientId);
             var items = _mapper.Map<IEnumerable<LoanDto>>(entities);
             var usersById = (await _userService.GetByIdsAsync(items.Select(item => item.ClientId)))
                 .ToDictionary(user => user.Id);
@@ -125,9 +128,10 @@ namespace ABP.Core.Application.Interfaces.Services
                 throw new InvalidOperationException("La unidad de trabajo no está disponible.");
 
             await using var loanTransaction = await _unitOfWork.BeginTransactionAsync();
-            await _repo.AddAsync(loan);
-
-            // Recupera el préstamo para obtener el ID real
+            await _repo.AddWithoutSaveAsync(loan);
+            // The first flush obtains the database-generated key while the global
+            // transaction remains open. Installments and disbursement still commit atomically.
+            await _unitOfWork.SaveChangesAsync();
             var createdLoan = loan;
 
             // French amortization: fixed monthly payment
@@ -198,6 +202,11 @@ namespace ABP.Core.Application.Interfaces.Services
                 .ToList();
             if (!installments.Any()) return false;
 
+            if (_unitOfWork is null)
+                throw new InvalidOperationException("La unidad de trabajo no está disponible.");
+
+            await using var loanPaymentTransaction = await _unitOfWork.BeginTransactionAsync();
+
             decimal remainingAmount = amount;
             foreach (var installment in installments)
             {
@@ -210,21 +219,24 @@ namespace ABP.Core.Application.Interfaces.Services
                     installment.Status = InstallmentStatus.Paid;
                 }
                 remainingAmount -= payment;
-                await _installmentRepo.UpdateAsync(installment);
+                 await _installmentRepo.UpdateWithoutSaveAsync(installment);
             }
 
             var totalPaid = amount - remainingAmount;
             account.Balance -= totalPaid;
-            await _accountRepo.UpdateAsync(account);
+            await _accountRepo.UpdateWithoutSaveAsync(account);
 
             // Check if all installments are paid
-            var pendingAmount = await _installmentRepo.GetPendingAmountByLoanIdAsync(loan.Id);
+            var pendingAmount = installments
+                .Where(installment => installment.Status != InstallmentStatus.Paid)
+                .Sum(installment => installment.InstallmentAmount - installment.AmountPaid);
             if (pendingAmount <= 0)
             {
                 loan.Status = LoanStatus.Completed;
-                await _repo.UpdateAsync(loan);
+                await _repo.UpdateWithoutSaveAsync(loan);
             }
-
+            await _unitOfWork.SaveChangesAsync();
+            await loanPaymentTransaction.CommitAsync();
             return true;
         }
 
@@ -282,12 +294,20 @@ namespace ABP.Core.Application.Interfaces.Services
             var loan = await _repo.GetByIdAsync(loanId);
             if (loan == null) throw new Exception("Loan not found");
 
-            loan.AnualInterestRate = newAnnualInterestRate;
-            await _repo.UpdateAsync(loan);
-
             var pendingInstallments = (await _installmentRepo.GetByLoanIdAsync(loanId))
                 .Where(i => i.Status != InstallmentStatus.Paid).OrderBy(i => i.InstallmentNumber).ToList();
-            if (!pendingInstallments.Any()) return;
+            if (_unitOfWork is null)
+                throw new InvalidOperationException("La unidad de trabajo no está disponible.");
+
+            await using var rateTransaction = await _unitOfWork.BeginTransactionAsync();
+            loan.AnualInterestRate = newAnnualInterestRate;
+            await _repo.UpdateWithoutSaveAsync(loan);
+            if (!pendingInstallments.Any())
+            {
+                await _unitOfWork.SaveChangesAsync();
+                await rateTransaction.CommitAsync();
+                return;
+            }
 
             decimal remainingBalance = pendingInstallments.Sum(i => i.InstallmentAmount - i.AmountPaid);
             int remainingMonths = pendingInstallments.Count;
@@ -309,11 +329,10 @@ namespace ABP.Core.Application.Interfaces.Services
             foreach (var installment in pendingInstallments)
             {
                 installment.InstallmentAmount = Math.Round(newFixedPayment, 2);
-                await _installmentRepo.UpdateAsync(installment);
+                await _installmentRepo.UpdateWithoutSaveAsync(installment);
             }
-
-            loan.AnualInterestRate = newAnnualInterestRate;
-            await _repo.UpdateAsync(loan);
+            await _unitOfWork.SaveChangesAsync();
+            await rateTransaction.CommitAsync();
         }
 
         #endregion

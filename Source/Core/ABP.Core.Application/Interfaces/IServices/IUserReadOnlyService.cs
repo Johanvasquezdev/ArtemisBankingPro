@@ -6,7 +6,8 @@ namespace ABP.Core.Application.Interfaces.IServices
     public interface IUserReadOnlyService
     {
         // User management
-        Task<UserDto> GetByIdAsync(string userId);
+        Task<UserDto?> GetByIdAsync(string userId);
+        Task<string?> GetUserIdByCedulaAsync(string cedula);
         Task<IEnumerable<UserDto>> GetByIdsAsync(IEnumerable<string> userIds);
         Task<bool> ExistsByCedulaAsync(string cedula, string? excludingUserId = null);
         Task<string?> GetActivationTokenAsync(string userId);

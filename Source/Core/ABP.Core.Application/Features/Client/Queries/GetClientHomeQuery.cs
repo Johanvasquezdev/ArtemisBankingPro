@@ -13,7 +13,7 @@ namespace ABP.Core.Application.Features.Client.Queries
         ICreditCardService creditCardService,
         ILoanService loanService,
         ILoanInstallmentService installmentService,
-        ITransactionService transactionService)
+        ITransactionQueryService transactionService)
         : IRequestHandler<GetClientHomeQuery, ClientHomeViewModel>
     {
         public async Task<ClientHomeViewModel> Handle(GetClientHomeQuery request, CancellationToken cancellationToken)

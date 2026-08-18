@@ -1,17 +1,17 @@
-using ABP.Core.Application.Interfaces.IServices;
 using ABP.API.DTOs.Account;
+using ABP.Core.Application.Features.Account.Commands;
+using ABP.Core.Application.DTOs.Account;
 using Asp.Versioning;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ABP.API.Controllers.v1
 {
     [ApiVersion("1.0")]
-    public class AccountController(IUserService userService, IUserReadOnlyService userReadOnlyService, IJwtService jwtService) : BaseApiController
+    public class AccountController(IMediator mediator) : BaseApiController
     {
-        private readonly IUserService _userService = userService;
-        private readonly IUserReadOnlyService _userReadOnlyService = userReadOnlyService;
-        private readonly IJwtService _jwtService = jwtService;
+        private readonly IMediator _mediator = mediator;
 
         /// <summary>
         /// Confirma y activa una cuenta de usuario mediante un token enviado por correo.
@@ -25,13 +25,13 @@ namespace ABP.API.Controllers.v1
         {
             if (request is null || string.IsNullOrWhiteSpace(request.Token))
             {
-                return BadRequest(new { message = "Token is required." });
+                return ApiProblem(400, "Token requerido", "El token es obligatorio.");
             }
 
-            var result = await _userService.ActivateAccountAsync(request.Token);
+            var result = await _mediator.Send(new ActivateAccountCommand(request.Token));
             if (!result)
             {
-                return BadRequest(new { message = "Invalid token." });
+                return ApiProblem(400, "Token inválido", "El token no es válido o ya expiró.");
             }
 
             return NoContent();
@@ -44,7 +44,7 @@ namespace ABP.API.Controllers.v1
         [ProducesResponseType(StatusCodes.Status403Forbidden)]
         public IActionResult AccessDenied()
         {
-            return StatusCode(403, new { message = "You do not have permission to access this resource." });
+            return ApiProblem(403, "Acceso denegado", "No tienes permisos para acceder a este recurso.");
         }
 
         /// <summary>
@@ -58,22 +58,12 @@ namespace ABP.API.Controllers.v1
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         public async Task<IActionResult> Login([FromBody] LoginRequest request)
         {
-            if (string.IsNullOrEmpty(request.UserName) || string.IsNullOrEmpty(request.Password))
-                return BadRequest(new { message = "Password and user are required." });
-
-            var result = await _userService.AuthenticateAsync(request.UserName, request.Password);
+            var result = await _mediator.Send(new LoginCommand(request.UserName, request.Password));
 
             if (!result.Success)
-                return Unauthorized(new { message = result.Error });
+                return ApiProblem(401, "Autenticación fallida", result.Error ?? "Las credenciales no son válidas.");
 
-            var token = await _jwtService.GenerateTokenAsync(
-                result.UserId,
-                result.UserName,
-                result.Email,
-                new[] { result.Role.ToString() },
-                result.CommerceId);
-
-            return Ok(new { Jwt = token });
+            return Ok(new { Jwt = result.JwtToken });
         }
 
         /// <summary>
@@ -85,13 +75,10 @@ namespace ABP.API.Controllers.v1
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetResetToken([FromBody] GetResetTokenRequest request)
         {
-            if (string.IsNullOrEmpty(request.UserName))
-                return BadRequest(new { message = "The username is required." });
-
-            var result = await _userService.GeneratePasswordResetTokenAsync(request.UserName);
+            var result = await _mediator.Send(new GeneratePasswordResetTokenCommand(request.UserName, AccountEmailChannel.Api));
 
             if (!result)
-                return BadRequest(new { message = "This user doesn`t exist." });
+                return ApiProblem(404, "Usuario no encontrado", "No existe un usuario con ese nombre.");
 
             return NoContent();
         }
@@ -105,22 +92,14 @@ namespace ABP.API.Controllers.v1
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> ResetPassword([FromBody] ResetPasswordRequest request)
         {
-            if (string.IsNullOrEmpty(request.UserId) || string.IsNullOrEmpty(request.Token) ||
-                string.IsNullOrEmpty(request.Password) || string.IsNullOrEmpty(request.ConfirmPassword))
-                return BadRequest(new { message = "All fields are required." });
-
             if (request.Password != request.ConfirmPassword)
-                return BadRequest(new { message = "The passwords do not match." });
+                return ApiProblem(400, "Contraseñas no coinciden", "La contraseña y su confirmación deben coincidir.");
 
-            var user = await _userReadOnlyService.GetByIdAsync(request.UserId);
-            if (user == null || string.IsNullOrWhiteSpace(user.UserName))
-                return BadRequest(new { message = "The user is invalid." });
-
-            var result = await _userService.ResetPasswordAsync(
-                user.UserName, request.Token, request.Password);
+            var result = await _mediator.Send(new ResetPasswordByUserIdCommand(
+                request.UserId, request.Token, request.Password));
 
             if (!result)
-                return BadRequest(new { message = "The password could not be reset." });
+                return ApiProblem(400, "Restablecimiento rechazado", "La contraseña no pudo restablecerse. Verifica el usuario y el token.");
 
             return NoContent();
         }

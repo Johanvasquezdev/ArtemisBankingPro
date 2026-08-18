@@ -1,17 +1,18 @@
-using ABP.Core.Application.Interfaces.IServices;
+using ABP.Core.Application.Features.Account.Commands;
 using ABP.Core.Application.ViewModels.User;
 using ABP.Core.Domain.Enums;
 using Microsoft.AspNetCore.Mvc;
+using MediatR;
 
 namespace ArtemisBankingPro.Controllers
 {
     public class AccountController : Controller
     {
-        private readonly IUserService _userService;
+        private readonly IMediator _mediator;
 
-        public AccountController(IUserService userService)
+        public AccountController(IMediator mediator)
         {
-            _userService = userService;
+            _mediator = mediator;
         }
 
         [HttpGet]
@@ -35,7 +36,7 @@ namespace ArtemisBankingPro.Controllers
 
             model.Role = UserRole.Client; // Force self-registration to be Client
             
-            var result = await _userService.RegisterAsync(
+            var result = await _mediator.Send(new RegisterAccountCommand(
                 model.FirstName,
                 model.LastName,
                 model.Cedula,
@@ -43,9 +44,8 @@ namespace ArtemisBankingPro.Controllers
                 model.Email,
                 model.Password,
                 model.Role.ToString(),
-                "System", // AdminId for self-registration
-                0 // Initial amount for self-registered clients
-            );
+                "System",
+                0));
 
             if (result)
             {
@@ -67,7 +67,7 @@ namespace ArtemisBankingPro.Controllers
                 return RedirectToAction("Index", "Login");
             }
 
-            var result = await _userService.ActivateAccountAsync(token);
+            var result = await _mediator.Send(new ActivateAccountCommand(token));
 
             if (result)
             {

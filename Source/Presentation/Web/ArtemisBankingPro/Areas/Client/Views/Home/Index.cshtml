@@ -172,29 +172,39 @@
             <div class="space-y-4">
                 @foreach (var card in Model.CreditCards)
                 {
-                    <div class="bg-obsidian text-white rounded-xl p-6 relative overflow-hidden shadow-xl">
-                        <!-- Card Background Effects -->
-                        <div class="absolute inset-0 bg-gradient-to-br from-white/10 to-transparent opacity-20"></div>
-                        <div class="absolute -right-16 -top-16 w-32 h-32 bg-gold blur-3xl opacity-20 rounded-full"></div>
+                    <article class="abp-credit-card" aria-label="Tarjeta de crédito terminada en @(card.CardNumber.Length >= 4 ? card.CardNumber[^4..] : card.CardNumber)">
+                        <div class="abp-credit-card-glow" aria-hidden="true"></div>
                         
-                        <div class="relative z-10">
-                            <div class="flex justify-between items-center mb-6">
-                                <span class="text-xs uppercase tracking-widest text-white/70">Artemis Black</span>
-                                <svg class="text-gold" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                        <div class="abp-credit-card-content">
+                            <div class="abp-credit-card-header">
+                                <img class="abp-credit-card-logo" src="@Url.Content("~/images/artemis-banking-logo-light.svg")" alt="Artemis Banking Pro" />
+                                <svg class="abp-credit-card-nfc" viewBox="0 0 32 32" role="img" aria-label="Pago sin contacto">
+                                    <title>Pago sin contacto</title>
+                                    <path d="M7.5 12.5a7 7 0 0 0 0 7" />
+                                    <path d="M12 9a11.5 11.5 0 0 0 0 14" />
+                                    <path d="M16.5 5.5a16.5 16.5 0 0 0 0 21" />
+                                    <path d="M22 12.5a7 7 0 0 1 0 7" />
+                                </svg>
                             </div>
-                            <div class="font-mono text-lg tracking-[0.15em] mb-6">@MaskCard(card.CardNumber)</div>
-                            <div class="flex justify-between items-end">
+
+                            <div class="abp-credit-card-number">@MaskCard(card.CardNumber)</div>
+
+                            <div class="abp-credit-card-footer">
                                 <div>
-                                    <div class="text-[0.65rem] uppercase tracking-widest text-white/50 mb-1">Límite</div>
-                                    <div class="text-sm">@card.CreditLimit.ToString("C2", culture)</div>
+                                    <span class="abp-credit-card-label">Disponible</span>
+                                    <strong>@card.AvailableBalance.ToString("C2", culture)</strong>
+                                </div>
+                                <div>
+                                    <span class="abp-credit-card-label">Vence</span>
+                                    <strong>@card.ExpirationDate</strong>
                                 </div>
                                 <div class="text-right">
-                                    <div class="text-[0.65rem] uppercase tracking-widest text-white/50 mb-1">Deuda</div>
-                                    <div class="text-base text-gold">@card.AmountOwed.ToString("C2", culture)</div>
+                                    <span class="abp-credit-card-label">Deuda</span>
+                                    <strong class="abp-credit-card-debt">@card.AmountOwed.ToString("C2", culture)</strong>
                                 </div>
                             </div>
                         </div>
-                    </div>
+                    </article>
                 }
             </div>
         }

@@ -1,4 +1,5 @@
 using ABP.Core.Application.Interfaces.IServices;
+using ABP.Core.Application.DTOs.Account;
 using FluentValidation;
 using MediatR;
 
@@ -6,7 +7,8 @@ namespace ABP.Core.Application.Features.Admin.Commands
 {
     public sealed record CreateCommerceUserCommand(
         string FirstName, string LastName, string Cedula, string UserName, string Email,
-        string Password, int CommerceId) : IRequest<bool>;
+        string Password, int CommerceId,
+        AccountEmailChannel EmailChannel = AccountEmailChannel.Api) : IRequest<bool>;
 
     public sealed class CreateCommerceUserCommandValidator : AbstractValidator<CreateCommerceUserCommand>
     {
@@ -26,6 +28,7 @@ namespace ABP.Core.Application.Features.Admin.Commands
     {
         public Task<bool> Handle(CreateCommerceUserCommand request, CancellationToken cancellationToken)
             => userService.RegisterCommerceUserAsync(
-                request.FirstName, request.LastName, request.Cedula, request.UserName, request.Email, request.Password, request.CommerceId);
+                request.FirstName, request.LastName, request.Cedula, request.UserName, request.Email,
+                request.Password, request.CommerceId, request.EmailChannel);
     }
 }

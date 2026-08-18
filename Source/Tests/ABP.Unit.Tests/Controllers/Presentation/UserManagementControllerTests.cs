@@ -2,6 +2,8 @@ using System.Security.Claims;
 using ABP.Core.Application.DTOs;
 using ABP.Core.Application.DTOs.User;
 using ABP.Core.Application.Interfaces.IServices;
+using ABP.Core.Application.Features.Admin.Queries;
+using ABP.Core.Application.Features.Admin.Commands;
 using ABP.Core.Application.ViewModels.User;
 using ABP.Core.Domain.Enums;
 using ArtemisBankingPro.Areas.Admin.Controllers;
@@ -10,27 +12,26 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
 using Moq;
+using MediatR;
 using Xunit;
 
 namespace ABP.Unit.Tests.Controllers.Presentation
 {
     public class UserManagementControllerTests
     {
-        private readonly Mock<IUserService> _mockUserService;
-        private readonly Mock<IUserReadOnlyService> _mockUserReadOnlyService;
+        private readonly Mock<IMediator> _mockMediator;
         private readonly UserManagementController _controller;
 
         public UserManagementControllerTests()
         {
-            _mockUserService = new Mock<IUserService>();
-            _mockUserReadOnlyService = new Mock<IUserReadOnlyService>();
+            _mockMediator = new Mock<IMediator>();
 
             var httpContext = new DefaultHttpContext
             {
                 User = new ClaimsPrincipal(new ClaimsIdentity(new[] { new Claim("uid", "admin-1") }))
             };
 
-            _controller = new UserManagementController(_mockUserService.Object, _mockUserReadOnlyService.Object)
+            _controller = new UserManagementController(_mockMediator.Object)
             {
                 ControllerContext = new ControllerContext { HttpContext = httpContext },
                 TempData = new TempDataDictionary(httpContext, Mock.Of<ITempDataProvider>())
@@ -42,7 +43,8 @@ namespace ABP.Unit.Tests.Controllers.Presentation
         {
             // Arrange
             var paged = new PaginatedResult<UserDto> { Items = [], TotalCount = 0, Page = 1, PageSize = 20 };
-            _mockUserReadOnlyService.Setup(s => s.GetAllAsync(1, 20, null)).ReturnsAsync(paged);
+            _mockMediator.Setup(m => m.Send(It.IsAny<GetAdminUsersQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(paged);
 
             // Act
             var result = await _controller.Index(1, null);
@@ -67,7 +69,8 @@ namespace ABP.Unit.Tests.Controllers.Presentation
                 ConfirmPassword = "P@ss1234",
                 Role = UserRole.Client
             };
-            _mockUserReadOnlyService.Setup(s => s.ExistsByCedulaAsync(model.Cedula, null)).ReturnsAsync(true);
+            _mockMediator.Setup(m => m.Send(It.IsAny<CheckUserCedulaQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(true);
 
             // Act
             var result = await _controller.Create(model);
@@ -76,10 +79,7 @@ namespace ABP.Unit.Tests.Controllers.Presentation
             var viewResult = result.Should().BeOfType<ViewResult>().Subject;
             var returnedModel = viewResult.Model.Should().BeOfType<SaveUserViewModel>().Subject;
             returnedModel.HasError.Should().BeTrue();
-            _mockUserService.Verify(s => s.RegisterAsync(
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(),
-                It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>(), It.IsAny<decimal>()),
-                Times.Never);
+            _mockMediator.Verify(m => m.Send(It.IsAny<CreateUserCommand>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]
@@ -91,7 +91,7 @@ namespace ABP.Unit.Tests.Controllers.Presentation
             // Assert
             result.Should().BeOfType<RedirectToActionResult>();
             _controller.TempData["ErrorMessage"].Should().Be("No puede modificar el estado de su propia cuenta.");
-            _mockUserService.Verify(s => s.ChangeStatusAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<bool>()), Times.Never);
+            _mockMediator.Verify(m => m.Send(It.IsAny<ChangeUserStatusCommand>(), It.IsAny<CancellationToken>()), Times.Never);
         }
 
         [Fact]

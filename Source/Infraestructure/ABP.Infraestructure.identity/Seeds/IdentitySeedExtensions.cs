@@ -21,6 +21,7 @@ namespace ABP.Infraestructure.identity.Seeds
             var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
             var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
             var commerceRepository = services.GetRequiredService<ICommerceRepository>();
+            var unitOfWork = services.GetRequiredService<IUnitOfWork>();
 
             try
             {
@@ -46,18 +47,21 @@ namespace ABP.Infraestructure.identity.Seeds
                     {
                         Name = "Default Commerce",
                         Description = "Default seeded commerce",
+                        Rnc = "900000001",
+                        Email = "default-commerce@artemisbanking.local",
                         Logo = "default-logo.png",
                         IsActive = true,
                         CreatedAt = DateTime.UtcNow
                     };
                     await commerceRepository.AddAsync(defaultCommerce);
+                    await unitOfWork.SaveChangesAsync();
                 }
 
                 defaultCommerceId = defaultCommerce.Id;
             }
             catch (Exception ex)
             {
-                logger.LogError(ex, "No se pudo sembrar el comercio por defecto. Verifica que las migraciones de ArtemisBankDbContext esten aplicadas.");
+                logger.LogError(ex, "No se pudo sembrar el comercio por defecto. Verifica que las migraciones de ArtemisBankingDbContext esten aplicadas.");
             }
 
             try

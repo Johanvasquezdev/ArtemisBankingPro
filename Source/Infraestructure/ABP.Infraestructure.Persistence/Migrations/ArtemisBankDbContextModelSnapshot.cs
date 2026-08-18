@@ -17,7 +17,7 @@ namespace ABP.Infraestructure.Persistence.Migrations
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasDefaultSchema("artemisBank")
+                .HasDefaultSchema("artemisBankingPro")
                 .HasAnnotation("ProductVersion", "9.0.19")
                 .HasAnnotation("Relational:MaxIdentifierLength", 63);
 
@@ -55,7 +55,7 @@ namespace ABP.Infraestructure.Persistence.Migrations
                     b.HasIndex("OwnerId", "AccountNumber")
                         .IsUnique();
 
-                    b.ToTable("Beneficiaries", "artemisBank");
+                    b.ToTable("Beneficiaries", "artemisBankingPro");
                 });
 
             modelBuilder.Entity("ABP.Core.Domain.Entities.Commerce", b =>
@@ -74,6 +74,11 @@ namespace ABP.Infraestructure.Persistence.Migrations
                         .HasMaxLength(500)
                         .HasColumnType("character varying(500)");
 
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasMaxLength(256)
+                        .HasColumnType("character varying(256)");
+
                     b.Property<bool>("IsActive")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("boolean")
@@ -89,9 +94,20 @@ namespace ABP.Infraestructure.Persistence.Migrations
                         .HasMaxLength(100)
                         .HasColumnType("character varying(100)");
 
+                    b.Property<string>("Rnc")
+                        .IsRequired()
+                        .HasMaxLength(9)
+                        .HasColumnType("character varying(9)");
+
                     b.HasKey("Id");
 
-                    b.ToTable("Commerces", "artemisBank");
+                    b.HasIndex("Email")
+                        .IsUnique();
+
+                    b.HasIndex("Rnc")
+                        .IsUnique();
+
+                    b.ToTable("Commerces", "artemisBankingPro");
                 });
 
             modelBuilder.Entity("ABP.Core.Domain.Entities.CreditCard", b =>
@@ -150,7 +166,7 @@ namespace ABP.Infraestructure.Persistence.Migrations
                     b.HasIndex("CardNumber")
                         .IsUnique();
 
-                    b.ToTable("CreditCards", "artemisBank");
+                    b.ToTable("CreditCards", "artemisBankingPro");
                 });
 
             modelBuilder.Entity("ABP.Core.Domain.Entities.CreditCardConsumption", b =>
@@ -190,7 +206,7 @@ namespace ABP.Infraestructure.Persistence.Migrations
 
                     b.HasIndex("CreditCardId");
 
-                    b.ToTable("CreditCardConsumptions", "artemisBank");
+                    b.ToTable("CreditCardConsumptions", "artemisBankingPro");
                 });
 
             modelBuilder.Entity("ABP.Core.Domain.Entities.IdempotencyRecord", b =>
@@ -224,7 +240,7 @@ namespace ABP.Infraestructure.Persistence.Migrations
                     b.HasIndex("Operation", "Key", "ActorUserId")
                         .IsUnique();
 
-                    b.ToTable("IdempotencyRecords", "artemisBank");
+                    b.ToTable("IdempotencyRecords", "artemisBankingPro");
                 });
 
             modelBuilder.Entity("ABP.Core.Domain.Entities.Loan", b =>
@@ -274,7 +290,7 @@ namespace ABP.Infraestructure.Persistence.Migrations
                     b.HasIndex("LoanNumber")
                         .IsUnique();
 
-                    b.ToTable("Loans", "artemisBank");
+                    b.ToTable("Loans", "artemisBankingPro");
                 });
 
             modelBuilder.Entity("ABP.Core.Domain.Entities.LoanInstallment", b =>
@@ -330,7 +346,7 @@ namespace ABP.Infraestructure.Persistence.Migrations
 
                     b.HasIndex("LoanId");
 
-                    b.ToTable("LoanInstallments", "artemisBank");
+                    b.ToTable("LoanInstallments", "artemisBankingPro");
                 });
 
             modelBuilder.Entity("ABP.Core.Domain.Entities.SavingsAccount", b =>
@@ -378,7 +394,7 @@ namespace ABP.Infraestructure.Persistence.Migrations
                     b.HasIndex("AccountNumber")
                         .IsUnique();
 
-                    b.ToTable("SavingsAccounts", "artemisBank");
+                    b.ToTable("SavingsAccounts", "artemisBankingPro");
                 });
 
             modelBuilder.Entity("ABP.Core.Domain.Entities.Transaction", b =>
@@ -445,7 +461,7 @@ namespace ABP.Infraestructure.Persistence.Migrations
 
                     b.HasIndex("SavingAccountId");
 
-                    b.ToTable("Transactions", "artemisBank");
+                    b.ToTable("Transactions", "artemisBankingPro");
                 });
 
             modelBuilder.Entity("ABP.Core.Domain.Entities.CreditCardConsumption", b =>

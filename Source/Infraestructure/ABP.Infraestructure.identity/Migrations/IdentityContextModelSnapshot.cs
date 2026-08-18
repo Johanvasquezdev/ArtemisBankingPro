@@ -111,6 +111,10 @@ namespace ABP.Infraestructure.Identity.Migrations
                     b.HasIndex("Cedula")
                         .IsUnique();
 
+                    b.HasIndex("CommerceId")
+                        .IsUnique()
+                        .HasFilter("\"Role\" = 'Commerce' AND \"CommerceId\" IS NOT NULL");
+
                     b.HasIndex("NormalizedEmail")
                         .HasDatabaseName("EmailIndex");
 

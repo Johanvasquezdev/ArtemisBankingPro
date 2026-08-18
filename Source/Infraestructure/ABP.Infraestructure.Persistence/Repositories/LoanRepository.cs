@@ -1,16 +1,14 @@
 using ABP.Core.Domain.Entities;
 using ABP.Core.Domain.Enums;
 using ABP.Core.Domain.Interfaces;
-using ABP.Infraestructure.identity.Context;
 using ABP.Infraestructure.Persistence.Context;
 using ABP.Infraestructure.Persistence.Repositories.Generic;
 using Microsoft.EntityFrameworkCore;
 
 namespace ABP.Infraestructure.Persistence.Repositories
 {
-    public class LoanRepository(ArtemisBankingDbContext context, IdentityContext identityContext) : GenericRepository<Loan>(context), ILoanRepository
+    public class LoanRepository(ArtemisBankingDbContext context) : GenericRepository<Loan>(context), ILoanRepository
     {
-        private readonly IdentityContext _identityContext = identityContext;
 
         public override async Task<Loan?> GetByIdAsync(int id)
         {
@@ -44,33 +42,18 @@ namespace ABP.Infraestructure.Persistence.Repositories
             return await _dbSet.Include(l => l.Installments).FirstOrDefaultAsync(l => l.ClientId == clientId && l.Status == LoanStatus.Active);
         }
 
-        public async Task<IEnumerable<Loan>> GetAllByClientCedulaAsync(string cedula)
+        public async Task<IEnumerable<Loan>> GetAllByClientIdAsync(string clientId)
         {
-            var clientId = await _identityContext.Users.Where(u => u.Cedula == cedula).Select(u => u.Id).FirstOrDefaultAsync();
-
-            if (clientId == null)
-            {
-                return [];
-            }
             return await _dbSet.AsNoTracking().Where(l => l.ClientId == clientId)
                 .OrderByDescending(l => l.Status == LoanStatus.Active).ThenByDescending(l=> l.CreatedAt).ToListAsync();
         }
 
-        public async Task<IEnumerable<Loan>> GetAllPagedAsync(int page, int pageSize, LoanStatus? status = null, string? cedula = null)
+        public async Task<IEnumerable<Loan>> GetAllPagedAsync(int page, int pageSize, LoanStatus? status = null, string? clientId = null)
         {
             var query = _dbSet.AsNoTracking().Include(l => l.Installments).AsQueryable();
 
-            if (!string.IsNullOrEmpty(cedula))
+            if (!string.IsNullOrEmpty(clientId))
             {
-                var clientId = await _identityContext.Users.Where(u => u.Cedula == cedula).Select(u => u.Id).FirstOrDefaultAsync();
-                if (clientId != null)
-                {
-                    query = query.Where(l => l.ClientId == clientId);
-                }
-                else
-                {
-                    return [];
-                }
                 query = query.Where(l => l.ClientId == clientId);
             }
 

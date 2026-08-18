@@ -18,6 +18,9 @@ namespace ABP.API.Controllers.v1.Admin
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20,
             [FromQuery] string? identification = null, [FromQuery] string status = "activa", [FromQuery] string type = "todas")
         {
+            if (page < 1 || pageSize is < 1 or > 20 || status is not ("activa" or "cancelada" or "todas")
+                || type is not ("principal" or "secundaria" or "todas"))
+                return ApiProblem(StatusCodes.Status400BadRequest, "Validación fallida", "Los parámetros de paginación, estado o tipo no son válidos.");
             var result = await _mediator.Send(new GetSavingsAccountsQuery(page, pageSize, identification, status, type));
             return Ok(result);
         }
@@ -26,17 +29,24 @@ namespace ABP.API.Controllers.v1.Admin
         [HttpPost]
         public async Task<IActionResult> AssignSecondary([FromBody] AssignSavingsAccountApiDto request)
         {
+            if (request.InitialBalance < 0 || string.IsNullOrWhiteSpace(request.CedulaClient))
+                return ApiProblem(StatusCodes.Status400BadRequest, "Datos de cuenta inválidos", "La Cédula y el balance inicial deben ser válidos.");
             var adminId = User.FindFirst("uid")?.Value ?? string.Empty;
 
-            var result = await _mediator.Send(new AssignSecondarySavingsAccountCommand(request.CedulaClient, request.InitialBalance, adminId));
-
-            if (result.ClientNotFound)
-                return NotFound(new { message = "No se encontró ningún cliente activo con esta Cédula." });
-
-            if (result.ClientHasNoPrimaryAccount)
-                return BadRequest(new { message = "El cliente debe tener una cuenta principal activa antes de poder asignarle una cuenta secundaria." });
-
-            return StatusCode(201, new { message = "Cuenta secundaria creada exitosamente." });
+            try
+            {
+                await _mediator.Send(new AssignSecondarySavingsAccountByCedulaCommand(
+                    request.CedulaClient, request.InitialBalance, adminId));
+                return StatusCode(201, new { message = "Cuenta secundaria creada exitosamente." });
+            }
+            catch (KeyNotFoundException ex)
+            {
+                return ApiProblem(StatusCodes.Status404NotFound, "Cliente no encontrado", ex.Message);
+            }
+            catch (InvalidOperationException ex)
+            {
+                return ApiProblem(StatusCodes.Status400BadRequest, "Cuenta principal requerida", ex.Message);
+            }
         }
 
         // GET /api/v1/Admin/savings-account/{accountNumber}/transactions
@@ -44,7 +54,7 @@ namespace ABP.API.Controllers.v1.Admin
         public async Task<IActionResult> GetTransactions(string accountNumber, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             var result = await _mediator.Send(new GetSavingsAccountTransactionsQuery(accountNumber, page, pageSize));
-            if (result == null) return NotFound(new { message = "La cuenta especificada no existe." });
+            if (result == null) return ApiProblem(StatusCodes.Status404NotFound, "Cuenta no encontrada", "La cuenta especificada no existe.");
 
             return Ok(new
             {
@@ -73,11 +83,11 @@ namespace ABP.API.Controllers.v1.Admin
             }
             catch (InvalidOperationException ex)
             {
-                return BadRequest(new { message = ex.Message });
+                return ApiProblem(StatusCodes.Status400BadRequest, "No se pudo cancelar la cuenta", ex.Message);
             }
             catch (Exception)
             {
-                return NotFound(new { message = "La cuenta especificada no existe." });
+                return ApiProblem(StatusCodes.Status404NotFound, "Cuenta no encontrada", "La cuenta especificada no existe.");
             }
         }
     }

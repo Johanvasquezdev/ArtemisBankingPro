@@ -18,6 +18,8 @@ namespace ABP.API.Controllers.v1.Admin
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string status = "activo")
         {
+            if (page < 1 || pageSize is < 1 or > 20 || status is not ("activo" or "inactivo" or "todos"))
+                return ApiProblem(StatusCodes.Status400BadRequest, "Validación fallida", "Los parámetros de paginación o estado no son válidos.");
             var result = await _mediator.Send(new GetCommercesQuery(page, pageSize, status));
 
             return Ok(new
@@ -34,7 +36,7 @@ namespace ABP.API.Controllers.v1.Admin
         public async Task<IActionResult> GetById(int id)
         {
             var commerce = await _mediator.Send(new GetCommerceByIdQuery(id));
-            if (commerce == null) return NotFound(new { message = "El comercio especificado no existe." });
+            if (commerce == null) return ApiProblem(StatusCodes.Status404NotFound, "Comercio no encontrado", "El comercio especificado no existe.");
             return Ok(commerce);
         }
 
@@ -42,7 +44,8 @@ namespace ABP.API.Controllers.v1.Admin
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateCommerceRequest request)
         {
-            var created = await _mediator.Send(new CreateCommerceCommand(request.Name, request.Description, request.Logo));
+            var created = await _mediator.Send(new CreateCommerceCommand(
+                request.Name, request.Description, request.Logo, request.Rnc, request.Email));
             return StatusCode(201, created);
         }
 
@@ -50,8 +53,9 @@ namespace ABP.API.Controllers.v1.Admin
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateCommerceRequest request)
         {
-            var updated = await _mediator.Send(new UpdateCommerceCommand(id, request.Name, request.Description, request.Logo));
-            if (!updated) return NotFound(new { message = "El comercio especificado no existe." });
+            var updated = await _mediator.Send(new UpdateCommerceCommand(
+                id, request.Name, request.Description, request.Logo, request.Rnc, request.Email));
+            if (!updated) return ApiProblem(StatusCodes.Status404NotFound, "Comercio no encontrado", "El comercio especificado no existe.");
             return NoContent();
         }
 
@@ -60,7 +64,7 @@ namespace ABP.API.Controllers.v1.Admin
         public async Task<IActionResult> ChangeStatus(int id, [FromBody] ChangeCommerceStatusRequest request)
         {
             var changed = await _mediator.Send(new ChangeCommerceStatusCommand(id, request.Status));
-            if (!changed) return NotFound(new { message = "El comercio especificado no existe." });
+            if (!changed) return ApiProblem(StatusCodes.Status404NotFound, "Comercio no encontrado", "El comercio especificado no existe.");
             return NoContent();
         }
     }
