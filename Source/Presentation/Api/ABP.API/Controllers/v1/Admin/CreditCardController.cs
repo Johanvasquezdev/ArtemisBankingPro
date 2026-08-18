@@ -1,7 +1,7 @@
 using ABP.API.DTOs.CreditCard;
-using ABP.Core.Application.DTOs.CreditCard;
-using ABP.Core.Application.Interfaces.IServices;
-using ABP.Core.Domain.Enums;
+using ABP.Core.Application.Features.Admin.Queries;
+using ABP.Core.Application.Features.Admin.Commands;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -9,31 +9,16 @@ namespace ABP.API.Controllers.v1.Admin
 {
     [Route("api/v{version:apiVersion}/Admin/credit-card")]
     [Authorize(Roles = "Admin")]
-    public class CreditCardController(ICreditCardService creditCardService,
-        ICreditCardConsumptionService consumptionService) : BaseApiController
+    public class CreditCardController(IMediator mediator) : BaseApiController
     {
-        private readonly ICreditCardService _creditCardService = creditCardService;
-        private readonly ICreditCardConsumptionService _consumptionService = consumptionService;
+        private readonly IMediator _mediator = mediator;
 
         // GET /api/v1/Admin/credit-card
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20,
             [FromQuery] string status = "activa", [FromQuery] string? identification = null)
         {
-            if (page <= 0 || pageSize <= 0 || pageSize > 20)
-                return BadRequest(new { message = "Parámetros de paginación inválidos." });
-
-            if (status is not ("activa" or "cancelada" or "todas"))
-                return BadRequest(new { message = "El estado debe ser activa, cancelada o todas." });
-
-            CardStatus? parsedStatus = status switch
-            {
-                "activa" => CardStatus.Active,
-                "cancelada" => CardStatus.Cancelled,
-                _ => null
-            };
-
-            var result = await _creditCardService.GetAllPagedAsync(page, pageSize, parsedStatus, identification);
+            var result = await _mediator.Send(new GetCreditCardsQuery(page, pageSize, status, identification));
             return Ok(result);
         }
 
@@ -41,18 +26,9 @@ namespace ABP.API.Controllers.v1.Admin
         [HttpPost]
         public async Task<IActionResult> Assign([FromBody] AssignCreditCardApiDto request)
         {
-            if (request.CreditLimit <= 0)
-                return BadRequest(new { message = "El límite de crédito debe ser mayor que cero." });
-
-            var dto = new AssignCreditCardDto
-            {
-                ClientId = request.ClientId,
-                CreditLimit = request.CreditLimit
-            };
-
             try
             {
-                var created = await _creditCardService.AssignAsync(dto);
+                var created = await _mediator.Send(new AssignCreditCardCommand(request.ClientId, request.CreditLimit));
                 return StatusCode(201, created);
             }
             catch (InvalidOperationException ex)
@@ -65,24 +41,18 @@ namespace ABP.API.Controllers.v1.Admin
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var card = await _creditCardService.GetByIdAsync(id);
-            if (card == null) return NotFound(new { message = "La tarjeta de crédito especificada no existe." });
-
-            var consumptions = await _consumptionService.GetByCardIdAsync(id);
-
-            return Ok(new { card, consumptions });
+            var result = await _mediator.Send(new GetCreditCardByIdQuery(id));
+            if (result == null) return NotFound(new { message = "La tarjeta de crédito especificada no existe." });
+            return Ok(new { card = result.Card, consumptions = result.Consumptions });
         }
 
         // PATCH /api/v1/Admin/credit-card/{id}/limit
         [HttpPatch("{id:int}/limit")]
         public async Task<IActionResult> UpdateLimit(int id, [FromBody] UpdateLimitRequest request)
         {
-            if (request.NewLimit <= 0)
-                return BadRequest(new { message = "El nuevo límite debe ser mayor que cero." });
-
             try
             {
-                await _creditCardService.UpdateLimitAsync(id, request.NewLimit);
+                await _mediator.Send(new UpdateCreditCardLimitCommand(id, request.NewLimit));
                 return NoContent();
             }
             catch (InvalidOperationException ex)
@@ -101,7 +71,7 @@ namespace ABP.API.Controllers.v1.Admin
         {
             try
             {
-                await _creditCardService.CancelAsync(id);
+                await _mediator.Send(new CancelCreditCardCommand(id));
                 return NoContent();
             }
             catch (InvalidOperationException ex)

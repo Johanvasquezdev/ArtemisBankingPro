@@ -30,8 +30,12 @@ namespace ABP.Core.Application.IoC
             services.AddScoped<ILoanPaymentAllocationService, LoanPaymentAllocationService>();
 
             // CQRS + MediatR + FluentValidation pipeline
-            services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(ServiceRegistration).Assembly));
-            services.AddValidatorsFromAssembly(typeof(ServiceRegistration).Assembly);
+            services.AddMediatR(cfg =>
+            {
+                cfg.RegisterServicesFromAssemblyContaining(typeof(ServiceRegistration));
+                cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
+            });
+            services.AddValidatorsFromAssemblyContaining(typeof(ServiceRegistration));
             services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
