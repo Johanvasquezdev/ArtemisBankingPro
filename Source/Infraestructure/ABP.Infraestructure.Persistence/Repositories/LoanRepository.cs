@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ABP.Infraestructure.Persistence.Repositories
 {
-    public class LoanRepository(ArtemisBankDbContext context, IdentityContext identityContext) : GenericRepository<Loan>(context), ILoanRepository
+    public class LoanRepository(ArtemisBankingDbContext context, IdentityContext identityContext) : GenericRepository<Loan>(context), ILoanRepository
     {
         private readonly IdentityContext _identityContext = identityContext;
 

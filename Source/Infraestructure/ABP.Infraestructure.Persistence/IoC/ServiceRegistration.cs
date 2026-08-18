@@ -22,7 +22,7 @@ namespace ABP.Infraestructure.Persistence.IoC
             #region Context
             if (config.GetValue<bool>("UseInMemoryDatabase"))
             {
-                services.AddDbContext<ArtemisBankDbContext>(opt => opt.UseInMemoryDatabase("AppDb"));
+                services.AddDbContext<ArtemisBankingDbContext>(opt => opt.UseInMemoryDatabase("AppDb"));
             }
             else
             {
@@ -33,13 +33,13 @@ namespace ABP.Infraestructure.Persistence.IoC
                 }
 
                 services.AddNpgsqlDataSource(connectionString);
-                services.AddDbContextPool<ArtemisBankDbContext>(opt =>
+                services.AddDbContextPool<ArtemisBankingDbContext>(opt =>
                 {
                     if (config.GetValue<bool>("EnableSensitiveDataLogging"))
                         opt.EnableSensitiveDataLogging();
                     opt.UseNpgsql(npgsqlOptions =>
                     {
-                        npgsqlOptions.MigrationsAssembly(typeof(ArtemisBankDbContext).Assembly.FullName);
+                        npgsqlOptions.MigrationsAssembly(typeof(ArtemisBankingDbContext).Assembly.FullName);
                     });
                 });
             }

@@ -10,7 +10,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ABP.Infraestructure.Persistence.Migrations
 {
-    [DbContext(typeof(ArtemisBankDbContext))]
+    [DbContext(typeof(ArtemisBankingDbContext))]
     partial class ArtemisBankDbContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

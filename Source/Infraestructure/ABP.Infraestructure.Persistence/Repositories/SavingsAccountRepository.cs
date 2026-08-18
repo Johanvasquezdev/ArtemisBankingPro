@@ -8,7 +8,7 @@ using ABP.Infraestructure.identity.Context;
 
 namespace ABP.Infraestructure.Persistence.Repositories
 {
-    public class SavingsAccountRepository(ArtemisBankDbContext context, IdentityContext identityContext) : GenericRepository<SavingsAccount>(context), ISavingsAccountRepository
+    public class SavingsAccountRepository(ArtemisBankingDbContext context, IdentityContext identityContext) : GenericRepository<SavingsAccount>(context), ISavingsAccountRepository
     {
         private readonly IdentityContext _identityContext = identityContext;
         public async Task<bool> AccountOrLoanNumberExistsAsync(string number)

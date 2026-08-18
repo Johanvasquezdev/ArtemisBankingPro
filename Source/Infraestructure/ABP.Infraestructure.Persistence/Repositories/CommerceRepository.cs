@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ABP.Infraestructure.Persistence.Repositories
 {
-    public class CommerceRepository(ArtemisBankDbContext context, IdentityContext identity) : GenericRepository<Commerce>(context), ICommerceRepository
+    public class CommerceRepository(ArtemisBankingDbContext context, IdentityContext identity) : GenericRepository<Commerce>(context), ICommerceRepository
     {
         private readonly IdentityContext _identity = identity;
         public async Task<bool> CommerceHasActiveUserAsync(int commerceId)

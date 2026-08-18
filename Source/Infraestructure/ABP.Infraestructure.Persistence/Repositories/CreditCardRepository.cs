@@ -8,7 +8,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ABP.Infraestructure.Persistence.Repositories
 {
-    public class CreditCardRepository(ArtemisBankDbContext context, IdentityContext identityContext) : GenericRepository<CreditCard>(context), ICreditCardRepository
+    public class CreditCardRepository(ArtemisBankingDbContext context, IdentityContext identityContext) : GenericRepository<CreditCard>(context), ICreditCardRepository
     {
         private readonly IdentityContext _identityContext = identityContext;
         public async Task<bool> CardNumberExistsAsync(string cardNumber)

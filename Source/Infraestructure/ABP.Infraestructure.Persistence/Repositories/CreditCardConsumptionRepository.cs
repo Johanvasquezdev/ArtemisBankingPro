@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ABP.Infraestructure.Persistence.Repositories
 {
-    public class CreditCardConsumptionRepository(ArtemisBankDbContext context) : GenericRepository<CreditCardConsumption>(context), ICreditCardConsumptionRepository
+    public class CreditCardConsumptionRepository(ArtemisBankingDbContext context) : GenericRepository<CreditCardConsumption>(context), ICreditCardConsumptionRepository
     {
         public async Task<IEnumerable<CreditCardConsumption>> GetByCardIdAsync(int creditCardId)
         {

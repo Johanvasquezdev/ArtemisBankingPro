@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ABP.Infraestructure.Persistence.Repositories
 {
-    public class BeneficiaryRepository(ArtemisBankDbContext context) : GenericRepository<Beneficiary>(context), IBeneficiaryRepository
+    public class BeneficiaryRepository(ArtemisBankingDbContext context) : GenericRepository<Beneficiary>(context), IBeneficiaryRepository
     {
         public async Task<bool> BeneficiaryExistForOwnerAsync(string ownerId, string accountNumber)
         {

@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore.Storage;
 
 namespace ABP.Infraestructure.Persistence.Repositories
 {
-    public class UnitOfWork(ArtemisBankDbContext context) : IUnitOfWork
+    public class UnitOfWork(ArtemisBankingDbContext context) : IUnitOfWork
     {
-        private readonly ArtemisBankDbContext _context = context;
+        private readonly ArtemisBankingDbContext _context = context;
 
         public Task<int> SaveChangesAsync(CancellationToken cancellationToken = default)
             => _context.SaveChangesAsync(cancellationToken);

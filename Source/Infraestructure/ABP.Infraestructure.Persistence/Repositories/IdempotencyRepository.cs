@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ABP.Infraestructure.Persistence.Repositories
 {
-    public class IdempotencyRepository(ArtemisBankDbContext context)
+    public class IdempotencyRepository(ArtemisBankingDbContext context)
         : GenericRepository<IdempotencyRecord>(context), IIdempotencyRepository
     {
         public Task<IdempotencyRecord?> GetAsync(string operation, string key, string actorUserId)

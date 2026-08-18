@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ABP.Infraestructure.Persistence.Repositories
 {
-    public class LoanInstallmentRepository(ArtemisBankDbContext context) : GenericRepository<LoanInstallment>(context), ILoanInstallmentRepository
+    public class LoanInstallmentRepository(ArtemisBankingDbContext context) : GenericRepository<LoanInstallment>(context), ILoanInstallmentRepository
     {
         public async Task<IEnumerable<LoanInstallment>> GetByLoanIdAsync(int loanId)
         {

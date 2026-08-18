@@ -3,7 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Reflection;
 namespace ABP.Infraestructure.Persistence.Context
 {
-    public class ArtemisBankDbContext(DbContextOptions<ArtemisBankDbContext> options) : DbContext(options)
+    public class ArtemisBankingDbContext(DbContextOptions<ArtemisBankingDbContext> options) : DbContext(options)
     {
         public DbSet<Beneficiary> Beneficiaries { get; set; }
         public DbSet<Commerce> Commerces { get; set; }
@@ -18,7 +18,7 @@ namespace ABP.Infraestructure.Persistence.Context
         protected override void OnModelCreating(ModelBuilder mb)
         {
             base.OnModelCreating(mb);
-            mb.HasDefaultSchema("artemisBank");
+            mb.HasDefaultSchema("artemisBankingPro");
             mb.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         }
     }

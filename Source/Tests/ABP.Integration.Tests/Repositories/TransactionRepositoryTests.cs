@@ -12,16 +12,16 @@ namespace ABP.Integration.Tests.Repositories
 {
     public class TransactionRepositoryTests : IDisposable
     {
-        private readonly ArtemisBankDbContext _dbContext;
+        private readonly ArtemisBankingDbContext _dbContext;
         private readonly TransactionRepository _repository;
 
         public TransactionRepositoryTests()
         {
-            var options = new DbContextOptionsBuilder<ArtemisBankDbContext>()
+            var options = new DbContextOptionsBuilder<ArtemisBankingDbContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
-            _dbContext = new ArtemisBankDbContext(options);
+            _dbContext = new ArtemisBankingDbContext(options);
             _dbContext.Database.EnsureCreated();
 
             _repository = new TransactionRepository(_dbContext);

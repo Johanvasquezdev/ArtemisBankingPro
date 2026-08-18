@@ -11,7 +11,7 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
 namespace ABP.Infraestructure.Persistence.Migrations
 {
-    [DbContext(typeof(ArtemisBankDbContext))]
+    [DbContext(typeof(ArtemisBankingDbContext))]
     [Migration("20260815004026_UpdateLoanInstallments")]
     partial class UpdateLoanInstallments
     {

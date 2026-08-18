@@ -11,17 +11,17 @@ namespace ABP.Integration.Tests.Repositories
 {
     public class SavingsAccountRepositoryTests : IDisposable
     {
-        private readonly ArtemisBankDbContext _dbContext;
+        private readonly ArtemisBankingDbContext _dbContext;
         private readonly IdentityContext _identityContext;
         private readonly SavingsAccountRepository _repository;
 
         public SavingsAccountRepositoryTests()
         {
-            var dbOptions = new DbContextOptionsBuilder<ArtemisBankDbContext>()
+            var dbOptions = new DbContextOptionsBuilder<ArtemisBankingDbContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
-            _dbContext = new ArtemisBankDbContext(dbOptions);
+            _dbContext = new ArtemisBankingDbContext(dbOptions);
             _dbContext.Database.EnsureCreated();
 
             var idOptions = new DbContextOptionsBuilder<IdentityContext>()

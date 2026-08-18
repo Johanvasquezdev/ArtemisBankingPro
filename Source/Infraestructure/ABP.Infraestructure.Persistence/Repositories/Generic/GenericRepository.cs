@@ -4,9 +4,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ABP.Infraestructure.Persistence.Repositories.Generic
 {
-    public class GenericRepository<Entity>(ArtemisBankDbContext context) : IGenericRepository<Entity> where Entity : class
+    public class GenericRepository<Entity>(ArtemisBankingDbContext context) : IGenericRepository<Entity> where Entity : class
     {
-        protected readonly ArtemisBankDbContext _context = context;
+        protected readonly ArtemisBankingDbContext _context = context;
         protected readonly DbSet<Entity> _dbSet = context.Set<Entity>();
 
         public virtual async Task AddAsync(Entity entity)

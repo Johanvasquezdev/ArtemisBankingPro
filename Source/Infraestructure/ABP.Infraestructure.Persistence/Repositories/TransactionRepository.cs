@@ -7,7 +7,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ABP.Infraestructure.Persistence.Repositories
 {
-    public class TransactionRepository(ArtemisBankDbContext context) : GenericRepository<Transaction>(context), ITransactionRepository
+    public class TransactionRepository(ArtemisBankingDbContext context) : GenericRepository<Transaction>(context), ITransactionRepository
     {
         public async Task<IEnumerable<Transaction>> GetByAccountIdAsync(int savingsAccountId)
         {
