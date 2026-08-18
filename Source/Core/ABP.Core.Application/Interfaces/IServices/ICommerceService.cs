@@ -9,7 +9,7 @@ namespace ABP.Core.Application.Interfaces.IServices
         Task<string?> GetActiveUserIdAsync(int commerceId);
         Task<IEnumerable<CommerceDto>> GetAllAsync();
         Task<PaginatedResult<CommerceDto>> GetAllPagedAsync(int page, int pageSize = 20);
-        Task AddAsync(CommerceDto dto);
+        Task<CommerceDto> AddAsync(CommerceDto dto);
         Task UpdateAsync(CommerceDto dto);
         Task ChangeStatusAsync(int id, bool isActive);
         Task DeleteAsync(int id);

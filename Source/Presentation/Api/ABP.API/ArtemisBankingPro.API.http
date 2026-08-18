@@ -14,7 +14,7 @@ POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Berear {{token}}
 {
-  "name": "Tienda Demo",
-  "description": "Comercio de prueba creado por admin ana",
+  "name": "Tienda Demo 2",
+  "description": "Comercio de prueba creado por admin ana. la primera salio con id 0,isactive false y time en 0",
   "logo": "logo-demo.png"
 }

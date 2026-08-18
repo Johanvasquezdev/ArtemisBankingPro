@@ -49,12 +49,13 @@ namespace ABP.Core.Application.Interfaces.Services
             };
         }
 
-        public async Task AddAsync(CommerceDto dto)
+        public async Task<CommerceDto> AddAsync(CommerceDto dto)
         {
             var entity = _mapper.Map<Commerce>(dto);
             entity.CreatedAt = DateTime.UtcNow;
             entity.IsActive = true;
             await _repo.AddAsync(entity);
+            return _mapper.Map<CommerceDto>(entity);
         }
 
         public async Task UpdateAsync(CommerceDto dto)

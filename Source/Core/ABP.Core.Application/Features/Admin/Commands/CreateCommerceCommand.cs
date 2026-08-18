@@ -30,8 +30,7 @@ namespace ABP.Core.Application.Features.Admin.Commands
                 Logo = request.Logo
             };
 
-            await _commerceService.AddAsync(dto);
-            return dto;
+            return await _commerceService.AddAsync(dto);
         }
     }
 }
