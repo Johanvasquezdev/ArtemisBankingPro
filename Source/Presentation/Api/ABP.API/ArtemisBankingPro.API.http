@@ -8,3 +8,13 @@ Content-Type: {{contentType}}
   "password": "123Pa$$word!"
 }
 #################################################
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJlbWFpbCI6ImFkbWluQGFydGVtaXNiYW5rLmNvbSIsImp0aSI6IjVjMDNjMjY1LTRmMGEtNDMzZS1hODY2LTQ1ODA4NGM1YzY2NiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pblVzZXIiLCJ1aWQiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJjb21tZXJjZUlkIjoiMCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNzg3MDM5MDMwLCJpc3MiOiJBcnRlbWlzQmFuay5BUEkiLCJhdWQiOiJBcnRlbWlzQmFuay5DbGllbnQifQ.lo0sOpGEUeJxeqWZxnmCBmARafngJJqz5WdYsQdMtgE
+# @name createCommerce
+POST {{host}}/api/v1/Admin/commerce
+Content-Type: {{contentType}}
+Authorization: Berear {{token}}
+{
+  "name": "Tienda Demo",
+  "description": "Comercio de prueba creado por admin ana",
+  "logo": "logo-demo.png"
+}
