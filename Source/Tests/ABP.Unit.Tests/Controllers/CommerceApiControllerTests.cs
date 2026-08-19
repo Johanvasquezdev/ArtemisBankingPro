@@ -60,8 +60,8 @@ namespace ABP.Unit.Tests.Controllers
         [Fact]
         public async Task GetById_ShouldReturnNotFound_WhenCommerceDoesNotExist()
         {
-            _mockMediator.Setup(m => m.Send(It.IsAny<GetAdminCommerceQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((CommerceDto?)null);
+            _mockMediator.Setup(m => m.Send(It.IsAny<GetCommerceByIdQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync((GetCommerceByIdResult?)null);
 
             var result = await _controller.GetById(99);
 
@@ -72,7 +72,13 @@ namespace ABP.Unit.Tests.Controllers
         public async Task Create_ShouldReturnCreated_WithValidRequest()
         {
             // Arrange
-            var request = new CreateCommerceRequest { Name = "New Store", Description = "Demo", Logo = "logo.png" };
+            var request = new CreateCommerceRequest
+            {
+                Name = "New Store", Description = "Demo", Logo = "logo.png",
+                Email = "store@test.local", PhoneNumber = "8095550101", Rnc = "123456789"
+            };
+            _mockMediator.Setup(m => m.Send(It.IsAny<CreateCommerceCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new CreateCommerceResult { Commerce = new CommerceDto { Id = 1, Name = request.Name } });
 
             // Act
             var result = await _controller.Create(request);
@@ -86,8 +92,8 @@ namespace ABP.Unit.Tests.Controllers
         [Fact]
         public async Task ChangeStatus_ShouldReturnNotFound_WhenCommerceDoesNotExist()
         {
-            _mockMediator.Setup(m => m.Send(It.IsAny<GetAdminCommerceQuery>(), It.IsAny<CancellationToken>()))
-                .ReturnsAsync((CommerceDto?)null);
+            _mockMediator.Setup(m => m.Send(It.IsAny<ChangeCommerceStatusCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(false);
 
             var result = await _controller.ChangeStatus(99, new ChangeCommerceStatusRequest { Status = false });
 

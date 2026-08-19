@@ -6,6 +6,7 @@ using FluentAssertions;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System.IdentityModel.Tokens.Jwt;
 using Xunit;
 
@@ -61,5 +62,56 @@ public sealed class IdentityPersistenceTests
         jwt.Claims.Should().Contain(x => x.Type == System.Security.Claims.ClaimTypes.Role && x.Value == "Client");
         jwt.Claims.Should().Contain(x => x.Type == "commerceId" && x.Value == "42");
         jwt.ValidTo.Should().BeAfter(DateTime.UtcNow);
+    }
+
+    [Fact]
+    public async Task IdentityManagers_ShouldHashPasswordAssignRoleAndManageUserTokenLifecycle()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddDbContext<IdentityContext>(options => options.UseInMemoryDatabase(Guid.NewGuid().ToString()));
+        services.AddIdentity<ApplicationUser, IdentityRole>(options =>
+            {
+                options.Password.RequireDigit = true;
+                options.Password.RequireLowercase = true;
+                options.Password.RequireUppercase = true;
+                options.Password.RequireNonAlphanumeric = true;
+                options.Password.RequiredLength = 8;
+            })
+            .AddEntityFrameworkStores<IdentityContext>()
+            .AddDefaultTokenProviders();
+
+        await using var provider = services.BuildServiceProvider();
+        var userManager = provider.GetRequiredService<UserManager<ApplicationUser>>();
+        var roleManager = provider.GetRequiredService<RoleManager<IdentityRole>>();
+        var role = new IdentityRole(UserRole.Client.ToString());
+        (await roleManager.CreateAsync(role)).Succeeded.Should().BeTrue();
+
+        var user = new ApplicationUser
+        {
+            UserName = "identity-lifecycle",
+            Email = "identity-lifecycle@test.local",
+            FirstName = "Identity",
+            LastName = "Lifecycle",
+            Cedula = "40200000099",
+            Role = UserRole.Client,
+            IsActive = true,
+            EmailConfirmed = true
+        };
+        (await userManager.CreateAsync(user, "123Pa$$word!")).Succeeded.Should().BeTrue();
+        (await userManager.AddToRoleAsync(user, UserRole.Client.ToString())).Succeeded.Should().BeTrue();
+
+        user.PasswordHash.Should().NotBe("123Pa$$word!");
+        (await userManager.CheckPasswordAsync(user, "123Pa$$word!")).Should().BeTrue();
+        (await userManager.IsInRoleAsync(user, UserRole.Client.ToString())).Should().BeTrue();
+
+        (await userManager.SetAuthenticationTokenAsync(user, "Artemis", "Refresh", "token-value"))
+            .Succeeded.Should().BeTrue();
+        (await userManager.GetAuthenticationTokenAsync(user, "Artemis", "Refresh"))
+            .Should().Be("token-value");
+        (await userManager.RemoveAuthenticationTokenAsync(user, "Artemis", "Refresh"))
+            .Succeeded.Should().BeTrue();
+        (await userManager.GetAuthenticationTokenAsync(user, "Artemis", "Refresh"))
+            .Should().BeNull();
     }
 }

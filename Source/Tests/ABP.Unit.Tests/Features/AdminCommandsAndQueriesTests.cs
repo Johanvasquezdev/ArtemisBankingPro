@@ -21,18 +21,12 @@ public class AdminCommandValidatorTests
     public void CreateCommerceValidator_ShouldRejectInvalidRncAndEmail()
     {
         var result = new CreateCommerceCommandValidator().Validate(new CreateCommerceCommand(
-            "Commerce",
-            "test en crear comercio comando",
-            "logo.png",
-            "invalid",
-            "1231231100",
-            "123",
-            "admin-1"
-        ));
+            "Commerce", "test en crear comercio comando", "logo.png",
+            "invalid", "1231231100", "", "admin-1"));
 
         result.IsValid.Should().BeFalse();
-        result.Errors.Should().Contain(error => error.PropertyName == "Commerce.Rnc");
-        result.Errors.Should().Contain(error => error.PropertyName == "Commerce.Email");
+        result.Errors.Should().Contain(error => error.PropertyName == "Rnc");
+        result.Errors.Should().Contain(error => error.PropertyName == "Email");
     }
 
     [Fact]
@@ -94,20 +88,16 @@ public class AdminCommandHandlerTests
 
         var result = await new CreateCommerceCommandHandler(service.Object).Handle(
             new CreateCommerceCommand(
-                expected.Name,
-                expected.Description,
-                expected.Rnc,
-                expected.PhoneNumber,
-                expected.Email,
-                expected.Logo,
-                expected.CreatedByAdminId
-            ),
+                expected.Name, expected.Description, expected.Logo,
+                expected.Email, expected.PhoneNumber, expected.Rnc,
+                expected.CreatedByAdminId),
             CancellationToken.None
         );
 
-        result.Should().BeEquivalentTo(expected);
+        result.Commerce.Should().BeEquivalentTo(expected);
         service.Verify(x => x.AddAsync(It.Is<CommerceDto>(d => d.Name == expected.Name && d.Rnc == expected.Rnc)), Times.Once);
-        service.Verify(x => x.AddAsync(expected), Times.Once);
+        service.Verify(x => x.AddAsync(It.Is<CommerceDto>(d =>
+            d.Name == expected.Name && d.Rnc == expected.Rnc && d.Email == expected.Email)), Times.Once);
     }
 
     [Fact]

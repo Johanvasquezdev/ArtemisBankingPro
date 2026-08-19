@@ -134,8 +134,7 @@ namespace ABP.Core.Application.Interfaces.Services
 
         public async Task<AssociatedUserDto?> GetAssociatedUserAsync(int commerceId)
         {
-            var info = await _repo.GetAssociatedUserAsync(commerceId);
-            return info is null ? null : new AssociatedUserDto(info.Id, info.UserName, info.Email, info.IsActive);
+            return await _commerceUsers.GetAssociatedUserAsync(commerceId);
         }
     }
 }

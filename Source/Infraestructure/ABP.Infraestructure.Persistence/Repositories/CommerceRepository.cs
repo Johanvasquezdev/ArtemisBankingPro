@@ -1,15 +1,13 @@
 using ABP.Core.Domain.Entities;
 using ABP.Core.Domain.Interfaces;
-using ABP.Infraestructure.identity.Context;
 using ABP.Infraestructure.Persistence.Context;
 using ABP.Infraestructure.Persistence.Repositories.Generic;
 using Microsoft.EntityFrameworkCore;
 
 namespace ABP.Infraestructure.Persistence.Repositories
 {
-    public class CommerceRepository(ArtemisBankingDbContext context, IdentityContext identity) : GenericRepository<Commerce>(context), ICommerceRepository
+    public class CommerceRepository(ArtemisBankingDbContext context) : GenericRepository<Commerce>(context), ICommerceRepository
     {
-        private readonly IdentityContext _identity = identity;
         public async Task<IEnumerable<Commerce>> GetAllPagedAsync(int? page = null, int? pageSize = null, bool? isActive = null)
         {
             var query = _dbSet.AsNoTracking().AsQueryable();
@@ -25,30 +23,11 @@ namespace ABP.Infraestructure.Persistence.Repositories
             return await query.ToListAsync();
         }
 
-        public async Task<Commerce?> GetByIdWithUserAsync(int commerceId)
-        {
-            return await _dbSet.FirstOrDefaultAsync(c => c.Id == commerceId);
-        }
-
         public Task<bool> ExistsByRncAsync(string rnc, int? excludingId = null) =>
             _dbSet.AnyAsync(c => c.Rnc == rnc && (!excludingId.HasValue || c.Id != excludingId.Value));
 
         public Task<bool> ExistsByEmailAsync(string email, int? excludingId = null) =>
             _dbSet.AnyAsync(c => c.Email == email && (!excludingId.HasValue || c.Id != excludingId.Value));
 
-        public async Task<bool> CommerceHasActiveUserAsync(int commerceId)
-        {
-            return await _identity.Users.AnyAsync(u => u.CommerceId == commerceId && u.IsActive);
-        }
-
-        public async Task<AssociatedUserInfo?> GetAssociatedUserAsync(int commerceId)
-        {
-            var user = await _identity.Users
-                .Where(u => u.CommerceId == commerceId)
-                .Select(u => new { u.Id, u.UserName, u.Email, u.IsActive })
-                .FirstOrDefaultAsync();
-
-            return user is null ? null : new AssociatedUserInfo(user.Id, user.UserName ?? string.Empty, user.Email ?? string.Empty, user.IsActive);
-        }
     }
 }

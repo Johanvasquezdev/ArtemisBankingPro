@@ -49,14 +49,47 @@ namespace ABP.Infraestructure.Persistence.Repositories.Generic
         /// <summary>Stages an update. The application unit of work owns the flush.</summary>
         public virtual Task UpdateAsync(Entity entity)
         {
-            _context.Entry(entity).State = EntityState.Modified;
+            StageUpdate(entity);
             return Task.CompletedTask;
         }
 
         public virtual Task UpdateWithoutSaveAsync(Entity entity)
         {
-            _context.Entry(entity).State = EntityState.Modified;
+            StageUpdate(entity);
             return Task.CompletedTask;
+        }
+
+        private void StageUpdate(Entity entity)
+        {
+            var incomingEntry = _context.Entry(entity);
+            if (incomingEntry.State != EntityState.Detached)
+            {
+                incomingEntry.State = EntityState.Modified;
+                return;
+            }
+
+            var primaryKey = _context.Model.FindEntityType(typeof(Entity))?.FindPrimaryKey();
+            if (primaryKey is null)
+            {
+                incomingEntry.State = EntityState.Modified;
+                return;
+            }
+
+            var trackedEntity = _dbSet.Local.FirstOrDefault(localEntity =>
+                primaryKey.Properties.All(property =>
+                    Equals(
+                        _context.Entry(localEntity).Property(property.Name).CurrentValue,
+                        incomingEntry.Property(property.Name).CurrentValue)));
+
+            if (trackedEntity is null)
+            {
+                incomingEntry.State = EntityState.Modified;
+                return;
+            }
+
+            var trackedEntry = _context.Entry(trackedEntity);
+            trackedEntry.CurrentValues.SetValues(entity);
+            trackedEntry.State = EntityState.Modified;
         }
     }
 }

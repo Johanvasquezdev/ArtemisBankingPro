@@ -3,7 +3,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Core\ABP.Core.Application\ABP.Core.Application.csproj" />
     <ProjectReference Include="..\..\Core\ABP.Core.Domain\ABP.Core.Domain.csproj" />
-    <ProjectReference Include="..\ABP.Infraestructure.identity\ABP.Infraestructure.identity.csproj" />
   </ItemGroup>
 
   <ItemGroup>

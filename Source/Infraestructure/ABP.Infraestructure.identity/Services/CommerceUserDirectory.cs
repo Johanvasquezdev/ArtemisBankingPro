@@ -1,4 +1,5 @@
 using ABP.Core.Application.Interfaces.IServices;
+using ABP.Core.Application.DTOs.Commerce;
 using ABP.Core.Domain.Enums;
 using ABP.Infraestructure.identity.Context;
 using Microsoft.EntityFrameworkCore;
@@ -16,5 +17,15 @@ public sealed class CommerceUserDirectory(IdentityContext context) : ICommerceUs
         context.Users
             .Where(user => user.Role == UserRole.Commerce && user.CommerceId == commerceId && user.IsActive && user.EmailConfirmed)
             .Select(user => user.Id)
+            .FirstOrDefaultAsync(cancellationToken);
+
+    public Task<AssociatedUserDto?> GetAssociatedUserAsync(int commerceId, CancellationToken cancellationToken = default) =>
+        context.Users
+            .Where(user => user.Role == UserRole.Commerce && user.CommerceId == commerceId)
+            .Select(user => new AssociatedUserDto(
+                user.Id,
+                user.UserName ?? string.Empty,
+                user.Email ?? string.Empty,
+                user.IsActive))
             .FirstOrDefaultAsync(cancellationToken);
 }

@@ -40,12 +40,15 @@ builder.Host.UseSerilog((context, _, configuration) =>
  builder.Services.AddProblemDetails();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
-builder.Services.AddJwtAuthenticationLayer(builder.Configuration);
 builder.Services.AddIdentityInfrastructure(builder.Configuration);
 builder.Services.AddPersistenceInfrastructure(builder.Configuration);
 builder.Services.AddSharedInfrastructure(builder.Configuration);
 builder.Services.AddApplicationLayer();
 builder.Services.AddAutoMapper(cfg => { }, typeof(AutoMapperProfile));
+// Identity registers its cookie scheme. The API must finish with JWT as the
+// default authenticate/challenge scheme so unauthorized API calls return 401/403
+// Problem Details instead of browser redirects.
+builder.Services.AddJwtAuthenticationLayer(builder.Configuration);
 
 
 builder.Services.AddAuthorization();
@@ -111,7 +114,8 @@ app.UseStatusCodePages(new Func<StatusCodeContext, Task>(async statusContext =>
     response.ContentType = "application/problem+json";
     await JsonSerializer.SerializeAsync(response.Body, problem);
 }));
-app.UseHttpsRedirection();
+if (!app.Environment.IsEnvironment("Testing"))
+    app.UseHttpsRedirection();
 app.UseAuthentication();
 app.UseAuthorization();
 app.UseHealthChecks("/health");
@@ -119,3 +123,5 @@ app.UseHealthChecks("/health");
 app.MapControllers();
 
 await app.RunAsync();
+
+public partial class Program { }
