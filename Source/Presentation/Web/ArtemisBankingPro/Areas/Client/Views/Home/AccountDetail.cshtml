@@ -74,7 +74,7 @@
                     var isDebit = txn.Type == TransactionType.Debit;
                     <tr>
                         <td>@txn.TransactionDate.ToString("dd/MM/yyyy HH:mm")</td>
-                        <td>@txn.Description</td>
+                        <td>@TransactionDisplayText.LocalizeDescription(txn.Description)</td>
                         <td>@txn.Beneficiary</td>
                         <td class="@(isDebit ? "abp-text-danger" : "abp-text-success")" style="font-weight: 600;">@(isDebit ? "-" : "+")@txn.Amount.ToString("C2", culture)</td>
                         <td>

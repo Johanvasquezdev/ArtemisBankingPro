@@ -319,6 +319,20 @@ namespace ABP.Infraestructure.identity.Services
             var user = await _userManager.FindByIdAsync(dto.Id);
             if (user == null) return false;
 
+            // An additional amount is a deposit into the client's existing
+            // primary account. It must not silently create a financial
+            // product from the identity-edit screen.
+            var additionalAmount = dto.AdditionalAmount.GetValueOrDefault();
+            var primaryAccount = additionalAmount > 0
+                ? await _savingsAccountService.GetPrimaryAccountByClientIdAsync(user.Id)
+                : null;
+
+            if (additionalAmount > 0 && (primaryAccount is null || primaryAccount.Status != AccountStatus.Active))
+            {
+                throw new InvalidOperationException(
+                    "No se puede agregar el monto porque el cliente no tiene una cuenta principal de ahorro activa. Asigne primero una cuenta de ahorro principal.");
+            }
+
             var existingEmail = await _userManager.FindByEmailAsync(dto.Email);
             if (existingEmail != null && existingEmail.Id != dto.Id) return false;
 
@@ -352,7 +366,22 @@ namespace ABP.Infraestructure.identity.Services
                 return false;
             }
 
-            return result.Succeeded;
+            if (!result.Succeeded) return false;
+
+            if (additionalAmount > 0 && primaryAccount is not null)
+            {
+                var deposited = await _savingsAccountService.DepositAsync(
+                    primaryAccount.AccountNumber,
+                    additionalAmount);
+
+                if (!deposited)
+                {
+                    throw new InvalidOperationException(
+                        "El usuario se actualizó, pero no fue posible acreditar el monto adicional en su cuenta principal.");
+                }
+            }
+
+            return true;
         }
 
         public async Task LogoutAsync()

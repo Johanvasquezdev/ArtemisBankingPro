@@ -21,6 +21,7 @@
 <div class="bg-panel border border-obsidian/5 rounded-lg shadow-sm p-8 max-w-4xl">
     <form asp-action="Edit" asp-route-id="@Model.Id" method="post">
         <input type="hidden" asp-for="Id" />
+        <input type="hidden" asp-for="Role" />
         <div asp-validation-summary="ModelOnly" class="text-red-600 text-sm mb-6"></div>
 
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">

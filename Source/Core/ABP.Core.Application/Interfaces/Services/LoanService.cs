@@ -173,7 +173,7 @@ namespace ABP.Core.Application.Interfaces.Services
                     Beneficiary = primaryAccount.AccountNumber,
                     SourceAccountNumber = loan.LoanNumber,
                     DestinationAccountNumber = primaryAccount.AccountNumber,
-                    Description = $"Loan disbursement {loan.LoanNumber}",
+                    Description = $"Desembolso de préstamo {loan.LoanNumber}",
                     Status = TransactionStatus.Approved,
                     SavingAccountId = primaryAccount.Id,
                     CreatedAt = DateTime.UtcNow

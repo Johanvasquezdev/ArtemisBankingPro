@@ -97,13 +97,24 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
             if (id != model.Id) return BadRequest();
             if (!ModelState.IsValid) return View(model);
 
-            var updated = await _mediator.Send(new UpdateUserCommand(
-                model.Id, model.FirstName, model.LastName, model.Cedula, model.Email, model.Username,
-                model.Password, model.ConfirmPassword, model.AdditionalAmount));
+            bool updated;
+            try
+            {
+                updated = await _mediator.Send(new UpdateUserCommand(
+                    model.Id, model.FirstName, model.LastName, model.Cedula, model.Email, model.Username,
+                    model.Password, model.ConfirmPassword, model.AdditionalAmount));
+            }
+            catch (InvalidOperationException exception)
+            {
+                model.HasError = true;
+                model.Error = exception.Message;
+                return View(model);
+            }
+
             if (!updated)
             {
                 model.HasError = true;
-                model.Error = "No fue posible actualizar el usuario. Verifique que los datos no estén duplicados.";
+                model.Error = "No fue posible actualizar el usuario. Verifique que los datos no estén duplicados y vuelva a intentarlo.";
                 return View(model);
             }
 

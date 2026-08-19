@@ -130,19 +130,19 @@
                     @foreach (var txn in Model.RecentTransactions)
                     {
                         var isDebit = txn.Type == TransactionType.Debit;
-                        <div class="p-4 flex justify-between items-center hover:bg-obsidian/[0.02] transition-colors">
-                            <div>
-                                <div class="font-medium text-sm text-obsidian mb-1">@txn.Description</div>
-                                <div class="text-xs text-obsidian/50">@txn.TransactionDate.ToString("dd/MM/yyyy") · @txn.Beneficiary</div>
+                        <div class="p-4 flex justify-between items-center gap-4 hover:bg-obsidian/[0.02] transition-colors">
+                            <div class="min-w-0">
+                                <div class="font-semibold text-base leading-snug text-obsidian mb-1 break-words">@TransactionDisplayText.LocalizeDescription(txn.Description)</div>
+                                <div class="text-sm text-obsidian/70 leading-snug">@txn.TransactionDate.ToString("dd/MM/yyyy") · @txn.Beneficiary</div>
                             </div>
-                            <div class="text-right">
-                                <div class="font-medium text-base @(isDebit ? "text-obsidian" : "text-green-600")">
+                            <div class="shrink-0 text-right">
+                                <div class="font-semibold text-lg leading-tight @(isDebit ? "text-obsidian" : "text-green-600")">
                                     @(isDebit ? "-" : "+")@txn.Amount.ToString("C2", culture)
                                 </div>
                                 @if (txn.Status == TransactionStatus.Approved) {
-                                    <span class="text-[0.65rem] text-green-600 uppercase tracking-wider">Aprobada</span>
+                                    <span class="text-xs font-semibold text-green-600 uppercase tracking-wider">Aprobada</span>
                                 } else {
-                                    <span class="text-[0.65rem] text-red-500 uppercase tracking-wider">Rechazada</span>
+                                    <span class="text-xs font-semibold text-red-500 uppercase tracking-wider">Rechazada</span>
                                 }
                             </div>
                         </div>
@@ -214,7 +214,7 @@
     <div>
         <div class="flex items-center gap-2 mb-6">
             <svg class="text-gold opacity-70" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            <h2 class="font-serif text-xl font-medium text-obsidian/80">Préstamos</h2>
+            <h2 class="font-serif text-2xl font-medium text-obsidian/80">Préstamos</h2>
         </div>
         
         @if (Model.Loans.Count == 0)
@@ -226,29 +226,29 @@
             <div class="space-y-4">
                 @foreach (var loan in Model.Loans)
                 {
-                    <div class="bg-panel border border-obsidian/10 rounded-xl p-5">
+                    <div class="bg-panel border border-obsidian/10 rounded-xl p-6">
                         <div class="flex justify-between items-center mb-3">
-                            <span class="font-serif font-medium text-obsidian">Préstamo @loan.LoanNumber</span>
+                            <span class="font-serif text-lg font-medium text-obsidian">Préstamo @loan.LoanNumber</span>
                             @if (loan.IsOnTime)
                             {
-                                <span class="px-2 py-0.5 text-[0.65rem] uppercase tracking-wider bg-green-50 text-green-700 rounded-full border border-green-200">Al día</span>
+                                <span class="px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-green-50 text-green-700 rounded-full border border-green-200">Al día</span>
                             }
                             else
                             {
-                                <span class="px-2 py-0.5 text-[0.65rem] uppercase tracking-wider bg-red-50 text-red-700 rounded-full border border-red-200">En mora</span>
+                                <span class="px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-red-50 text-red-700 rounded-full border border-red-200">En mora</span>
                             }
                         </div>
-                        <div class="flex justify-between text-xs mb-2">
+                        <div class="flex justify-between gap-3 text-sm mb-3">
                             <span class="text-obsidian/60">Progreso: @loan.PaidInstallments / @loan.TotalInstallments</span>
-                            <span class="font-medium text-obsidian">@loan.PendingAmount.ToString("C2", culture) pendientes</span>
+                            <span class="font-semibold text-base text-obsidian text-right">@loan.PendingAmount.ToString("C2", culture) pendientes</span>
                         </div>
                         @{
                             var progressPercent = loan.TotalInstallments > 0 ? (int)((double)loan.PaidInstallments / loan.TotalInstallments * 100) : 0;
                         }
-                        <div class="w-full h-1.5 bg-obsidian/5 rounded-full overflow-hidden mb-4">
+                        <div class="w-full h-2.5 bg-obsidian/5 rounded-full overflow-hidden mb-5" aria-label="@progressPercent% pagado">
                             <div class="h-full bg-gold rounded-full" style="width: @(progressPercent)%;"></div>
                         </div>
-                        <a asp-controller="Transactions" asp-action="PayLoan" class="block w-full text-center py-2 px-4 text-xs font-medium border border-obsidian/20 text-obsidian rounded-lg hover:bg-obsidian/5 transition-colors">
+                        <a asp-controller="Transactions" asp-action="PayLoan" class="block w-full text-center py-3 px-4 text-sm font-semibold border border-obsidian/20 text-obsidian rounded-lg hover:bg-obsidian/5 transition-colors">
                             Pagar Cuota
                         </a>
                     </div>

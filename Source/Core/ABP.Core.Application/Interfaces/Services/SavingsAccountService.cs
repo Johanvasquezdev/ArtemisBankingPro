@@ -265,7 +265,7 @@ namespace ABP.Core.Application.Interfaces.Services
                     SavingsAccount = account,
                     SourceAccountNumber = "SYSTEM",
                     DestinationAccountNumber = accountNumber,
-                    Description = "Initial deposit for secondary account opening",
+                    Description = "Depósito inicial - apertura de cuenta secundaria",
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -307,7 +307,7 @@ namespace ABP.Core.Application.Interfaces.Services
                     Beneficiary = primaryAccount.AccountNumber,
                     Status = TransactionStatus.Approved,
                     SavingAccountId = secondaryAccount.Id,
-                    Description = "Closure of secondary account - Balance transferred to primary",
+                    Description = "Cierre de cuenta secundaria - saldo transferido a la principal",
                     CreatedAt = DateTime.UtcNow
                 };
 

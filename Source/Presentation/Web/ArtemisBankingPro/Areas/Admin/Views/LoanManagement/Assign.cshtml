@@ -80,7 +80,7 @@
                     <div class="admin-assignment-field">
                         <label asp-for="TermInMonths" class="abp-label">Plazo</label>
                         <select asp-for="TermInMonths" class="abp-select">
-                            @foreach (var months in new[] { 6, 12, 18, 24, 30, 36, 42, 48, 54, 60 })
+                            @foreach (var months in new[] { 6, 12, 24, 36, 48, 60 })
                             {
                                 <option value="@months">@months meses</option>
                             }

@@ -1,6 +1,7 @@
 using ABP.Core.Application.DTOs.Account;
 using ABP.Core.Application.DTOs.Commerce;
 using ABP.Core.Application.DTOs.SavingsAccount;
+using ABP.Core.Application.DTOs.User;
 using ABP.Core.Application.Interfaces.IServices;
 using ABP.Core.Domain.Enums;
 using ABP.Infraestructure.Shared.EmailServices;
@@ -115,6 +116,63 @@ public sealed class IdentityServiceIntegrationTests : IDisposable
         _email.Verify(service => service.SendEmailAsync(It.Is<EmailRequest>(email =>
             email.IsHtml && email.Body.Contains("Activar mi cuenta") &&
             email.Body.Contains("ada-client"))), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateClient_WithAdditionalAmount_ShouldDepositIntoPrimaryAccount()
+    {
+        await SeedRoleAsync(UserRole.Client);
+        var user = await CreateUserAsync("update-client", UserRole.Client, true, true);
+        var primary = new SavingsAccountDto
+        {
+            AccountNumber = "572787583",
+            Status = AccountStatus.Active,
+            Balance = 1000,
+            Type = AccountType.Primary,
+            UserId = user.Id
+        };
+        _savings.Setup(service => service.GetPrimaryAccountByClientIdAsync(user.Id))
+            .ReturnsAsync(primary);
+        _savings.Setup(service => service.DepositAsync(primary.AccountNumber, 200))
+            .ReturnsAsync(true);
+
+        var updated = await CreateUserService().UpdateAsync(new UpdateUserDto
+        {
+            Id = user.Id,
+            FirstName = "Updated",
+            LastName = "Client",
+            Cedula = user.Cedula,
+            Email = user.Email!,
+            Username = user.UserName!,
+            AdditionalAmount = 200
+        });
+
+        updated.Should().BeTrue();
+        _savings.Verify(service => service.DepositAsync(primary.AccountNumber, 200), Times.Once);
+    }
+
+    [Fact]
+    public async Task UpdateClient_WithAdditionalAmountAndNoPrimaryAccount_ShouldExplainBusinessRule()
+    {
+        await SeedRoleAsync(UserRole.Client);
+        var user = await CreateUserAsync("missing-primary", UserRole.Client, true, true);
+        _savings.Setup(service => service.GetPrimaryAccountByClientIdAsync(user.Id))
+            .ReturnsAsync((SavingsAccountDto?)null);
+
+        var act = () => CreateUserService().UpdateAsync(new UpdateUserDto
+        {
+            Id = user.Id,
+            FirstName = user.FirstName,
+            LastName = user.LastName,
+            Cedula = user.Cedula,
+            Email = user.Email!,
+            Username = user.UserName!,
+            AdditionalAmount = 200
+        });
+
+        var exception = await act.Should().ThrowAsync<InvalidOperationException>();
+        exception.Which.Message.Should().Contain("cuenta principal de ahorro activa");
+        _savings.Verify(service => service.DepositAsync(It.IsAny<string>(), It.IsAny<decimal>()), Times.Never);
     }
 
     [Fact]

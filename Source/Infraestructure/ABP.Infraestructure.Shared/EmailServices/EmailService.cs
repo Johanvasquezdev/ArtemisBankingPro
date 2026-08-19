@@ -48,11 +48,13 @@ namespace ABP.Infraestructure.Shared.EmailServices
 
             smtp.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
-            await smtp.ConnectAsync(
-                _settings.SmtpHost,
-                _settings.SmtpPort,
-                _settings.UseSsl ? SecureSocketOptions.SslOnConnect : SecureSocketOptions.StartTls
-            );
+            var socketOptions = _settings.SmtpPort == 465
+                ? SecureSocketOptions.SslOnConnect
+                : _settings.UseSsl
+                    ? SecureSocketOptions.StartTls
+                    : SecureSocketOptions.None;
+
+            await smtp.ConnectAsync(_settings.SmtpHost, _settings.SmtpPort, socketOptions);
 
             await smtp.AuthenticateAsync(_settings.SmtpUser, _settings.SmtpPassword);
             await smtp.SendAsync(email);
