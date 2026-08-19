@@ -1,16 +1,18 @@
+using ABP.API.Extentions;
+using ABP.API.Middlewares;
 using ABP.Core.Application.IoC;
 using ABP.Core.Application.Mappings;
 using ABP.Infraestructure.identity;
 using ABP.Infraestructure.identity.Seeds;
 using ABP.Infraestructure.Persistence.IoC;
 using ABP.Infraestructure.Shared.IoC;
-using ABP.API.Extentions;
-using ABP.API.Middlewares;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Diagnostics;
+using Microsoft.AspNetCore.Mvc;
 using Serilog;
 using System.Security.Claims;
 using System.Text.Json;
-using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Diagnostics;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -50,7 +52,12 @@ builder.Services.AddAutoMapper(cfg => { }, typeof(AutoMapperProfile));
 // default authenticate/challenge scheme so unauthorized API calls return 401/403
 // Problem Details instead of browser redirects.
 
-builder.Services.AddAuthorization();
+builder.Services.AddAuthorization(options =>
+{
+    options.DefaultPolicy = new AuthorizationPolicyBuilder(JwtBearerDefaults.AuthenticationScheme)
+        .RequireAuthenticatedUser()
+        .Build();
+});
 builder.Services.AddHttpContextAccessor();
 builder.Services.AddMemoryCache();
 
@@ -82,14 +89,15 @@ app.UseMiddleware<ErrorHandlerMiddleware>();
 app.UseStatusCodePages(new Func<StatusCodeContext, Task>(async statusContext =>
 {
     var response = statusContext.HttpContext.Response;
-    if (response.StatusCode < StatusCodes.Status400BadRequest
-        || response.HasStarted
-        || response.ContentLength is not null)
+    if (response.StatusCode < StatusCodes.Status400BadRequest || response.HasStarted || response.ContentLength is not null)
     {
         return;
     }
 
     var status = response.StatusCode;
+    response.StatusCode = status;
+    response.ContentType = "application/problem+json";
+
     var problem = new ProblemDetails
     {
         Status = status,
@@ -110,9 +118,9 @@ app.UseStatusCodePages(new Func<StatusCodeContext, Task>(async statusContext =>
         Instance = statusContext.HttpContext.Request.Path
     };
     problem.Extensions["traceId"] = statusContext.HttpContext.TraceIdentifier;
-    response.ContentType = "application/problem+json";
     await JsonSerializer.SerializeAsync(response.Body, problem);
 }));
+
 if (!app.Environment.IsEnvironment("Testing"))
     app.UseHttpsRedirection();
 app.UseAuthentication();

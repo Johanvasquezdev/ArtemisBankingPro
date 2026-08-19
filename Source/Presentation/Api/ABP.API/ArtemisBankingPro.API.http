@@ -162,4 +162,4 @@ GET {{host}}/api/v1/Admin/commerce
 
 ### Token corrupto (le quito el último carácter a propósito) -> 401 Unauthorized
 GET {{host}}/api/v1/Admin/commerce
-Authorization: Bearer 1{{token}}
+Authorization: Bearer 1f4XSa{{token}}
