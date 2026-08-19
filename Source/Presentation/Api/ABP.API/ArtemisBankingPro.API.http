@@ -1,43 +1,165 @@
 @host = http://localhost:5165
 @contentType = application/json
 
+### 1) LOGIN
 POST {{host}}/api/v1/Account/login
 Content-Type: {{contentType}}
 {
   "userName": "AdminUser",
   "password": "123Pa$$word!"
 }
-#################################################
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJlbWFpbCI6ImFkbWluQGFydGVtaXNiYW5rLmNvbSIsImp0aSI6IjBkZjFhODY2LTA5ZDctNDQ5MC04NjRkLTcxNThhYWE5MWRmOSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pblVzZXIiLCJ1aWQiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJjb21tZXJjZUlkIjoiMCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNzg3MTEyMTMxLCJpc3MiOiJBcnRlbWlzQmFuay5BUEkiLCJhdWQiOiJBcnRlbWlzQmFuay5DbGllbnQifQ.tFQAvJKMDBFLfAq9vhur3I4c_1AXuG63GS7ti4rwd9Y
-# @name createCommerce
+
+### 2) Pega aquí el jwt 
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJlbWFpbCI6ImFkbWluQGFydGVtaXNiYW5rLmNvbSIsImp0aSI6IjhiNjQ5MmU5LTVjMjItNGQxYy1iMzMyLTNhNTkxZTY5NGZkZiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pblVzZXIiLCJ1aWQiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJjb21tZXJjZUlkIjoiMCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNzg3MTQwMzgzLCJpc3MiOiJBcnRlbWlzQmFuay5BUEkiLCJhdWQiOiJBcnRlbWlzQmFuay5DbGllbnQifQ.hyhJL8-TVjU2KqtRrqHYHffe5nHUabih76K9_54b5kQ
+
+### COMMERCE — Crear
+### Caso feliz: debe dar 201 Created
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
-
 {
-  "name": "Tienda Demo 2",
-  "description": "Comercio de prueba con datos completos de RNC y Email.",
-  "logo": "logo-demo.png",
+  "name": "Tienda Demo4",
+  "description": "Comercio de prueba intento numero 6?",
   "rnc": "123456789",
-  "email": "contacto@tiendademo2.com"
+  "email": "contacto@tiendademo.com",
+  "phoneNumber": "8095551234",
+  "logo": "logo-demo.png"
 }
-#################################################
-@commerceId = 6
-# @name listcommerce
-GET {{host}}/api/v1/Admin/commerce?page=1&pageSize=20&status=activo
+
+### Guarda el id que te devolvió el POST de arriba para los siguientes bloques
+@commerceId = 7
+
+### Caso de error esperado: RNC con menos de 9 dígitos -> 400 Bad Request
+POST {{host}}/api/v1/Admin/commerce
+Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
-#################################################
+{
+  "name": "Comercio RNC Inválido",
+  "description": "Debe fallar",
+  "rnc": "12345",
+  "email": "invalido@demo.com",
+  "phoneNumber": "8095551234",
+  "logo": "logo.png"
+}
+
+### Caso de error esperado: correo con formato inválido -> 400 Bad Request
+POST {{host}}/api/v1/Admin/commerce
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+{
+  "name": "Comercio Email Inválido",
+  "description": "Debe fallar",
+  "rnc": "987654321",
+  "email": "esto-no-es-un-correo",
+  "phoneNumber": "8095551234",
+  "logo": "logo.png"
+}
+
+### Caso de error esperado: RNC duplicado (repite el mismo del primer POST) -> 409 Conflict
+### Este SÍ debe venir en formato ApiProblem ("title": "Comercio duplicado", ...)
+POST {{host}}/api/v1/Admin/commerce
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+{
+  "name": "Tienda Demo Duplicada",
+  "description": "Mismo RNC que la primera",
+  "rnc": "123456789",
+  "email": "otro-correo@demo.com",
+  "phoneNumber": "8095551234",
+  "logo": "logo.png"
+}
+
+### Caso de error esperado: correo duplicado (mismo email del primer POST, RNC distinto) -> 409 Conflict
+POST {{host}}/api/v1/Admin/commerce
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+{
+  "name": "Tienda Demo Email Duplicado",
+  "description": "Mismo correo que la primera",
+  "rnc": "111222333",
+  "email": "contacto@tiendademo.com",
+  "phoneNumber": "8095551234",
+  "logo": "logo.png"
+}
+### COMMERCE — Listar
+### Listado por defecto (activos, page=1, pageSize=20)
+GET {{host}}/api/v1/Admin/commerce
+Authorization: Bearer {{token}}
+
+### Filtrado por estado inactivo
+GET {{host}}/api/v1/Admin/commerce?page=1&pageSize=20&status=inactivo
+Authorization: Bearer {{token}}
+### Filtrado por estado
+GET {{host}}/api/v1/Admin/commerce?page=1&pageSize=20&status=todos
+Authorization: Bearer {{token}}
+### Caso de error esperado: page en 0 -> 400 Bad Request
+GET {{host}}/api/v1/Admin/commerce?page=0
+Authorization: Bearer {{token}}
+
+### Caso de error esperado: pageSize mayor a 20 -> 400 Bad Request
+GET {{host}}/api/v1/Admin/commerce?pageSize=50
+Authorization: Bearer {{token}}
+
+### COMMERCE — Consultar por Id
+### Debe existir (usa el {{commerceId}} guardado arriba)
 GET {{host}}/api/v1/Admin/commerce/{{commerceId}}
 Authorization: Bearer {{token}}
-#################################################
+
+### Caso de error esperado: id inexistente -> 404 Not Found
+GET {{host}}/api/v1/Admin/commerce/999999
+Authorization: Bearer {{token}}
+
+### COMMERCE — Actualizar
+### Actualización válida -> 204 No Content
 PUT {{host}}/api/v1/Admin/commerce/{{commerceId}}
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
-
 {
   "name": "Tienda Demo Actualizada",
-  "description": "Descripción actualizada por admin ana",
-  "logo": "logo-demo-v2.png",
-  "rnc": "123456899",
-  "email": "contacto@tiendademo2.com"
+  "description": "Descripción actualizada",
+  "rnc": "123456789",
+  "email": "contacto.actualizado@tiendademo.com",
+  "phoneNumber": "8095555678",
+  "logo": "logo-demo-v2.png"
 }
+
+### Caso de error esperado: id inexistente -> 404 Not Found
+PUT {{host}}/api/v1/Admin/commerce/999999
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+{
+  "name": "No existe",
+  "description": "",
+  "rnc": "555555555",
+  "email": "noexiste@demo.com",
+  "phoneNumber": "8095551234",
+  "logo": "logo.png"
+}
+
+### COMMERCE — Cambiar estado (con cascada de usuarios asociados)
+### Desactivar -> 204 No Content. Si el comercio tiene un usuario Comercio
+### asociado y activo, revisa en Supabase que haya quedado IsActive=false.
+PATCH {{host}}/api/v1/Admin/commerce/{{commerceId}}/status
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+{ "status": false }
+
+### Reactivar -> 204 No Content. El usuario asociado NO debe reactivarse solo.
+PATCH {{host}}/api/v1/Admin/commerce/{{commerceId}}/status
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+{ "status": true }
+
+### Caso de error esperado: id inexistente -> 404 Not Found
+PATCH {{host}}/api/v1/Admin/commerce/999999/status
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+{ "status": false }
+
+### SEGURIDAD
+### Sin token -> 401 Unauthorized
+GET {{host}}/api/v1/Admin/commerce
+
+### Token corrupto (le quito el último carácter a propósito) -> 401 Unauthorized
+GET {{host}}/api/v1/Admin/commerce
+Authorization: Bearer 1{{token}}
