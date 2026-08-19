@@ -7,6 +7,10 @@ namespace ArtemisBankingPro.Controllers;
 public sealed class HomeController : Controller
 {
     [AllowAnonymous]
+    [HttpGet]
+    public IActionResult Index() => RedirectToAction("Index", "Login");
+
+    [AllowAnonymous]
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
     public IActionResult Error()
     {
