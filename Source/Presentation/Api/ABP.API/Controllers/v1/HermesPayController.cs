@@ -11,7 +11,7 @@ using System.Security.Claims;
 namespace ABP.API.Controllers.v1
 {
     [ApiVersion("1.0")]
-    [Authorize(Roles = "Admin,Commerce")]
+    [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme, Roles = "Admin,Commerce")]
     [Route("api/v{version:apiVersion}/pay")]
     public class HermesPayController : BaseApiController
     {

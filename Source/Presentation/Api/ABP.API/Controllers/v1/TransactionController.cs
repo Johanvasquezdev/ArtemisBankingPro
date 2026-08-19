@@ -11,7 +11,7 @@ using System.Security.Claims;
 namespace ABP.API.Controllers.v1
 {
     [ApiVersion("1.0")]
-    [Authorize(Roles = "Cashier")]
+    [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme, Roles = "Cashier")]
     public class TransactionController : BaseApiController
     {
         private readonly IMediator _mediator;
