@@ -3,7 +3,6 @@ using System;
 using ABP.Infraestructure.Persistence.Context;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
-using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 
@@ -12,11 +11,9 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ABP.Infraestructure.Persistence.Migrations
 {
     [DbContext(typeof(ArtemisBankingDbContext))]
-    [Migration("20260818153000_RenameArtemisBankSchemaToArtemisBankingPro")]
-    partial class RenameArtemisBankSchemaToArtemisBankingPro
+    partial class ArtemisBankingDbContextModelSnapshot : ModelSnapshot
     {
-        /// <inheritdoc />
-        protected override void BuildTargetModel(ModelBuilder modelBuilder)
+        protected override void BuildModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

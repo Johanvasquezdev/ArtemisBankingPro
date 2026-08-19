@@ -7,17 +7,17 @@ using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 namespace ABP.Infraestructure.Persistence.Migrations
 {
     /// <inheritdoc />
-    public partial class UpdateLoanInstallments : Migration
+    public partial class InitialArtemisBankingPro : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.EnsureSchema(
-                name: "artemisBank");
+                name: "artemisBankingPro");
 
             migrationBuilder.CreateTable(
                 name: "Beneficiaries",
-                schema: "artemisBank",
+                schema: "artemisBankingPro",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -34,13 +34,15 @@ namespace ABP.Infraestructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Commerces",
-                schema: "artemisBank",
+                schema: "artemisBankingPro",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
                         .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
                     Name = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
                     Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    Rnc = table.Column<string>(type: "character varying(9)", maxLength: 9, nullable: false),
+                    Email = table.Column<string>(type: "character varying(256)", maxLength: 256, nullable: false),
                     Logo = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
                     IsActive = table.Column<bool>(type: "boolean", nullable: false, defaultValue: true),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
@@ -52,7 +54,7 @@ namespace ABP.Infraestructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "CreditCards",
-                schema: "artemisBank",
+                schema: "artemisBankingPro",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -73,8 +75,25 @@ namespace ABP.Infraestructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "IdempotencyRecords",
+                schema: "artemisBankingPro",
+                columns: table => new
+                {
+                    Id = table.Column<int>(type: "integer", nullable: false)
+                        .Annotation("Npgsql:ValueGenerationStrategy", NpgsqlValueGenerationStrategy.IdentityByDefaultColumn),
+                    Operation = table.Column<string>(type: "character varying(100)", maxLength: 100, nullable: false),
+                    Key = table.Column<string>(type: "character varying(200)", maxLength: 200, nullable: false),
+                    ActorUserId = table.Column<string>(type: "character varying(450)", maxLength: 450, nullable: false),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_IdempotencyRecords", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "Loans",
-                schema: "artemisBank",
+                schema: "artemisBankingPro",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -95,7 +114,7 @@ namespace ABP.Infraestructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "SavingsAccounts",
-                schema: "artemisBank",
+                schema: "artemisBankingPro",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -115,7 +134,7 @@ namespace ABP.Infraestructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "CreditCardConsumptions",
-                schema: "artemisBank",
+                schema: "artemisBankingPro",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -133,14 +152,14 @@ namespace ABP.Infraestructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_CreditCardConsumptions_Commerces_CommerceId",
                         column: x => x.CommerceId,
-                        principalSchema: "artemisBank",
+                        principalSchema: "artemisBankingPro",
                         principalTable: "Commerces",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.SetNull);
                     table.ForeignKey(
                         name: "FK_CreditCardConsumptions_CreditCards_CreditCardId",
                         column: x => x.CreditCardId,
-                        principalSchema: "artemisBank",
+                        principalSchema: "artemisBankingPro",
                         principalTable: "CreditCards",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -148,7 +167,7 @@ namespace ABP.Infraestructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "LoanInstallments",
-                schema: "artemisBank",
+                schema: "artemisBankingPro",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -169,7 +188,7 @@ namespace ABP.Infraestructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_LoanInstallments_Loans_LoanId",
                         column: x => x.LoanId,
-                        principalSchema: "artemisBank",
+                        principalSchema: "artemisBankingPro",
                         principalTable: "Loans",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -177,7 +196,7 @@ namespace ABP.Infraestructure.Persistence.Migrations
 
             migrationBuilder.CreateTable(
                 name: "Transactions",
-                schema: "artemisBank",
+                schema: "artemisBankingPro",
                 columns: table => new
                 {
                     Id = table.Column<int>(type: "integer", nullable: false)
@@ -192,7 +211,8 @@ namespace ABP.Infraestructure.Persistence.Migrations
                     SourceAccountNumber = table.Column<string>(type: "character varying(9)", maxLength: 9, nullable: false),
                     DestinationAccountNumber = table.Column<string>(type: "character varying(9)", maxLength: 9, nullable: false),
                     CreatedAt = table.Column<DateTime>(type: "timestamp with time zone", nullable: false),
-                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false)
+                    Description = table.Column<string>(type: "character varying(500)", maxLength: 500, nullable: false),
+                    PerformedByUserId = table.Column<string>(type: "character varying(450)", maxLength: 450, nullable: true)
                 },
                 constraints: table =>
                 {
@@ -200,7 +220,7 @@ namespace ABP.Infraestructure.Persistence.Migrations
                     table.ForeignKey(
                         name: "FK_Transactions_SavingsAccounts_SavingAccountId",
                         column: x => x.SavingAccountId,
-                        principalSchema: "artemisBank",
+                        principalSchema: "artemisBankingPro",
                         principalTable: "SavingsAccounts",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
@@ -208,53 +228,74 @@ namespace ABP.Infraestructure.Persistence.Migrations
 
             migrationBuilder.CreateIndex(
                 name: "IX_Beneficiaries_OwnerId_AccountNumber",
-                schema: "artemisBank",
+                schema: "artemisBankingPro",
                 table: "Beneficiaries",
                 columns: new[] { "OwnerId", "AccountNumber" },
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_Commerces_Email",
+                schema: "artemisBankingPro",
+                table: "Commerces",
+                column: "Email",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_Commerces_Rnc",
+                schema: "artemisBankingPro",
+                table: "Commerces",
+                column: "Rnc",
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_CreditCardConsumptions_CommerceId",
-                schema: "artemisBank",
+                schema: "artemisBankingPro",
                 table: "CreditCardConsumptions",
                 column: "CommerceId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CreditCardConsumptions_CreditCardId",
-                schema: "artemisBank",
+                schema: "artemisBankingPro",
                 table: "CreditCardConsumptions",
                 column: "CreditCardId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_CreditCards_CardNumber",
-                schema: "artemisBank",
+                schema: "artemisBankingPro",
                 table: "CreditCards",
                 column: "CardNumber",
                 unique: true);
 
             migrationBuilder.CreateIndex(
+                name: "IX_IdempotencyRecords_Operation_Key_ActorUserId",
+                schema: "artemisBankingPro",
+                table: "IdempotencyRecords",
+                columns: new[] { "Operation", "Key", "ActorUserId" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_LoanInstallments_LoanId",
-                schema: "artemisBank",
+                schema: "artemisBankingPro",
                 table: "LoanInstallments",
                 column: "LoanId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_Loans_LoanNumber",
-                schema: "artemisBank",
+                schema: "artemisBankingPro",
                 table: "Loans",
                 column: "LoanNumber",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_SavingsAccounts_AccountNumber",
-                schema: "artemisBank",
+                schema: "artemisBankingPro",
                 table: "SavingsAccounts",
                 column: "AccountNumber",
                 unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Transactions_SavingAccountId",
-                schema: "artemisBank",
+                schema: "artemisBankingPro",
                 table: "Transactions",
                 column: "SavingAccountId");
         }
@@ -264,35 +305,39 @@ namespace ABP.Infraestructure.Persistence.Migrations
         {
             migrationBuilder.DropTable(
                 name: "Beneficiaries",
-                schema: "artemisBank");
+                schema: "artemisBankingPro");
 
             migrationBuilder.DropTable(
                 name: "CreditCardConsumptions",
-                schema: "artemisBank");
+                schema: "artemisBankingPro");
+
+            migrationBuilder.DropTable(
+                name: "IdempotencyRecords",
+                schema: "artemisBankingPro");
 
             migrationBuilder.DropTable(
                 name: "LoanInstallments",
-                schema: "artemisBank");
+                schema: "artemisBankingPro");
 
             migrationBuilder.DropTable(
                 name: "Transactions",
-                schema: "artemisBank");
+                schema: "artemisBankingPro");
 
             migrationBuilder.DropTable(
                 name: "Commerces",
-                schema: "artemisBank");
+                schema: "artemisBankingPro");
 
             migrationBuilder.DropTable(
                 name: "CreditCards",
-                schema: "artemisBank");
+                schema: "artemisBankingPro");
 
             migrationBuilder.DropTable(
                 name: "Loans",
-                schema: "artemisBank");
+                schema: "artemisBankingPro");
 
             migrationBuilder.DropTable(
                 name: "SavingsAccounts",
-                schema: "artemisBank");
+                schema: "artemisBankingPro");
         }
     }
 }
