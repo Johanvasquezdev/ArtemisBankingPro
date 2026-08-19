@@ -130,7 +130,7 @@
     <!-- Recent Transactions -->
     <div>
         <h2 class="abp-heading-md abp-mb-md">Operaciones Recientes</h2>
-        <div class="abp-panel abp-txn-list">
+        <div class="abp-panel abp-txn-list max-h-[38rem] overflow-y-auto pr-1">
             @foreach (var transaction in Model.RecentTransactions)
             {
                 var isDebit = transaction.Type == TransactionType.Debit;
@@ -138,11 +138,11 @@
                     ? transaction.DestinationAccountNumber
                     : transaction.SourceAccountNumber;
                 <div class="abp-txn-item abp-flex abp-justify-between abp-items-center" style="padding: 1rem; border-bottom: 1px solid var(--abp-border-subtle);">
-                    <div>
-                        <div class="abp-font-serif" style="font-weight: 600;">@transaction.Description</div>
+                    <div class="min-w-0" style="flex: 1; padding-right: 1rem;">
+                        <div class="abp-font-serif abp-transaction-description" style="font-weight: 600;" title="@transaction.Description">@transaction.Description</div>
                         <div class="abp-text-muted" style="font-size: 0.85rem;">Ref. @reference</div>
                     </div>
-                    <div class="abp-font-mono @(isDebit ? "abp-text-danger" : "abp-text-success")" style="font-weight: 600;">@(isDebit ? "-" : "+") @transaction.Amount.ToString("C2", CultureInfo.GetCultureInfo("es-DO"))</div>
+                    <div class="abp-font-mono @(isDebit ? "abp-text-danger" : "abp-text-success")" style="font-weight: 600; white-space: nowrap;">@(isDebit ? "-" : "+") @transaction.Amount.ToString("C2", CultureInfo.GetCultureInfo("es-DO"))</div>
                 </div>
             }
             @if (!Model.RecentTransactions.Any())

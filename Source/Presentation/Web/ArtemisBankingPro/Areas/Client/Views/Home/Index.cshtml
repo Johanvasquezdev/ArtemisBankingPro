@@ -71,7 +71,7 @@
 </div>
 
 <!-- Primary Row: Accounts & Transactions -->
-<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12">
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-8 mb-12 items-start">
     <!-- Accounts -->
     <div class="lg:col-span-2">
         <div class="flex items-center gap-2 mb-6">
@@ -113,7 +113,7 @@
     </div>
 
     <!-- Recent Transactions -->
-    <div class="lg:col-span-1">
+    <div class="lg:col-span-1 lg:row-span-2 self-start">
         <div class="flex items-center gap-2 mb-6">
             <svg class="text-gold" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
             <h2 class="font-serif text-2xl font-medium text-obsidian">Recientes</h2>
@@ -126,16 +126,16 @@
             }
             else
             {
-                <div class="divide-y divide-obsidian/5">
+                <div class="divide-y divide-obsidian/5 max-h-[38rem] overflow-y-auto pr-1">
                     @foreach (var txn in Model.RecentTransactions)
                     {
                         var isDebit = txn.Type == TransactionType.Debit;
-                        <div class="p-4 flex justify-between items-center gap-4 hover:bg-obsidian/[0.02] transition-colors">
+                        <div class="p-4 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 hover:bg-obsidian/[0.02] transition-colors">
                             <div class="min-w-0">
-                                <div class="font-semibold text-base leading-snug text-obsidian mb-1 break-words">@TransactionDisplayText.LocalizeDescription(txn.Description)</div>
+                                <div class="abp-transaction-description font-semibold text-base leading-snug text-obsidian mb-1" title="@TransactionDisplayText.LocalizeDescription(txn.Description)">@TransactionDisplayText.LocalizeDescription(txn.Description)</div>
                                 <div class="text-sm text-obsidian/70 leading-snug">@txn.TransactionDate.ToString("dd/MM/yyyy") · @txn.Beneficiary</div>
                             </div>
-                            <div class="shrink-0 text-right">
+                            <div class="shrink-0 text-right whitespace-nowrap">
                                 <div class="font-semibold text-lg leading-tight @(isDebit ? "text-obsidian" : "text-green-600")">
                                     @(isDebit ? "-" : "+")@txn.Amount.ToString("C2", culture)
                                 </div>
@@ -151,10 +151,8 @@
             }
         </div>
     </div>
-</div>
-
 <!-- Secondary Row: Credit Cards & Loans -->
-<div class="grid grid-cols-1 lg:grid-cols-2 gap-8 pt-8 border-t border-obsidian/10">
+<div class="lg:col-span-2 grid grid-cols-1 lg:grid-cols-2 gap-8 pt-8 border-t border-obsidian/10">
     
     <!-- Credit Cards -->
     <div>
@@ -257,4 +255,5 @@
         }
     </div>
 
+</div>
 </div>

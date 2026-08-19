@@ -20,6 +20,13 @@ body {
     text-rendering: optimizeLegibility;
 }
 
+.abp-transaction-description {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+}
+
 /* A restrained marble undertone for the light banking surfaces. The veining
    stays deliberately low-contrast so tables, balances and form controls
    remain the visual priority. */
