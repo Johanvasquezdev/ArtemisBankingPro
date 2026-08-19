@@ -22,19 +22,25 @@ namespace ABP.Core.Application.Features.Admin.Queries
 
     public sealed class GetCommercesQueryHandler(ICommerceService commerceService) : IRequestHandler<GetCommercesQuery, GetCommercesResult>
     {
-        private readonly ICommerceService _commerceService = commerceService;
-
         public async Task<GetCommercesResult> Handle(GetCommercesQuery request, CancellationToken cancellationToken)
         {
-            var isActive = request.Status switch
+            var result = await commerceService.GetAllPagedAsync(request.Page, request.PageSize);
+
+            var filtered = request.Status switch
             {
-                "activo" => (bool?)true,
-                "inactivo" => false,
-                _ => null
+                "activo" => result.Items.Where(c => c.IsActive),
+                "inactivo" => result.Items.Where(c => !c.IsActive),
+                _ => result.Items
             };
 
-            var result = await _commerceService.GetAllPagedAsync(request.Page, request.PageSize, isActive);
-            return new GetCommercesResult(result.Page, result.PageSize, result.TotalCount, result.Items);
+            var data = new List<CommerceDto>();
+            foreach (var commerce in filtered)
+            {
+                commerce.HasAssociatedUser = await commerceService.HasActiveUserAsync(commerce.Id);
+                data.Add(commerce);
+            }
+
+            return new GetCommercesResult(result.Page, result.PageSize, data.Count, data);
         }
     }
 }

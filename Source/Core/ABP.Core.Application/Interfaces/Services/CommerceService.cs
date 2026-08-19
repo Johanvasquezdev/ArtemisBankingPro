@@ -121,5 +121,21 @@ namespace ABP.Core.Application.Interfaces.Services
             dto.Email = dto.Email.Trim().ToLowerInvariant();
             dto.Logo = dto.Logo.Trim();
         }
+
+        public async Task<bool> RncExistsAsync(string rnc, int? excludingId = null)
+        {
+            return await _repo.ExistsByRncAsync(rnc, excludingId);
+        }
+
+        public async Task<bool> EmailExistsAsync(string email, int? excludingId = null)
+        {
+            return await _repo.ExistsByEmailAsync(email, excludingId);
+        }
+
+        public async Task<AssociatedUserDto?> GetAssociatedUserAsync(int commerceId)
+        {
+            var info = await _repo.GetAssociatedUserAsync(commerceId);
+            return info is null ? null : new AssociatedUserDto(info.Id, info.UserName, info.Email, info.IsActive);
+        }
     }
 }

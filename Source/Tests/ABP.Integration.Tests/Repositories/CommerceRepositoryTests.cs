@@ -1,4 +1,5 @@
 using ABP.Core.Domain.Entities;
+using ABP.Infraestructure.identity.Context;
 using ABP.Infraestructure.Persistence.Context;
 using ABP.Infraestructure.Persistence.Repositories;
 using FluentAssertions;
@@ -10,17 +11,22 @@ namespace ABP.Integration.Tests.Repositories;
 public sealed class CommerceRepositoryTests : IDisposable
 {
     private readonly ArtemisBankingDbContext _dbContext;
+    private readonly IdentityContext _identity;
     private readonly CommerceRepository _repository;
 
     public CommerceRepositoryTests()
     {
-        var options = new DbContextOptionsBuilder<ArtemisBankingDbContext>()
-            .UseInMemoryDatabase(Guid.NewGuid().ToString())
-            .Options;
+        var options = new DbContextOptionsBuilder<ArtemisBankingDbContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
 
         _dbContext = new ArtemisBankingDbContext(options);
         _dbContext.Database.EnsureCreated();
-        _repository = new CommerceRepository(_dbContext);
+
+        var identity = new DbContextOptionsBuilder<IdentityContext>().UseInMemoryDatabase(Guid.NewGuid().ToString()).Options;
+        
+        _identity = new IdentityContext(identity);
+        _identity.Database.EnsureCreated();
+
+        _repository = new CommerceRepository(_dbContext, _identity);
     }
 
     [Fact]
@@ -65,5 +71,8 @@ public sealed class CommerceRepositoryTests : IDisposable
     {
         _dbContext.Database.EnsureDeleted();
         _dbContext.Dispose();
+
+        _identity.Database.EnsureDeleted();
+        _identity.Dispose();
     }
 }

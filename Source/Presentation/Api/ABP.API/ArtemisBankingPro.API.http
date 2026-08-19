@@ -8,13 +8,36 @@ Content-Type: {{contentType}}
   "password": "123Pa$$word!"
 }
 #################################################
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJlbWFpbCI6ImFkbWluQGFydGVtaXNiYW5rLmNvbSIsImp0aSI6IjVjMDNjMjY1LTRmMGEtNDMzZS1hODY2LTQ1ODA4NGM1YzY2NiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pblVzZXIiLCJ1aWQiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJjb21tZXJjZUlkIjoiMCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNzg3MDM5MDMwLCJpc3MiOiJBcnRlbWlzQmFuay5BUEkiLCJhdWQiOiJBcnRlbWlzQmFuay5DbGllbnQifQ.lo0sOpGEUeJxeqWZxnmCBmARafngJJqz5WdYsQdMtgE
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJlbWFpbCI6ImFkbWluQGFydGVtaXNiYW5rLmNvbSIsImp0aSI6IjBkZjFhODY2LTA5ZDctNDQ5MC04NjRkLTcxNThhYWE5MWRmOSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pblVzZXIiLCJ1aWQiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJjb21tZXJjZUlkIjoiMCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNzg3MTEyMTMxLCJpc3MiOiJBcnRlbWlzQmFuay5BUEkiLCJhdWQiOiJBcnRlbWlzQmFuay5DbGllbnQifQ.tFQAvJKMDBFLfAq9vhur3I4c_1AXuG63GS7ti4rwd9Y
 # @name createCommerce
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
-Authorization: Berear {{token}}
+Authorization: Bearer {{token}}
+
 {
   "name": "Tienda Demo 2",
-  "description": "Comercio de prueba creado por admin ana. la primera salio con id 0,isactive false y time en 0",
-  "logo": "logo-demo.png"
+  "description": "Comercio de prueba con datos completos de RNC y Email.",
+  "logo": "logo-demo.png",
+  "rnc": "123456789",
+  "email": "contacto@tiendademo2.com"
+}
+#################################################
+@commerceId = 6
+# @name listcommerce
+GET {{host}}/api/v1/Admin/commerce?page=1&pageSize=20&status=activo
+Authorization: Bearer {{token}}
+#################################################
+GET {{host}}/api/v1/Admin/commerce/{{commerceId}}
+Authorization: Bearer {{token}}
+#################################################
+PUT {{host}}/api/v1/Admin/commerce/{{commerceId}}
+Content-Type: {{contentType}}
+Authorization: Bearer {{token}}
+
+{
+  "name": "Tienda Demo Actualizada",
+  "description": "Descripción actualizada por admin ana",
+  "logo": "logo-demo-v2.png",
+  "rnc": "123456899",
+  "email": "contacto@tiendademo2.com"
 }

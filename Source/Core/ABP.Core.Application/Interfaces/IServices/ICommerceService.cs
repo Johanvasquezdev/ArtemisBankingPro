@@ -13,6 +13,9 @@ namespace ABP.Core.Application.Interfaces.IServices
         Task<CommerceDto> AddAsync(CommerceDto dto);
         Task UpdateAsync(CommerceDto dto);
         Task ChangeStatusAsync(int id, bool isActive);
-        Task DeleteAsync(int id);
+        Task DeleteAsync(int id); 
+        Task<bool> RncExistsAsync(string rnc, int? excludingId = null);
+        Task<bool> EmailExistsAsync(string email, int? excludingId = null);
+        Task<AssociatedUserDto?> GetAssociatedUserAsync(int commerceId);
     }
 }

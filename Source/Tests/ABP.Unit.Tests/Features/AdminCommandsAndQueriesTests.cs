@@ -8,6 +8,7 @@ using ABP.Core.Application.DTOs.User;
 using ABP.Core.Application.Features.Admin.Commands;
 using ABP.Core.Application.Features.Admin.Queries;
 using ABP.Core.Application.Interfaces.IServices;
+using ABP.Core.Domain.Entities;
 using FluentAssertions;
 using Moq;
 using Xunit;
@@ -19,12 +20,15 @@ public class AdminCommandValidatorTests
     [Fact]
     public void CreateCommerceValidator_ShouldRejectInvalidRncAndEmail()
     {
-        var result = new CreateCommerceCommandValidator().Validate(new CreateCommerceCommand(new CommerceDto
-        {
-            Name = "Commerce",
-            Rnc = "123",
-            Email = "invalid"
-        }));
+        var result = new CreateCommerceCommandValidator().Validate(new CreateCommerceCommand(
+            "Commerce",
+            "test en crear comercio comando",
+            "logo.png",
+            "invalid",
+            "1231231100",
+            "123",
+            "admin-1"
+        ));
 
         result.IsValid.Should().BeFalse();
         result.Errors.Should().Contain(error => error.PropertyName == "Commerce.Rnc");
@@ -75,13 +79,34 @@ public class AdminCommandHandlerTests
     public async Task CreateCommerceHandler_ShouldReturnServiceResult()
     {
         var service = new Mock<ICommerceService>();
-        var expected = new CommerceDto { Id = 7, Name = "Commerce", Rnc = "123456789", Email = "commerce@test.local" };
+        var expected = new CommerceDto 
+        { 
+            Id = 7, 
+            Name = "Commerce",
+            Description = "test", 
+            Rnc = "123456789", 
+            PhoneNumber = "1234567890", 
+            Email = "commerce@test.local",
+            Logo = "logo.png",
+            CreatedByAdminId = "admin-1",
+        };
         service.Setup(x => x.AddAsync(It.IsAny<CommerceDto>())).ReturnsAsync(expected);
 
-        var result = await new CreateCommerceCommandHandler(service.Object)
-            .Handle(new CreateCommerceCommand(expected), CancellationToken.None);
+        var result = await new CreateCommerceCommandHandler(service.Object).Handle(
+            new CreateCommerceCommand(
+                expected.Name,
+                expected.Description,
+                expected.Rnc,
+                expected.PhoneNumber,
+                expected.Email,
+                expected.Logo,
+                expected.CreatedByAdminId
+            ),
+            CancellationToken.None
+        );
 
-        result.Should().BeSameAs(expected);
+        result.Should().BeEquivalentTo(expected);
+        service.Verify(x => x.AddAsync(It.Is<CommerceDto>(d => d.Name == expected.Name && d.Rnc == expected.Rnc)), Times.Once);
         service.Verify(x => x.AddAsync(expected), Times.Once);
     }
 

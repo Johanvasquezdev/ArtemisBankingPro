@@ -14,8 +14,7 @@ using System.Net;
 namespace ABP.Infraestructure.identity.Services
 {
     public class UserService(UserManager<ApplicationUser> userManager, SignInManager<ApplicationUser> signInManager, ICorreoServices emailServices,
-        ISavingsAccountService savingsAccountService, ICommerceService commerceService,
-        IHttpContextAccessor httpContextAccessor, IConfiguration configuration) : IUserService
+        ISavingsAccountService savingsAccountService, ICommerceService commerceService, IHttpContextAccessor httpContextAccessor, IConfiguration configuration) : IUserService
     {
         private readonly UserManager<ApplicationUser> _userManager = userManager;
         private readonly SignInManager<ApplicationUser> _signInManager = signInManager;
@@ -360,7 +359,20 @@ namespace ABP.Infraestructure.identity.Services
         {
             await _signInManager.SignOutAsync();
         }
-        
+
+        public async Task DeactivateUsersByCommerceIdAsync(int commerceId)
+        {
+            var associatedUsers = await _userManager.Users
+                .Where(u => u.CommerceId == commerceId && u.IsActive)
+                .ToListAsync();
+
+            foreach (var user in associatedUsers)
+            {
+                user.IsActive = false;
+                await _userManager.UpdateAsync(user);
+            }
+        }
+
         #region private methods
         private static AuthenticationResult Fail(string error) =>
             new() { Success = false, Error = error };

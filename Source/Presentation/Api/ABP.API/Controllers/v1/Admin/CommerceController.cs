@@ -1,6 +1,6 @@
 using ABP.API.DTOs.Commerce;
-using ABP.Core.Application.Features.Admin.Queries;
 using ABP.Core.Application.Features.Admin.Commands;
+using ABP.Core.Application.Features.Admin.Queries;
 using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,12 +14,9 @@ namespace ABP.API.Controllers.v1.Admin
         private readonly IMediator _mediator = mediator;
 
         // GET /api/v1/Admin/commerce
-        // Validaciones de page/pageSize/status ahora viven en GetCommercesQueryValidator (FluentValidation).
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string status = "activo")
         {
-            if (page < 1 || pageSize is < 1 or > 20 || status is not ("activo" or "inactivo" or "todos"))
-                return ApiProblem(StatusCodes.Status400BadRequest, "Validación fallida", "Los parámetros de paginación o estado no son válidos.");
             var result = await _mediator.Send(new GetCommercesQuery(page, pageSize, status));
 
             return Ok(new
@@ -35,27 +32,55 @@ namespace ABP.API.Controllers.v1.Admin
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
-            var commerce = await _mediator.Send(new GetCommerceByIdQuery(id));
-            if (commerce == null) return ApiProblem(StatusCodes.Status404NotFound, "Comercio no encontrado", "El comercio especificado no existe.");
-            return Ok(commerce);
+            var result = await _mediator.Send(new GetCommerceByIdQuery(id));
+            if (result == null) return NotFound(new { message = "El comercio especificado no existe." });
+
+            return Ok(new
+            {
+                id = result.Commerce.Id,
+                result.Commerce.Name,
+                result.Commerce.Description,
+                result.Commerce.Logo,
+                result.Commerce.Email,
+                result.Commerce.PhoneNumber,
+                result.Commerce.Rnc,
+                result.Commerce.IsActive,
+                result.Commerce.CreatedAt,
+                associatedUser = result.AssociatedUser
+            });
         }
 
         // POST /api/v1/Admin/commerce
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateCommerceRequest request)
         {
-            var created = await _mediator.Send(new CreateCommerceCommand(
-                request.Name, request.Description, request.Logo, request.Rnc, request.Email));
-            return StatusCode(201, created);
+            var adminId = User.FindFirst("uid")?.Value ?? string.Empty;
+
+            var result = await _mediator.Send(new CreateCommerceCommand(
+                request.Name, request.Description, request.Logo,
+                request.Email, request.PhoneNumber, request.Rnc, adminId));
+
+            if (result.RncAlreadyExists)
+                return Conflict(new { message = "Ya existe un comercio con el mismo RNC." });
+
+            if (result.EmailAlreadyExists)
+                return Conflict(new { message = "Ya existe un comercio con el mismo correo electrónico." });
+
+            return StatusCode(201, result.Commerce);
         }
 
         // PUT /api/v1/Admin/commerce/{id}
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateCommerceRequest request)
         {
-            var updated = await _mediator.Send(new UpdateCommerceCommand(
-                id, request.Name, request.Description, request.Logo, request.Rnc, request.Email));
-            if (!updated) return ApiProblem(StatusCodes.Status404NotFound, "Comercio no encontrado", "El comercio especificado no existe.");
+            var result = await _mediator.Send(new UpdateCommerceCommand(
+                id, request.Name, request.Description, request.Logo,
+                request.Email, request.PhoneNumber, request.Rnc));
+
+            if (result.NotFound) return NotFound(new { message = "El comercio especificado no existe." });
+            if (result.RncAlreadyExists) return Conflict(new { message = "El RNC pertenece a otro comercio." });
+            if (result.EmailAlreadyExists) return Conflict(new { message = "El correo electrónico pertenece a otro comercio." });
+
             return NoContent();
         }
 
@@ -64,7 +89,7 @@ namespace ABP.API.Controllers.v1.Admin
         public async Task<IActionResult> ChangeStatus(int id, [FromBody] ChangeCommerceStatusRequest request)
         {
             var changed = await _mediator.Send(new ChangeCommerceStatusCommand(id, request.Status));
-            if (!changed) return ApiProblem(StatusCodes.Status404NotFound, "Comercio no encontrado", "El comercio especificado no existe.");
+            if (!changed) return NotFound(new { message = "El comercio especificado no existe." });
             return NoContent();
         }
     }

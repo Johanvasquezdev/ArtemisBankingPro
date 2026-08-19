@@ -76,15 +76,37 @@ public sealed class MissingAdminCommandHandlerTests
         var cards = new Mock<ICreditCardService>();
         var accounts = new Mock<ISavingsAccountService>();
         var loans = new Mock<ILoanService>();
-        var commerceDto = new CommerceDto { Id = 4, Name = "Updated", Rnc = "123456789", Email = "updated@test.local" };
+        var userServiceMock = new Mock<IUserService>();
+        var commerceDto = new CommerceDto
+        {
+            Id = 4,
+            Name = "Updated",
+            Description = "test en actualizar comercio comando",
+            Logo = "logo.png",
+            Rnc = "123456789",
+            PhoneNumber = "1234567890",
+            Email = "updated@test.local"
+        };
         var cardDto = new AssignCreditCardDto { ClientId = "client-1", CreditLimit = 1000 };
         var accountDto = new AssignSavingsAccountDto { ClientId = "client-1", AdminId = "admin-1", InitialBalance = 10 };
 
         commerce.Setup(x => x.GetByIdAsync(4)).ReturnsAsync(commerceDto);
         loans.Setup(x => x.GetByIdAsync(11)).ReturnsAsync(new LoanDto { Id = 11 });
 
-        await new UpdateCommerceCommandHandler(commerce.Object).Handle(new UpdateCommerceCommand(commerceDto), CancellationToken.None);
-        await new ChangeCommerceStatusCommandHandler(commerce.Object).Handle(new ChangeCommerceStatusCommand(4, false), CancellationToken.None);
+        await new UpdateCommerceCommandHandler(commerce.Object).Handle(
+            new UpdateCommerceCommand(
+                commerceDto.Id,
+                commerceDto.Name,
+                commerceDto.Description,
+                commerceDto.Logo,
+                commerceDto.Email,
+                commerceDto.PhoneNumber,
+                commerceDto.Rnc
+            ),
+            CancellationToken.None
+        );
+
+        await new ChangeCommerceStatusCommandHandler(commerce.Object, userServiceMock.Object).Handle(new ChangeCommerceStatusCommand(4, false), CancellationToken.None);
         await new UpdateCreditCardLimitCommandHandler(cards.Object).Handle(new UpdateCreditCardLimitCommand(9, 2000), CancellationToken.None);
         await new CancelCreditCardCommandHandler(cards.Object).Handle(new CancelCreditCardCommand(9), CancellationToken.None);
 
@@ -97,7 +119,7 @@ public sealed class MissingAdminCommandHandlerTests
         await new UpdateLoanRateCommandHandler(loans.Object)
             .Handle(new UpdateLoanRateCommand(11, 8.5m), CancellationToken.None);
 
-        commerce.Verify(x => x.UpdateAsync(commerceDto), Times.Once);
+        commerce.Verify(x => x.UpdateAsync(It.Is<CommerceDto>(d => d.Id == commerceDto.Id && d.Name == commerceDto.Name)), Times.Once);
         commerce.Verify(x => x.ChangeStatusAsync(4, false), Times.Once);
         cards.Verify(x => x.UpdateLimitAsync(9, 2000), Times.Once);
         cards.Verify(x => x.CancelAsync(9), Times.Once);

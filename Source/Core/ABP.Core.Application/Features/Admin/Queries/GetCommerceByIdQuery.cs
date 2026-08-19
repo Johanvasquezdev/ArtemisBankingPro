@@ -4,13 +4,17 @@ using MediatR;
 
 namespace ABP.Core.Application.Features.Admin.Queries
 {
-    public sealed record GetCommerceByIdQuery(int Id) : IRequest<CommerceDto?>;
-
-    public sealed class GetCommerceByIdQueryHandler(ICommerceService commerceService) : IRequestHandler<GetCommerceByIdQuery, CommerceDto?>
+    public sealed record GetCommerceByIdQuery(int Id) : IRequest<GetCommerceByIdResult?>;
+    public sealed record GetCommerceByIdResult(CommerceDto Commerce, AssociatedUserDto? AssociatedUser);
+    public sealed class GetCommerceByIdQueryHandler(ICommerceService commerceService) : IRequestHandler<GetCommerceByIdQuery, GetCommerceByIdResult?>
     {
-        private readonly ICommerceService _commerceService = commerceService;
+        public async Task<GetCommerceByIdResult?> Handle(GetCommerceByIdQuery request, CancellationToken cancellationToken)
+        {
+            var commerce = await commerceService.GetByIdAsync(request.Id);
+            if (commerce == null) return null;
 
-        public async Task<CommerceDto?> Handle(GetCommerceByIdQuery request, CancellationToken cancellationToken)
-            => await _commerceService.GetByIdAsync(request.Id);
+            var associatedUser = await commerceService.GetAssociatedUserAsync(request.Id);
+            return new GetCommerceByIdResult(commerce, associatedUser);
+        }
     }
 }

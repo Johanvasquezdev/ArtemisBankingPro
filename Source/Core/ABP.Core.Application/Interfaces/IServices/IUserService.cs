@@ -24,5 +24,6 @@ namespace ABP.Core.Application.Interfaces.IServices
         Task<bool> UpdateAsync(UpdateUserDto dto);
         Task<bool> ChangeStatusAsync(string adminId, string userId, bool isActive);
         Task LogoutAsync();
+        Task DeactivateUsersByCommerceIdAsync(int commerceId);
     }
 }
