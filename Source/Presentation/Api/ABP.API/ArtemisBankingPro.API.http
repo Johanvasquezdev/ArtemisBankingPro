@@ -1,4 +1,4 @@
-@host = http://localhost:5165
+﻿@host = http://localhost:5165
 @contentType = application/json
 
 ### 1) LOGIN
@@ -11,14 +11,15 @@ Content-Type: {{contentType}}
   "password": "123Pa$$word!"
 }
 
-### 2) ¡IMPORTANTE! Pega aquí el JWT que te devuelve el Login (paso 1)
-@token = PEGA_TU_TOKEN_AQUI
+### 2) ¡¡IMPORTANTE! Pega aquíí el JWT que te devuelve el Login (paso 1)
+@token = PEGA_TU_TOKEN_aquíI
 
 ### COMMERCE — Crear
 ### Caso feliz: debe dar 201 Created
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 {
   "name": "Tienda Demo4",
   "description": "Comercio de prueba intento numero 6?",
@@ -28,13 +29,14 @@ Authorization: Bearer {{token}}
   "logo": "logo-demo.png"
 }
 
-### Guarda el id que te devolvió el POST de arriba para los siguientes bloques
+### Guarda el id que te devolvióó el POST de arriba para los siguientes bloques
 @commerceId = 7
 
 ### Caso de error esperado: RNC con menos de 9 dígitos -> 400 Bad Request
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 {
   "name": "Comercio RNC Inválido",
   "description": "Debe fallar",
@@ -48,6 +50,7 @@ Authorization: Bearer {{token}}
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 {
   "name": "Comercio Email Inválido",
   "description": "Debe fallar",
@@ -62,6 +65,7 @@ Authorization: Bearer {{token}}
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 {
   "name": "Tienda Demo Duplicada",
   "description": "Mismo RNC que la primera",
@@ -75,6 +79,7 @@ Authorization: Bearer {{token}}
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 {
   "name": "Tienda Demo Email Duplicado",
   "description": "Mismo correo que la primera",
@@ -116,6 +121,7 @@ Authorization: Bearer {{token}}
 PUT {{host}}/api/v1/Admin/commerce/{{commerceId}}
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 {
   "name": "Tienda Demo Actualizada",
   "description": "Descripción actualizada",
@@ -129,6 +135,7 @@ Authorization: Bearer {{token}}
 PUT {{host}}/api/v1/Admin/commerce/999999
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 {
   "name": "No existe",
   "description": "",
@@ -144,18 +151,21 @@ Authorization: Bearer {{token}}
 PATCH {{host}}/api/v1/Admin/commerce/{{commerceId}}/status
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 { "status": false }
 
 ### Reactivar -> 204 No Content. El usuario asociado NO debe reactivarse solo.
 PATCH {{host}}/api/v1/Admin/commerce/{{commerceId}}/status
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 { "status": true }
 
 ### Caso de error esperado: id inexistente -> 404 Not Found
 PATCH {{host}}/api/v1/Admin/commerce/999999/status
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 { "status": false }
 
 ### SEGURIDAD
@@ -165,4 +175,5 @@ GET {{host}}/api/v1/Admin/commerce
 ### Token corrupto (le quito el último carácter a propósito) -> 401 Unauthorized
 GET {{host}}/api/v1/Admin/commerce
 Authorization: Bearer 1f4XSa{{token}}
+
 
