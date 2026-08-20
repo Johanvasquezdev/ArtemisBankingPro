@@ -1,4 +1,4 @@
-﻿using ABP.Core.Application.DTOs.User;
+using ABP.Core.Application.DTOs.User;
 using ABP.Core.Application.DTOs.Account;
 using ABP.Core.Application.Interfaces.IServices;
 using ABP.Core.Domain.Enums;
@@ -165,8 +165,8 @@ namespace ABP.Infraestructure.identity.Services
                 Cedula = cedula,
                 UserName = username,
                 Email = email,
-                EmailConfirmed = false,
-                IsActive = false,
+                EmailConfirmed = true,
+                IsActive = true,
                 Role = UserRole.Commerce,
                 CommerceId = commerceId
             };
@@ -201,7 +201,8 @@ namespace ABP.Infraestructure.identity.Services
                 return false;
             }
 
-            await SendActivationEmailAsync(user, emailChannel);
+            // Since Admin creates these, we activate them by default.
+            // await SendActivationEmailAsync(user, emailChannel);
 
             return true;
         }
