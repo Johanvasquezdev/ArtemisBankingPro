@@ -48,9 +48,6 @@ builder.Services.AddPersistenceInfrastructure(builder.Configuration);
 builder.Services.AddSharedInfrastructure(builder.Configuration);
 builder.Services.AddApplicationLayer();
 builder.Services.AddAutoMapper(cfg => { }, typeof(AutoMapperProfile));
-// Identity registers its cookie scheme. The API must finish with JWT as the
-// default authenticate/challenge scheme so unauthorized API calls return 401/403
-// Problem Details instead of browser redirects.
 
 builder.Services.AddAuthorization(options =>
 {
