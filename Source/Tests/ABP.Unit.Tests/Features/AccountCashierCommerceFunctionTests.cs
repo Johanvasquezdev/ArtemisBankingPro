@@ -221,14 +221,14 @@ public sealed class CommerceFeatureTests
     public async Task CommerceTransactionsQuery_ShouldDelegateCommerceId()
     {
         var service = new Mock<IPaymentProcessorService>();
-        var expected = new[] { new PaymentTransactionDto { Id = 1, Amount = 100 } };
-        service.Setup(x => x.GetCommerceTransactionsAsync(10)).ReturnsAsync(expected);
+        var expected = new ABP.Core.Application.DTOs.PaginatedResult<PaymentTransactionDto> { Items = new[] { new PaymentTransactionDto { Id = 1, Amount = 100 } } };
+        service.Setup(x => x.GetCommerceTransactionsAsync(10, 1, 10)).ReturnsAsync(expected);
 
         var result = await new GetCommerceTransactionsQueryHandler(service.Object)
-            .Handle(new GetCommerceTransactionsQuery(10), CancellationToken.None);
+            .Handle(new GetCommerceTransactionsQuery(10, 1, 10), CancellationToken.None);
 
         result.Should().BeSameAs(expected);
-        service.Verify(x => x.GetCommerceTransactionsAsync(10), Times.Once);
+        service.Verify(x => x.GetCommerceTransactionsAsync(10, 1, 10), Times.Once);
     }
 
     [Fact]

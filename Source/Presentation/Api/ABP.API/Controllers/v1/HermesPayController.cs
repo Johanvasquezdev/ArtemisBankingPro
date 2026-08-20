@@ -32,7 +32,7 @@ namespace ABP.API.Controllers.v1
         [HttpGet("get-transactions/{commerceId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> GetTransactions([FromRoute] int commerceId)
+        public async Task<IActionResult> GetTransactions([FromRoute] int commerceId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
         {
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
             var actualCommerceId = commerceId;
@@ -40,13 +40,14 @@ namespace ABP.API.Controllers.v1
             if (userRole == "Commerce")
             {
                 var commerceIdClaim = User.FindFirst("commerceId")?.Value;
-                if (!string.IsNullOrEmpty(commerceIdClaim) && int.TryParse(commerceIdClaim, out var parsedCommerceId))
+                if (string.IsNullOrEmpty(commerceIdClaim) || !int.TryParse(commerceIdClaim, out var parsedCommerceId))
                 {
-                    actualCommerceId = parsedCommerceId;
+                    return Forbid();
                 }
+                actualCommerceId = parsedCommerceId;
             }
 
-            var transactions = await _mediator.Send(new GetCommerceTransactionsQuery(actualCommerceId));
+            var transactions = await _mediator.Send(new GetCommerceTransactionsQuery(actualCommerceId, pageNumber, pageSize));
 
             return Ok(transactions);
         }
@@ -78,10 +79,11 @@ namespace ABP.API.Controllers.v1
             if (userRole == "Commerce")
             {
                 var commerceIdClaim = User.FindFirst("commerceId")?.Value;
-                if (!string.IsNullOrEmpty(commerceIdClaim) && int.TryParse(commerceIdClaim, out var parsedCommerceId))
+                if (string.IsNullOrEmpty(commerceIdClaim) || !int.TryParse(commerceIdClaim, out var parsedCommerceId))
                 {
-                    actualCommerceId = parsedCommerceId;
+                    return Forbid();
                 }
+                actualCommerceId = parsedCommerceId;
             }
 
             var paymentDto = new ProcessPaymentDto

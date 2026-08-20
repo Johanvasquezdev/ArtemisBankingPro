@@ -135,11 +135,32 @@ namespace ABP.Core.Application.Interfaces.Services
             var createdLoan = loan;
 
             // French amortization: fixed monthly payment
-            var totalDebt = CalculateTotalLoanDebt(dto.Amount, dto.AnnualInterestRate, dto.TermInMonths);
-            var fixedPayment = totalDebt / dto.TermInMonths;
+            double monthlyRate = (double)dto.AnnualInterestRate / 100 / 12;
+            decimal fixedPayment;
+            if (monthlyRate == 0)
+            {
+                fixedPayment = dto.Amount / dto.TermInMonths;
+            }
+            else
+            {
+                double factor = Math.Pow(1 + monthlyRate, dto.TermInMonths);
+                fixedPayment = (decimal)((double)dto.Amount * (monthlyRate * factor) / (factor - 1));
+            }
+
+            decimal remainingPrincipal = dto.Amount;
 
             for (int i = 1; i <= dto.TermInMonths; i++)
             {
+                decimal interestPortion = Math.Round(remainingPrincipal * (decimal)monthlyRate, 2);
+                decimal principalPortion = Math.Round(fixedPayment - interestPortion, 2);
+                
+                // Adjust last payment to avoid rounding issues
+                if (i == dto.TermInMonths)
+                {
+                    principalPortion = remainingPrincipal;
+                    fixedPayment = principalPortion + interestPortion;
+                }
+
                 var installment = new LoanInstallment
                 {
                     DueDate = DateTime.UtcNow.AddMonths(i),
@@ -149,11 +170,12 @@ namespace ABP.Core.Application.Interfaces.Services
                     IsOverdue = false,
                     InstallmentNumber = i,
                     LoanId = loan.Id,
-                    PrincipalPortion = Math.Round(fixedPayment - (dto.Amount * (dto.AnnualInterestRate / 100m) / 12m), 2),
-                    InterestPortion = Math.Round(dto.Amount * (dto.AnnualInterestRate / 100m) / 12m, 2),
+                    PrincipalPortion = principalPortion,
+                    InterestPortion = interestPortion,
                     Loan = loan
                 };
 
+                remainingPrincipal -= principalPortion;
                 await _installmentRepo.AddWithoutSaveAsync(installment);
             }
 
@@ -309,7 +331,14 @@ namespace ABP.Core.Application.Interfaces.Services
                 return;
             }
 
-            decimal remainingBalance = pendingInstallments.Sum(i => i.InstallmentAmount - i.AmountPaid);
+            // Calculate remaining principal. Assuming AmountPaid pays interest first, then principal.
+            decimal remainingPrincipal = 0;
+            foreach (var inst in pendingInstallments)
+            {
+                decimal principalPaid = Math.Max(0, inst.AmountPaid - inst.InterestPortion);
+                remainingPrincipal += (inst.PrincipalPortion - principalPaid);
+            }
+
             int remainingMonths = pendingInstallments.Count;
 
             double monthlyRate = (double)newAnnualInterestRate / 100 / 12;
@@ -317,18 +346,39 @@ namespace ABP.Core.Application.Interfaces.Services
 
             if (monthlyRate == 0)
             {
-                newFixedPayment = remainingBalance / remainingMonths;
+                newFixedPayment = remainingPrincipal / remainingMonths;
             }
             else
             {
                 double factor = Math.Pow(1 + monthlyRate, remainingMonths);
-                double monthlyPayment = (double)remainingBalance * (monthlyRate * factor) / (factor - 1);
+                double monthlyPayment = (double)remainingPrincipal * (monthlyRate * factor) / (factor - 1);
                 newFixedPayment = (decimal)monthlyPayment;
             }
 
-            foreach (var installment in pendingInstallments)
+            for (int i = 0; i < remainingMonths; i++)
             {
+                var installment = pendingInstallments[i];
+                
+                // If it's partially paid, subtract what's already paid from the new fixed payment
+                // But conceptually, the new schedule starts from the current remaining principal.
+                // We will treat each remaining month as a standard French amortization step.
+                decimal interestPortion = Math.Round(remainingPrincipal * (decimal)monthlyRate, 2);
+                decimal principalPortion = Math.Round(newFixedPayment - interestPortion, 2);
+
+                if (i == remainingMonths - 1)
+                {
+                    principalPortion = remainingPrincipal;
+                    newFixedPayment = principalPortion + interestPortion;
+                }
+
+                // If this specific installment was partially paid, we adjust the new amounts
+                // by adding back what was paid so the Total Installment Amount is correct
+                // relative to AmountPaid. However, it's easier to just overwrite them.
                 installment.InstallmentAmount = Math.Round(newFixedPayment, 2);
+                installment.PrincipalPortion = principalPortion;
+                installment.InterestPortion = interestPortion;
+
+                remainingPrincipal -= principalPortion;
                 await _installmentRepo.UpdateWithoutSaveAsync(installment);
             }
             await _unitOfWork.SaveChangesAsync();

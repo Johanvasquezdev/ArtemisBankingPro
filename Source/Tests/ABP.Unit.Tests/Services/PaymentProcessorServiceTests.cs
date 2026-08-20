@@ -108,9 +108,9 @@ public class PaymentProcessorServiceTests
             new CreditCardConsumptionDto { Id = 1, CommerceId = 10, Amount = 42, Status = ConsumptionStatus.Approved }
         ]);
 
-        var transactions = await _service.GetCommerceTransactionsAsync(10);
+        var transactions = await _service.GetCommerceTransactionsAsync(10, 1, 10);
 
-        transactions.Should().ContainSingle().Which.Amount.Should().Be(42);
+        transactions.Items.Should().ContainSingle().Which.Amount.Should().Be(42);
         _consumptionService.Verify(x => x.GetByCommerceIdAsync(10), Times.Once);
         _consumptionService.Verify(x => x.GetByCardIdAsync(It.IsAny<int>()), Times.Never);
     }

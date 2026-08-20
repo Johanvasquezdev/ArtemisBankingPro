@@ -1,5 +1,5 @@
 using AutoMapper;
-using ABP.Core.Application.Interfaces.IRepositories;
+using ABP.Core.Domain.Interfaces.IGenerics;
 using ABP.Core.Application.Interfaces.IServices;
 using System.Collections.Generic;
 using System.Threading.Tasks;
@@ -23,7 +23,7 @@ namespace ABP.Core.Application.Services
         public virtual async Task<ViewModel> AddAsync(SaveViewModel vm)
         {
             Model entity = _mapper.Map<Model>(vm);
-            entity = await _repository.AddAsync(entity);
+            await _repository.AddAsync(entity);
             ViewModel entityVm = _mapper.Map<ViewModel>(entity);
             return entityVm;
         }
@@ -31,7 +31,7 @@ namespace ABP.Core.Application.Services
         public virtual async Task UpdateAsync(SaveViewModel vm, int id)
         {
             Model entity = _mapper.Map<Model>(vm);
-            await _repository.UpdateAsync(entity, id);
+            await _repository.UpdateAsync(entity);
         }
 
         public virtual async Task DeleteAsync(int id)

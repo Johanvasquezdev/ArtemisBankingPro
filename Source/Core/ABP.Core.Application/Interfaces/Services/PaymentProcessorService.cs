@@ -1,4 +1,5 @@
 using ABP.Core.Application.DTOs.CreditCardConsumption;
+using ABP.Core.Application.DTOs;
 using ABP.Core.Application.DTOs.Payment;
 using ABP.Core.Application.Interfaces.IServices;
 using ABP.Core.Domain.Entities;
@@ -175,23 +176,45 @@ namespace ABP.Core.Application.Interfaces.Services
             };
         }
 
-        public async Task<IEnumerable<PaymentTransactionDto>> GetCommerceTransactionsAsync(int commerceId)
+        public async Task<PaginatedResult<PaymentTransactionDto>> GetCommerceTransactionsAsync(int commerceId, int pageNumber, int pageSize)
         {
             var commerce = await _commerceService.GetByIdAsync(commerceId);
             if (commerce == null)
-                return Enumerable.Empty<PaymentTransactionDto>();
+            {
+                return new PaginatedResult<PaymentTransactionDto>
+                {
+                    Items = [],
+                    TotalCount = 0,
+                    Page = pageNumber,
+                    PageSize = pageSize
+                };
+            }
 
             var consumptions = await _consumptionService.GetByCommerceIdAsync(commerceId);
+            var query = consumptions.AsQueryable();
 
-            return consumptions.Select(c => new PaymentTransactionDto
+            int totalCount = query.Count();
+            var items = query
+                .Skip((pageNumber - 1) * pageSize)
+                .Take(pageSize)
+                .Select(c => new PaymentTransactionDto
+                {
+                    Id = c.Id,
+                    Amount = c.Amount,
+                    TransactionDate = c.TransactionDate,
+                    CardNumber = "****",
+                    Description = c.CommerceName,
+                    Status = c.Status == ConsumptionStatus.Approved ? TransactionStatus.Approved : TransactionStatus.Declined
+                })
+                .ToList();
+
+            return new PaginatedResult<PaymentTransactionDto>
             {
-                Id = c.Id,
-                Amount = c.Amount,
-                TransactionDate = c.TransactionDate,
-                CardNumber = "****",
-                Description = c.CommerceName,
-                Status = c.Status == ConsumptionStatus.Approved ? TransactionStatus.Approved : TransactionStatus.Declined
-            });
+                Items = items,
+                TotalCount = totalCount,
+                Page = pageNumber,
+                PageSize = pageSize
+            };
         }
 
         private static PaymentResultDto Failure(string message) => new()
