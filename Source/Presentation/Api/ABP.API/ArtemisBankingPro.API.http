@@ -12,19 +12,18 @@ Content-Type: {{contentType}}
 }
 
 ### 2) ¡¡¡IMPORTANTE! Pega aquííí el JWT que te devuelve el Login (paso 1)
-@token = {{loginRequest.response.body.$.jwt}}
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJlbWFpbCI6ImFkbWluQGFydGVtaXNiYW5rLmNvbSIsImp0aSI6IjcyMDkzZTc1LWE5NmEtNDNjMS04ZmFmLWQ2NWM3ODg5MzQxZCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pblVzZXIiLCJ1aWQiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJjb21tZXJjZUlkIjoiMCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNzg3MjAwMDEzLCJpc3MiOiJBcnRlbWlzQmFuay5BUEkiLCJhdWQiOiJBcnRlbWlzQmFuay5DbGllbnQifQ.0p9G4m5NzGHkCJ06_mXzMZ1l9TSyCJQGHLRlnfNHWvE
 
 ### COMMERCE — Crear
 ### Caso feliz: debe dar 201 Created
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
-
 {
   "name": "Tienda Demo4",
-  "description": "Comercio de prueba intento numero 6?",
-  "rnc": "123456789",
-  "email": "contacto@tiendademo.com",
+  "description": "Comercio de prueba intento numero 12?",
+  "rnc": "123006789",
+  "email": "conta0@tiendademo.com",
   "phoneNumber": "8095551234",
   "logo": "logo-demo.png"
 }
@@ -36,7 +35,6 @@ Authorization: Bearer {{token}}
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
-
 {
 "name": "Comercio RNC Inválido",
 "description": "Debe fallar",
@@ -50,7 +48,6 @@ Authorization: Bearer {{token}}
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
-
 {
 "name": "Comercio Email Inválido",
 "description": "Debe fallar",
@@ -65,7 +62,6 @@ Authorization: Bearer {{token}}
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
-
 {
 "name": "Tienda Demo Duplicada",
 "description": "Mismo RNC que la primera",
@@ -79,7 +75,6 @@ Authorization: Bearer {{token}}
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
-
 {
 "name": "Tienda Demo Email Duplicado",
 "description": "Mismo correo que la primera",
@@ -175,8 +170,3 @@ GET {{host}}/api/v1/Admin/commerce
 ### Token corrupto (le quito el último carácter a propósito) -> 401 Unauthorized
 GET {{host}}/api/v1/Admin/commerce
 Authorization: Bearer 1f4XSa{{token}}
-
-
-
-
-
