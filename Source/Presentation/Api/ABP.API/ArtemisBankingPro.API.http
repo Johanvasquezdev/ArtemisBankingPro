@@ -10,8 +10,7 @@ Content-Type: {{contentType}}
 }
 
 ### 2) Pega aquí el jwt 
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJlbWFpbCI6ImFkbWluQGFydGVtaXNiYW5rLmNvbSIsImp0aSI6IjAzZjQxMzFiLTRjMmItNGVmMi1hNTkwLTg1ZmMxNzdhOThhYSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pblVzZXIiLCJ1aWQiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJjb21tZXJjZUlkIjoiMCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNzg3MTgwMTAyLCJpc3MiOiJBcnRlbWlzQmFuay5BUEkiLCJhdWQiOiJBcnRlbWlzQmFuay5DbGllbnQifQ.jNGHOxXecFSlM3EdTtIo-ha3jrBMxcabqX0NPJ_Wy-k
-
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJlbWFpbCI6ImFkbWluQGFydGVtaXNiYW5rLmNvbSIsImp0aSI6IjJhYWNhODBiLWU5OGYtNDU3ZS1iNzgwLWM1YjQ5ZDdhYTUzMCIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pblVzZXIiLCJ1aWQiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJjb21tZXJjZUlkIjoiMCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNzg3MTk4OTM1LCJpc3MiOiJBcnRlbWlzQmFuay5BUEkiLCJhdWQiOiJBcnRlbWlzQmFuay5DbGllbnQifQ.MovC-PqKSgsGFXRJiCUVkYVxF-2gv7hYe7MtTzhf-fw
 ### COMMERCE — Crear
 ### Caso feliz: debe dar 201 Created
 POST {{host}}/api/v1/Admin/commerce
@@ -19,10 +18,10 @@ Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
 {
   "name": "Tienda Demo8",
-  "description": "Comercio de prueba intento numero 8?",
-  "rnc": "124556789",
-  "email": "contact8@tiendademo.com",
-  "phoneNumber": "8094441234",
+  "description": "Comercio de prueba intento numero 11?",
+  "rnc": "234106789",
+  "email": "conta109@tiendademo.com",
+  "phoneNumber": "8094441009",
   "logo": "logo-demo.png"
 }
 

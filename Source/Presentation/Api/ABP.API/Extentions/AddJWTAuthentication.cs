@@ -30,22 +30,25 @@ namespace ABP.API.Extentions
 
                 options.Events = new JwtBearerEvents
                 {
+                    OnAuthenticationFailed = context =>
+                    {
+                        Console.WriteLine($"[JWT DEBUG] OnAuthenticationFailed: {context.Exception.GetType().Name} - {context.Exception.Message}");
+                        return Task.CompletedTask;
+                    },
+                    OnTokenValidated = context =>
+                    {
+                        Console.WriteLine($"[JWT DEBUG] Token validado OK para: {context.Principal?.Identity?.Name}");
+                        return Task.CompletedTask;
+                    },
                     OnChallenge = context =>
                     {
+                        Console.WriteLine($"[JWT DEBUG] OnChallenge disparado. AuthenticateFailure: {context.AuthenticateFailure?.Message ?? "ninguna (falta el header por completo)"}");
                         context.HandleResponse();
-                        return WriteProblemDetailsAsync(
-                            context.HttpContext,
-                            StatusCodes.Status401Unauthorized,
-                            "Autenticación requerida",
-                            "Debes autenticarte para acceder a este recurso.");
+                        return WriteProblemDetailsAsync(context.HttpContext, StatusCodes.Status401Unauthorized, "Autenticación requerida", "Debes autenticarte para acceder a este recurso.");
                     },
                     OnForbidden = context =>
                     {
-                        return WriteProblemDetailsAsync(
-                            context.HttpContext,
-                            StatusCodes.Status403Forbidden,
-                            "Acceso denegado",
-                            "No tienes permisos para acceder a este recurso.");
+                        return WriteProblemDetailsAsync(context.HttpContext, StatusCodes.Status403Forbidden, "Acceso denegado", "No tienes permisos para acceder a este recurso.");
                     }
                 };
             });

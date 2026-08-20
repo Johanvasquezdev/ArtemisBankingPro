@@ -1,4 +1,3 @@
-using Microsoft.AspNetCore.Http;
 using ABP.API.DTOs.Commerce;
 using ABP.Core.Application.Features.Admin.Commands;
 using ABP.Core.Application.Features.Admin.Queries;
@@ -9,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace ABP.API.Controllers.v1.Admin
 {
     [Route("api/v{version:apiVersion}/Admin/commerce")]
-    [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    [Authorize(AuthenticationSchemes = "Bearer", Roles = "Admin")]
     public class CommerceController(IMediator mediator) : BaseApiController
     {
         private readonly IMediator _mediator = mediator;
@@ -38,7 +37,7 @@ namespace ABP.API.Controllers.v1.Admin
                 result.Page,
                 result.PageSize,
                 result.TotalRecords,
-                Data = result.Data
+                result.Data
             });
         }
 
