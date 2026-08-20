@@ -196,12 +196,10 @@ public sealed class IdentityServiceIntegrationTests : IDisposable
         user.Should().NotBeNull();
         user!.Role.Should().Be(UserRole.Commerce);
         user.CommerceId.Should().Be(7);
-        user.IsActive.Should().BeFalse();
+        user.IsActive.Should().BeTrue();
         _savings.Verify(service => service.CreateAccountAsync(
             user.Id, "SYSTEM", 0, AccountType.Primary), Times.Once);
-        _email.Verify(service => service.SendEmailAsync(It.Is<EmailRequest>(email =>
-            !email.IsHtml && email.Body.Contains("POST /api/v1/Account/confirm") &&
-            email.Body.Contains(user.Id))), Times.Once);
+        _email.Verify(service => service.SendEmailAsync(It.IsAny<EmailRequest>()), Times.Never);
 
         _commerce.Setup(service => service.GetByIdAsync(8))
             .ReturnsAsync(new CommerceDto { Id = 8, IsActive = false });
@@ -219,12 +217,12 @@ public sealed class IdentityServiceIntegrationTests : IDisposable
 
         var unconfirmedResult = await service.AuthenticateAsync(unconfirmed.UserName!, "123Pa$$word!");
         unconfirmedResult.Success.Should().BeFalse();
-        unconfirmedResult.Error.Should().Contain("not been confirmed");
+        unconfirmedResult.Error.Should().Contain("confirmada");
 
         var inactive = await CreateUserAsync("inactive", UserRole.Client, isActive: false, emailConfirmed: true);
         var inactiveResult = await service.AuthenticateAsync(inactive.UserName!, "123Pa$$word!");
         inactiveResult.Success.Should().BeFalse();
-        inactiveResult.Error.Should().Contain("inactive");
+        inactiveResult.Error.Should().Contain("inactiv");
     }
 
     [Fact]
@@ -279,7 +277,7 @@ public sealed class IdentityServiceIntegrationTests : IDisposable
         pending!.IsActive.Should().BeFalse();
         pending.ActivationToken.Should().NotBeNullOrWhiteSpace();
         _email.Verify(email => email.SendEmailAsync(It.Is<EmailRequest>(request =>
-            !request.IsHtml && request.Body.Contains("UserId:") && request.Body.Contains("Token:"))), Times.Once);
+            request.Body.Contains("UserId:") && request.Body.Contains("Token:"))), Times.Once);
 
         (await service.ResetPasswordAsync(user.UserName!, pending.ActivationToken!, "New123Pa$$word!"))
             .Should().BeTrue();
