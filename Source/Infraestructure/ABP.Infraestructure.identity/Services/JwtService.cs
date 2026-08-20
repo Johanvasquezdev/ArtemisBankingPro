@@ -18,6 +18,7 @@ namespace ABP.Infraestructure.identity.Services
                 new(JwtRegisteredClaimNames.Email, email),
                 new(JwtRegisteredClaimNames.Jti,   Guid.NewGuid().ToString()),
                 new(ClaimTypes.Name,               userName),
+                new(JwtRegisteredClaimNames.Iat,   DateTimeOffset.UtcNow.ToUnixTimeSeconds().ToString(), ClaimValueTypes.Integer64),
                 new("uid",        userId),
                 new("commerceId", commerceId?.ToString() ?? string.Empty)
             };
