@@ -140,10 +140,6 @@ namespace ABP.Core.Application.Interfaces.Services
             {
                 try
                 {
-                    _logger.LogInformation("===============================================");
-                    _logger.LogInformation("TESTING: CVC GENERADO PARA LA TARJETA {CardNumber}: {CVC}", cardNumber, cvc);
-                    _logger.LogInformation("===============================================");
-
                     await _emailService.SendAsync(
                         user.Email,
                         "Nueva Tarjeta de Crédito Asignada",
