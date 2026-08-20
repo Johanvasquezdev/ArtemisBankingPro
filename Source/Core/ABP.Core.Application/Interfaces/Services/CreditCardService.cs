@@ -127,13 +127,39 @@ namespace ABP.Core.Application.Interfaces.Services
                 Status = CardStatus.Active,
                 CreatedAt = DateTime.UtcNow,
                 ClientId = dto.ClientId,
-                AssignedByAdminId = string.Empty
+                AssignedByAdminId = dto.AdminId
             };
 
             await using var assignmentTransaction = await _unitOfWork.BeginTransactionAsync();
             await _repo.AddWithoutSaveAsync(card);
             await _unitOfWork.SaveChangesAsync();
             await assignmentTransaction.CommitAsync();
+            
+            var user = await _userService.GetByIdAsync(dto.ClientId);
+            if (user != null && !string.IsNullOrWhiteSpace(user.Email))
+            {
+                try
+                {
+                    _logger.LogInformation("===============================================");
+                    _logger.LogInformation("TESTING: CVC GENERADO PARA LA TARJETA {CardNumber}: {CVC}", cardNumber, cvc);
+                    _logger.LogInformation("===============================================");
+
+                    await _emailService.SendAsync(
+                        user.Email,
+                        "Nueva Tarjeta de Crédito Asignada",
+                        $"Se le ha asignado una nueva tarjeta de crédito.<br>" +
+                        $"Número: {cardNumber}<br>" +
+                        $"Fecha de Expiración: {card.ExpirationDate}<br>" +
+                        $"CVC: {cvc}<br><br>" +
+                        $"Por favor guarde esta información de forma segura, ya que el CVC no podrá ser visualizado en el sistema por motivos de seguridad."
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Credit card assigned to user {UserId}, but the email notification failed.", dto.ClientId);
+                }
+            }
+
             return _mapper.Map<CreditCardDto>(card);
         }
 

@@ -67,7 +67,20 @@
         <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
             <div>
                 <label asp-for="Password" class="block text-sm font-semibold tracking-wide text-obsidian/80 mb-2"></label>
-                <input asp-for="Password" class="block w-full px-4 py-3 border border-obsidian/20 rounded-md bg-ivory/50 text-obsidian placeholder-obsidian/30 focus:outline-none focus:ring-1 focus:ring-gold focus:border-gold transition-colors" />
+                <input asp-for="Password" class="block w-full px-4 py-3 border border-obsidian/20 rounded-md bg-ivory/50 text-obsidian placeholder-obsidian/30 focus:outline-none focus:ring-1 focus:ring-gold focus:border-gold transition-colors" id="Password" />
+                
+                <div class="mt-2 h-1.5 w-full bg-obsidian/10 rounded-full overflow-hidden flex">
+                    <div id="strengthBar" class="h-full bg-gold transition-all duration-300 w-0"></div>
+                </div>
+                <div id="strengthText" class="text-xs text-obsidian/60 mt-1 font-medium">Fuerza: Ninguna</div>
+                <ul class="text-[11px] text-obsidian/50 mt-1 space-y-0.5 grid grid-cols-2">
+                    <li id="reqLength" class="flex items-center gap-1"><span class="text-red-500">&#10006;</span> 8 caracteres</li>
+                    <li id="reqLower" class="flex items-center gap-1"><span class="text-red-500">&#10006;</span> Minúscula</li>
+                    <li id="reqUpper" class="flex items-center gap-1"><span class="text-red-500">&#10006;</span> Mayúscula</li>
+                    <li id="reqDigit" class="flex items-center gap-1"><span class="text-red-500">&#10006;</span> Número</li>
+                    <li id="reqSpecial" class="col-span-2 flex items-center gap-1"><span class="text-red-500">&#10006;</span> Carácter especial (@@, #, !, etc.)</li>
+                </ul>
+
                 <span asp-validation-for="Password" class="text-red-600 text-xs mt-1 block"></span>
             </div>
             <div>
@@ -104,5 +117,74 @@
         }
         roleSelect.addEventListener('change', toggleAmount);
         toggleAmount();
+
+        const passwordInput = document.getElementById('Password');
+        const strengthBar = document.getElementById('strengthBar');
+        const strengthText = document.getElementById('strengthText');
+        const reqLength = document.getElementById('reqLength');
+        const reqLower = document.getElementById('reqLower');
+        const reqUpper = document.getElementById('reqUpper');
+        const reqDigit = document.getElementById('reqDigit');
+        const reqSpecial = document.getElementById('reqSpecial');
+
+        passwordInput.addEventListener('input', function() {
+            const val = this.value;
+            let strength = 0;
+            
+            const checks = {
+                length: val.length >= 8,
+                lower: /[a-z]/.test(val),
+                upper: /[A-Z]/.test(val),
+                digit: /\d/.test(val),
+                special: /[\W_]/.test(val)
+            };
+
+            if (checks.length) strength += 20;
+            if (checks.lower) strength += 20;
+            if (checks.upper) strength += 20;
+            if (checks.digit) strength += 20;
+            if (checks.special) strength += 20;
+
+            strengthBar.style.width = strength + '%';
+
+            if (strength === 0) {
+                strengthBar.style.backgroundColor = 'transparent';
+                strengthText.innerText = 'Fuerza: Ninguna';
+                strengthText.className = 'text-xs text-obsidian/60 mt-1 font-medium';
+            } else if (strength <= 40) {
+                strengthBar.style.backgroundColor = '#ef4444';
+                strengthText.innerText = 'Fuerza: Débil';
+                strengthText.className = 'text-xs text-red-500 mt-1 font-medium';
+            } else if (strength <= 80) {
+                strengthBar.style.backgroundColor = '#eab308';
+                strengthText.innerText = 'Fuerza: Media';
+                strengthText.className = 'text-xs text-yellow-500 mt-1 font-medium';
+            } else {
+                strengthBar.style.backgroundColor = '#d4af37';
+                strengthText.innerText = 'Fuerza: Fuerte (Lista)';
+                strengthText.className = 'text-xs text-gold mt-1 font-medium';
+            }
+
+            const updateCheck = (el, passed) => {
+                const icon = el.querySelector('span');
+                if (passed) {
+                    icon.innerHTML = '&#10004;';
+                    icon.className = 'text-green-500';
+                    el.classList.add('text-green-600');
+                    el.classList.remove('text-obsidian/50');
+                } else {
+                    icon.innerHTML = '&#10006;';
+                    icon.className = 'text-red-500';
+                    el.classList.remove('text-green-600');
+                    el.classList.add('text-obsidian/50');
+                }
+            };
+
+            updateCheck(reqLength, checks.length);
+            updateCheck(reqLower, checks.lower);
+            updateCheck(reqUpper, checks.upper);
+            updateCheck(reqDigit, checks.digit);
+            updateCheck(reqSpecial, checks.special);
+        });
     </script>
 }

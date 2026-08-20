@@ -73,11 +73,11 @@ namespace ABP.Core.Application.Features.Client.Queries
                 Loans = loanItems,
                 RecentTransactions = recentTransactions
                     .OrderByDescending(t => t.TransactionDate)
-                    .Take(10)
+                    .Take(3)
                     .ToList(),
                 OverdueInstallmentsCount = overdueCount,
                 HasDelinquentLoans = loanItems.Any(l => !l.IsOnTime)
             };
         }
     }
-}
+

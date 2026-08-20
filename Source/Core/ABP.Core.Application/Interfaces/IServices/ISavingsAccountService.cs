@@ -23,6 +23,7 @@ namespace ABP.Core.Application.Interfaces.IServices
         Task<bool> WithdrawAsync(string accountNumber, decimal amount);
         Task<bool> TransferAsync(string sourceAccountNumber, string destinationAccountNumber, decimal amount);
 
+
         Task<bool> AccountNumberExistsAsync(string accountNumber);
         Task<int> GetTotalActiveAccountsCountAsync();
         Task<bool> HasActiveAccountAsync(string clientId);

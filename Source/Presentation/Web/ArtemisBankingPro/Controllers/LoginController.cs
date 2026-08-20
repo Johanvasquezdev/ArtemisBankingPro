@@ -131,7 +131,7 @@ namespace ArtemisBankingPro.Controllers
             {
                 return RedirectToAction("Index", "CashierHome", new { area = "Cashier" });
             }
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Index", "Home", new { area = "Client" });
         }
     }
 }

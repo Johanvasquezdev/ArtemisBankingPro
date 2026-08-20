@@ -1,4 +1,4 @@
-using ABP.Core.Application.DTOs.Cashier;
+﻿using ABP.Core.Application.DTOs.Cashier;
 using ABP.Core.Application.Interfaces.IServices;
 using FluentValidation;
 using MediatR;
@@ -15,10 +15,10 @@ namespace ABP.Core.Application.Features.Cashier.Commands
     {
         public DepositCashierCommandValidator()
         {
-            RuleFor(x => x.Dto.AccountNumber).NotEmpty();
-            RuleFor(x => x.Dto.Amount).GreaterThan(0);
-            RuleFor(x => x.Dto.PerformedByUserId).NotEmpty();
-            RuleFor(x => x.Dto.IdempotencyKey).NotEmpty().MaximumLength(200);
+            RuleFor(x => x.Dto.AccountNumber).NotEmpty().WithMessage("Este campo es obligatorio.");
+            RuleFor(x => x.Dto.Amount).GreaterThan(0).WithMessage("El monto debe ser mayor a cero.");
+            RuleFor(x => x.Dto.PerformedByUserId).NotEmpty().WithMessage("Este campo es obligatorio.");
+            RuleFor(x => x.Dto.IdempotencyKey).NotEmpty().WithMessage("Este campo es obligatorio.").MaximumLength(200);
         }
     }
 
@@ -26,10 +26,10 @@ namespace ABP.Core.Application.Features.Cashier.Commands
     {
         public WithdrawCashierCommandValidator()
         {
-            RuleFor(x => x.Dto.AccountNumber).NotEmpty();
-            RuleFor(x => x.Dto.Amount).GreaterThan(0);
-            RuleFor(x => x.Dto.PerformedByUserId).NotEmpty();
-            RuleFor(x => x.Dto.IdempotencyKey).NotEmpty().MaximumLength(200);
+            RuleFor(x => x.Dto.AccountNumber).NotEmpty().WithMessage("Este campo es obligatorio.");
+            RuleFor(x => x.Dto.Amount).GreaterThan(0).WithMessage("El monto debe ser mayor a cero.");
+            RuleFor(x => x.Dto.PerformedByUserId).NotEmpty().WithMessage("Este campo es obligatorio.");
+            RuleFor(x => x.Dto.IdempotencyKey).NotEmpty().WithMessage("Este campo es obligatorio.").MaximumLength(200);
         }
     }
 
@@ -37,11 +37,11 @@ namespace ABP.Core.Application.Features.Cashier.Commands
     {
         public PayCashierCreditCardCommandValidator()
         {
-            RuleFor(x => x.Dto.SourceAccountNumber).NotEmpty();
-            RuleFor(x => x.Dto.CardNumber).NotEmpty();
-            RuleFor(x => x.Dto.Amount).GreaterThan(0);
-            RuleFor(x => x.Dto.PerformedByUserId).NotEmpty();
-            RuleFor(x => x.Dto.IdempotencyKey).NotEmpty().MaximumLength(200);
+            RuleFor(x => x.Dto.SourceAccountNumber).NotEmpty().WithMessage("Este campo es obligatorio.");
+            RuleFor(x => x.Dto.CardNumber).NotEmpty().WithMessage("Este campo es obligatorio.");
+            RuleFor(x => x.Dto.Amount).GreaterThan(0).WithMessage("El monto debe ser mayor a cero.");
+            RuleFor(x => x.Dto.PerformedByUserId).NotEmpty().WithMessage("Este campo es obligatorio.");
+            RuleFor(x => x.Dto.IdempotencyKey).NotEmpty().WithMessage("Este campo es obligatorio.").MaximumLength(200);
         }
     }
 
@@ -49,11 +49,11 @@ namespace ABP.Core.Application.Features.Cashier.Commands
     {
         public PayCashierLoanCommandValidator()
         {
-            RuleFor(x => x.Dto.SourceAccountNumber).NotEmpty();
-            RuleFor(x => x.Dto.LoanNumber).NotEmpty();
-            RuleFor(x => x.Dto.Amount).GreaterThan(0);
-            RuleFor(x => x.Dto.PerformedByUserId).NotEmpty();
-            RuleFor(x => x.Dto.IdempotencyKey).NotEmpty().MaximumLength(200);
+            RuleFor(x => x.Dto.SourceAccountNumber).NotEmpty().WithMessage("Este campo es obligatorio.");
+            RuleFor(x => x.Dto.LoanNumber).NotEmpty().WithMessage("Este campo es obligatorio.");
+            RuleFor(x => x.Dto.Amount).GreaterThan(0).WithMessage("El monto debe ser mayor a cero.");
+            RuleFor(x => x.Dto.PerformedByUserId).NotEmpty().WithMessage("Este campo es obligatorio.");
+            RuleFor(x => x.Dto.IdempotencyKey).NotEmpty().WithMessage("Este campo es obligatorio.").MaximumLength(200);
         }
     }
 
@@ -61,11 +61,11 @@ namespace ABP.Core.Application.Features.Cashier.Commands
     {
         public TransferCashierCommandValidator()
         {
-            RuleFor(x => x.Dto.SourceAccountNumber).NotEmpty();
-            RuleFor(x => x.Dto.DestinationAccountNumber).NotEmpty();
-            RuleFor(x => x.Dto.Amount).GreaterThan(0);
-            RuleFor(x => x.Dto.PerformedByUserId).NotEmpty();
-            RuleFor(x => x.Dto.IdempotencyKey).NotEmpty().MaximumLength(200);
+            RuleFor(x => x.Dto.SourceAccountNumber).NotEmpty().WithMessage("Este campo es obligatorio.");
+            RuleFor(x => x.Dto.DestinationAccountNumber).NotEmpty().WithMessage("Este campo es obligatorio.");
+            RuleFor(x => x.Dto.Amount).GreaterThan(0).WithMessage("El monto debe ser mayor a cero.");
+            RuleFor(x => x.Dto.PerformedByUserId).NotEmpty().WithMessage("Este campo es obligatorio.");
+            RuleFor(x => x.Dto.IdempotencyKey).NotEmpty().WithMessage("Este campo es obligatorio.").MaximumLength(200);
         }
     }
 
@@ -119,3 +119,4 @@ namespace ABP.Core.Application.Features.Cashier.Commands
         }
     }
 }
+

@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using ABP.API.DTOs.SavingsAccount;
 using ABP.Core.Application.Features.Admin.Commands;
 using ABP.Core.Application.Features.Admin.Queries;
@@ -13,7 +14,17 @@ namespace ABP.API.Controllers.v1.Admin
     {
         private readonly IMediator _mediator = mediator;
 
-        // GET /api/v1/Admin/savings-account
+        /// <summary>
+        /// Operation: GET /api/v1/Admin/savings-account
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación GET en la ruta /api/v1/Admin/savings-account.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20,
             [FromQuery] string? identification = null, [FromQuery] string status = "activa", [FromQuery] string type = "todas")
@@ -25,7 +36,17 @@ namespace ABP.API.Controllers.v1.Admin
             return Ok(result);
         }
 
-        // POST /api/v1/Admin/savings-account
+        /// <summary>
+        /// Operation: POST /api/v1/Admin/savings-account
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación POST en la ruta /api/v1/Admin/savings-account.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost]
         public async Task<IActionResult> AssignSecondary([FromBody] AssignSavingsAccountApiDto request)
         {
@@ -49,7 +70,17 @@ namespace ABP.API.Controllers.v1.Admin
             }
         }
 
-        // GET /api/v1/Admin/savings-account/{accountNumber}/transactions
+        /// <summary>
+        /// Operation: GET /api/v1/Admin/savings-account/{accountNumber}/transactions
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación GET en la ruta /api/v1/Admin/savings-account/{accountNumber}/transactions.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("{accountNumber}/transactions")]
         public async Task<IActionResult> GetTransactions(string accountNumber, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
@@ -72,7 +103,17 @@ namespace ABP.API.Controllers.v1.Admin
             });
         }
 
-        // PATCH /api/v1/Admin/savings-account/{accountNumber}/cancel
+        /// <summary>
+        /// Operation: PATCH /api/v1/Admin/savings-account/{accountNumber}/cancel
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación PATCH en la ruta /api/v1/Admin/savings-account/{accountNumber}/cancel.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPatch("{accountNumber}/cancel")]
         public async Task<IActionResult> Cancel(string accountNumber)
         {

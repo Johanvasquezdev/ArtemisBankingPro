@@ -1,0 +1,16 @@
+﻿Credenciales de acceso para Artemis Banking Pro
+
+ADMINISTRADOR:
+Usuario: AdminUser
+Correo: admin@artemisbank.com
+Contraseña: 123Paword!
+
+CAJERO:
+Usuario: CashierUser
+Correo: cashier@artemisbank.com
+Contraseña: 123Paword!
+
+CLIENTE:
+Usuario: ClientUser
+Correo: client@artemisbank.com
+Contraseña: 123Paword!

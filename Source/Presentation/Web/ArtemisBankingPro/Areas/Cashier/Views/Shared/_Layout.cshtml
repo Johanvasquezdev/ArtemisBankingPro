@@ -5,6 +5,7 @@
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] - Artemis Banking Pro (Cajero)</title>
+    <link rel="icon" type="image/svg+xml" href="~/favicon.svg" />
     
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -107,10 +108,10 @@
     <!-- Main Content -->
     <main class="flex-1 ml-64 min-h-screen">
         <div class="max-w-7xl mx-auto px-8 py-8">
-            <header class="abp-topbar flex items-center justify-between mb-10">
+            <header class="flex items-center justify-between mb-10">
                 <div>
                     <div class="text-xs font-semibold tracking-wider text-gold uppercase mb-1">Portal del Cajero</div>
-                    <h1 class="text-3xl font-serif font-bold text-obsidian tracking-tight">Hola, @(ViewBag.CashierName ?? "Cajero")</h1>
+                    <h1 class="text-3xl font-serif font-bold text-obsidian tracking-tight">Hola, @(User.Identity?.Name ?? "Cajero")</h1>
                 </div>
                 <div class="flex items-center gap-3">
                     <partial name="_ThemeToggle" />

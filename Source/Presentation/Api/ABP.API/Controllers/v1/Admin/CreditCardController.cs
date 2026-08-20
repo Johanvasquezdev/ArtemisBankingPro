@@ -1,3 +1,4 @@
+﻿using Microsoft.AspNetCore.Http;
 using ABP.API.DTOs.CreditCard;
 using ABP.Core.Application.Features.Admin.Queries;
 using ABP.Core.Application.Features.Admin.Commands;
@@ -13,7 +14,17 @@ namespace ABP.API.Controllers.v1.Admin
     {
         private readonly IMediator _mediator = mediator;
 
-        // GET /api/v1/Admin/credit-card
+        /// <summary>
+        /// Operation: GET /api/v1/Admin/credit-card
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación GET en la ruta /api/v1/Admin/credit-card.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20,
             [FromQuery] string status = "activa", [FromQuery] string? identification = null)
@@ -24,13 +35,24 @@ namespace ABP.API.Controllers.v1.Admin
             return Ok(result);
         }
 
-        // POST /api/v1/Admin/credit-card
+        /// <summary>
+        /// Operation: POST /api/v1/Admin/credit-card
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación POST en la ruta /api/v1/Admin/credit-card.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost]
         public async Task<IActionResult> Assign([FromBody] AssignCreditCardApiDto request)
         {
             try
             {
-                var created = await _mediator.Send(new AssignCreditCardCommand(request.ClientId, request.CreditLimit));
+                var adminId = User?.FindFirst("uid")?.Value ?? string.Empty;
+                var created = await _mediator.Send(new AssignCreditCardCommand(request.ClientId, request.CreditLimit, adminId));
                 return StatusCode(201, created);
             }
             catch (InvalidOperationException ex)
@@ -39,7 +61,17 @@ namespace ABP.API.Controllers.v1.Admin
             }
         }
 
-        // GET /api/v1/Admin/credit-card/{id}
+        /// <summary>
+        /// Operation: GET /api/v1/Admin/credit-card/{id}
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación GET en la ruta /api/v1/Admin/credit-card/{id}.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -48,7 +80,17 @@ namespace ABP.API.Controllers.v1.Admin
             return Ok(new { card = result.Card, consumptions = result.Consumptions });
         }
 
-        // PATCH /api/v1/Admin/credit-card/{id}/limit
+        /// <summary>
+        /// Operation: PATCH /api/v1/Admin/credit-card/{id}/limit
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación PATCH en la ruta /api/v1/Admin/credit-card/{id}/limit.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPatch("{id:int}/limit")]
         public async Task<IActionResult> UpdateLimit(int id, [FromBody] UpdateLimitRequest request)
         {
@@ -69,7 +111,17 @@ namespace ABP.API.Controllers.v1.Admin
             }
         }
 
-        // PATCH /api/v1/Admin/credit-card/{id}/cancel
+        /// <summary>
+        /// Operation: PATCH /api/v1/Admin/credit-card/{id}/cancel
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación PATCH en la ruta /api/v1/Admin/credit-card/{id}/cancel.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPatch("{id:int}/cancel")]
         public async Task<IActionResult> Cancel(int id)
         {

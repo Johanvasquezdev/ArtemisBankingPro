@@ -65,7 +65,6 @@ namespace ABP.Core.Application.IoC
                 cfg.AddOpenBehavior(typeof(ValidationBehavior<,>));
             });
             services.AddValidatorsFromAssemblyContaining(typeof(ServiceRegistration));
-            services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
             services.AddScoped(typeof(IPipelineBehavior<,>), typeof(LoggingBehavior<,>));
 
             return services;

@@ -5,10 +5,10 @@ using MediatR;
 
 namespace ABP.Core.Application.Features.Admin.Commands
 {
-    public sealed record AssignCreditCardCommand(string ClientId, decimal CreditLimit) : IRequest<CreditCardDto>
+    public sealed record AssignCreditCardCommand(string ClientId, decimal CreditLimit, string AdminId = "") : IRequest<CreditCardDto>
     {
-        public AssignCreditCardCommand(AssignCreditCardDto card) : this(card.ClientId, card.CreditLimit) { Card = card; }
-        public AssignCreditCardDto Card { get; init; } = new() { ClientId = ClientId, CreditLimit = CreditLimit };
+        public AssignCreditCardCommand(AssignCreditCardDto card) : this(card.ClientId, card.CreditLimit, card.AdminId) { Card = card; }
+        public AssignCreditCardDto Card { get; init; } = new() { ClientId = ClientId, CreditLimit = CreditLimit, AdminId = AdminId };
     }
 
     public sealed class AssignCreditCardCommandValidator : AbstractValidator<AssignCreditCardCommand>

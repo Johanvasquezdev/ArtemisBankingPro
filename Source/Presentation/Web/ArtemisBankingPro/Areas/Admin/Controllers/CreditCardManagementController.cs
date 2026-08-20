@@ -1,4 +1,4 @@
-using ABP.Core.Application.DTOs.CreditCard;
+﻿using ABP.Core.Application.DTOs.CreditCard;
 using ABP.Core.Application.Features.Admin.Commands;
 using ABP.Core.Application.Features.Admin.Queries;
 using ABP.Core.Application.ViewModels.Client;
@@ -8,6 +8,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
+using System.Security.Claims;
 
 namespace ArtemisBankingPro.Areas.Admin.Controllers
 {
@@ -52,7 +53,8 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
 
             try
             {
-                await _mediator.Send(new AssignCreditCardCommand(model.ClientId, model.CreditLimit));
+                var adminId = User.FindFirstValue("uid") ?? string.Empty;
+                await _mediator.Send(new AssignCreditCardCommand(model.ClientId, model.CreditLimit, adminId));
                 TempData["SuccessMessage"] = "Tarjeta de crédito asignada correctamente.";
                 return RedirectToAction(nameof(Index));
             }
