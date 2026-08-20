@@ -29,7 +29,11 @@ namespace ABP.Infraestructure.identity
             else
             {
                 services.AddDbContext<IdentityContext>(options =>
-                    options.UseNpgsql(config.GetConnectionString("IdentityConnection")!));
+                    options.UseNpgsql(config.GetConnectionString("IdentityConnection")!,
+                        npgsqlOptions => npgsqlOptions.EnableRetryOnFailure(
+                            maxRetryCount: 3,
+                            maxRetryDelay: TimeSpan.FromSeconds(5),
+                            errorCodesToAdd: null)));
             }
             #endregion
 
