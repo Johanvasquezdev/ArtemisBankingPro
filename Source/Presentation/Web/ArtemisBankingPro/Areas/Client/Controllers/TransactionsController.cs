@@ -1,4 +1,4 @@
-using ABP.Core.Application.DTOs.Transaction;
+﻿using ABP.Core.Application.DTOs.Transaction;
 using ABP.Core.Application.Features.Client.Commands;
 using ABP.Core.Application.Features.Client.Queries;
 using ABP.Core.Application.ViewModels.Client;
@@ -13,10 +13,10 @@ namespace ArtemisBankingPro.Areas.Client.Controllers
     [Authorize(Roles = "Client")]
     public class TransactionsController(IMediator mediator) : Controller
     {
-        private const string ExpressSuccess = "Transacción realizada exitosamente.";
+        private const string ExpressSuccess = "TransacciÃ³n realizada exitosamente.";
         private const string PayCardSuccess = "Pago a tarjeta realizado exitosamente.";
-        private const string PayLoanSuccess = "Pago a préstamo realizado exitosamente.";
-        private const string PayBeneficiarySuccess = "Transacción a beneficiario realizada exitosamente.";
+        private const string PayLoanSuccess = "Pago a prÃ©stamo realizado exitosamente.";
+        private const string PayBeneficiarySuccess = "TransacciÃ³n a beneficiario realizada exitosamente.";
 
         [HttpGet]
         public async Task<IActionResult> Express()
@@ -36,17 +36,26 @@ namespace ArtemisBankingPro.Areas.Client.Controllers
                 return View(model);
             }
 
-            var result = await mediator.Send(new MakeExpressTransactionCommand(new MakeExpressTransactionDto
+            try
             {
-                ClientId = clientId,
-                SourceAccountNumber = model.SourceAccountNumber,
-                DestinationAccountNumber = model.DestinationAccountNumber,
-                Amount = model.Amount,
-                IdempotencyKey = model.IdempotencyKey
-            }));
+                var result = await mediator.Send(new MakeExpressTransactionCommand(new MakeExpressTransactionDto
+                {
+                    ClientId = clientId,
+                    SourceAccountNumber = model.SourceAccountNumber,
+                    DestinationAccountNumber = model.DestinationAccountNumber,
+                    Amount = model.Amount,
+                    IdempotencyKey = model.IdempotencyKey
+                }));
 
-            SetSuccessMessage(ExpressSuccess, result.EmailNotificationFailed);
-            return RedirectToAction(nameof(Express));
+                SetSuccessMessage(ExpressSuccess, result.EmailNotificationFailed);
+                return RedirectToAction(nameof(Express));
+            }
+            catch (Exception ex)
+            {
+                model.HasError = true; model.Error = ex.Message;
+                model.Options = await GetOptionsAsync();
+                return View(model);
+            }
         }
 
         [HttpGet]
@@ -72,22 +81,31 @@ namespace ArtemisBankingPro.Areas.Client.Controllers
             if (card is null)
             {
                 model.HasError = true;
-                model.Error = "La tarjeta de crédito seleccionada no es válida.";
+                model.Error = "La tarjeta de crÃ©dito seleccionada no es vÃ¡lida.";
                 model.Options = options;
                 return View(model);
             }
 
-            var result = await mediator.Send(new PayCreditCardCommand(new PayCreditCardDto
+            try
             {
-                ClientId = clientId,
-                SourceAccountNumber = model.SourceAccountNumber,
-                CreditCardNumber = card.CardNumber,
-                Amount = model.Amount,
-                IdempotencyKey = model.IdempotencyKey
-            }));
+                var result = await mediator.Send(new PayCreditCardCommand(new PayCreditCardDto
+                {
+                    ClientId = clientId,
+                    SourceAccountNumber = model.SourceAccountNumber,
+                    CreditCardNumber = card.CardNumber,
+                    Amount = model.Amount,
+                    IdempotencyKey = model.IdempotencyKey
+                }));
 
-            SetSuccessMessage(PayCardSuccess, result.EmailNotificationFailed);
-            return RedirectToAction(nameof(PayCreditCard));
+                SetSuccessMessage(PayCardSuccess, result.EmailNotificationFailed);
+                return RedirectToAction(nameof(PayCreditCard));
+            }
+            catch (Exception ex)
+            {
+                model.HasError = true; model.Error = ex.Message;
+                model.Options = await GetOptionsAsync();
+                return View(model);
+            }
         }
 
         [HttpGet]
@@ -113,22 +131,31 @@ namespace ArtemisBankingPro.Areas.Client.Controllers
             if (loan is null)
             {
                 model.HasError = true;
-                model.Error = "El préstamo seleccionado no es válido.";
+                model.Error = "El prÃ©stamo seleccionado no es vÃ¡lido.";
                 model.Options = options;
                 return View(model);
             }
 
-            var result = await mediator.Send(new PayLoanCommand(new PayLoanDto
+            try
             {
-                ClientId = clientId,
-                SourceAccountNumber = model.SourceAccountNumber,
-                LoanNumber = loan.LoanNumber,
-                Amount = model.Amount,
-                IdempotencyKey = model.IdempotencyKey
-            }));
+                var result = await mediator.Send(new PayLoanCommand(new PayLoanDto
+                {
+                    ClientId = clientId,
+                    SourceAccountNumber = model.SourceAccountNumber,
+                    LoanNumber = loan.LoanNumber,
+                    Amount = model.Amount,
+                    IdempotencyKey = model.IdempotencyKey
+                }));
 
-            SetSuccessMessage(PayLoanSuccess, result.EmailNotificationFailed);
-            return RedirectToAction(nameof(PayLoan));
+                SetSuccessMessage(PayLoanSuccess, result.EmailNotificationFailed);
+                return RedirectToAction(nameof(PayLoan));
+            }
+            catch (Exception ex)
+            {
+                model.HasError = true; model.Error = ex.Message;
+                model.Options = await GetOptionsAsync();
+                return View(model);
+            }
         }
 
         [HttpGet]
@@ -149,17 +176,26 @@ namespace ArtemisBankingPro.Areas.Client.Controllers
                 return View(model);
             }
 
-            var result = await mediator.Send(new PayBeneficiaryCommand(new PayBeneficiaryDto
+            try
             {
-                ClientId = clientId,
-                BeneficiaryId = model.BeneficiaryId,
-                SourceAccountNumber = model.SourceAccountNumber,
-                Amount = model.Amount,
-                IdempotencyKey = model.IdempotencyKey
-            }));
+                var result = await mediator.Send(new PayBeneficiaryCommand(new PayBeneficiaryDto
+                {
+                    ClientId = clientId,
+                    BeneficiaryId = model.BeneficiaryId,
+                    SourceAccountNumber = model.SourceAccountNumber,
+                    Amount = model.Amount,
+                    IdempotencyKey = model.IdempotencyKey
+                }));
 
-            SetSuccessMessage(PayBeneficiarySuccess, result.EmailNotificationFailed);
-            return RedirectToAction(nameof(PayBeneficiary));
+                SetSuccessMessage(PayBeneficiarySuccess, result.EmailNotificationFailed);
+                return RedirectToAction(nameof(PayBeneficiary));
+            }
+            catch (Exception ex)
+            {
+                model.HasError = true; model.Error = ex.Message;
+                model.Options = await GetOptionsAsync();
+                return View(model);
+            }
         }
 
         private async Task<TransactionOptionsViewModel> GetOptionsAsync()
@@ -171,8 +207,9 @@ namespace ArtemisBankingPro.Areas.Client.Controllers
         private void SetSuccessMessage(string message, bool emailNotificationFailed)
         {
             TempData["SuccessMessage"] = emailNotificationFailed
-                ? $"{message} No se pudo enviar la notificación por correo electrónico."
+                ? $"{message} No se pudo enviar la notificaciÃ³n por correo electrÃ³nico."
                 : message;
         }
     }
 }
+

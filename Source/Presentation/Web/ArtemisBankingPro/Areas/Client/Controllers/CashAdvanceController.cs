@@ -1,4 +1,4 @@
-using ABP.Core.Application.DTOs.CreditCard;
+﻿using ABP.Core.Application.DTOs.CreditCard;
 using ABP.Core.Application.Features.Client.Commands;
 using ABP.Core.Application.Features.Client.Queries;
 using ABP.Core.Application.ViewModels.Client;
@@ -38,20 +38,31 @@ namespace ArtemisBankingPro.Areas.Client.Controllers
                 return View(model);
             }
 
-            var result = await mediator.Send(new CashAdvanceCommand(new CashAdvanceDto
+            try
             {
-                ClientId = clientId,
-                CreditCardId = model.CreditCardId,
-                SavingsAccountId = model.SavingsAccountId,
-                Amount = model.Amount,
-                IdempotencyKey = model.IdempotencyKey
-            }));
+                var result = await mediator.Send(new CashAdvanceCommand(new CashAdvanceDto
+                {
+                    ClientId = clientId,
+                    CreditCardId = model.CreditCardId,
+                    SavingsAccountId = model.SavingsAccountId,
+                    Amount = model.Amount,
+                    IdempotencyKey = model.IdempotencyKey
+                }));
 
-            TempData["SuccessMessage"] = result.EmailNotificationFailed
-                ? "Avance de efectivo realizado exitosamente. No se pudo enviar la notificación por correo electrónico."
-                : "Avance de efectivo realizado exitosamente.";
+                TempData["SuccessMessage"] = result.EmailNotificationFailed
+                    ? "Avance de efectivo realizado exitosamente. No se pudo enviar la notificaciÃ³n por correo electrÃ³nico."
+                    : "Avance de efectivo realizado exitosamente.";
 
-            return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                model.HasError = true; model.Error = ex.Message;
+                var options = await GetOptionsAsync();
+                model.UserAccounts = options.Accounts;
+                model.UserCreditCards = options.CreditCards;
+                return View(model);
+            }
         }
 
         private async Task<TransactionOptionsViewModel> GetOptionsAsync()
@@ -61,3 +72,4 @@ namespace ArtemisBankingPro.Areas.Client.Controllers
         }
     }
 }
+

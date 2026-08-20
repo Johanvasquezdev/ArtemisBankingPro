@@ -1,4 +1,4 @@
-using ABP.Core.Application.DTOs.Transaction;
+﻿using ABP.Core.Application.DTOs.Transaction;
 using ABP.Core.Application.Features.Client.Commands;
 using ABP.Core.Application.Features.Client.Queries;
 using ABP.Core.Application.ViewModels.Client;
@@ -31,20 +31,29 @@ namespace ArtemisBankingPro.Areas.Client.Controllers
                 return View(model);
             }
 
-            var result = await mediator.Send(new TransferOwnAccountsCommand(new TransferOwnAccountsDto
+            try
             {
-                ClientId = clientId,
-                SourceAccountNumber = model.SourceAccountNumber,
-                DestinationAccountNumber = model.DestinationAccountNumber,
-                Amount = model.Amount,
-                IdempotencyKey = model.IdempotencyKey
-            }));
+                var result = await mediator.Send(new TransferOwnAccountsCommand(new TransferOwnAccountsDto
+                {
+                    ClientId = clientId,
+                    SourceAccountNumber = model.SourceAccountNumber,
+                    DestinationAccountNumber = model.DestinationAccountNumber,
+                    Amount = model.Amount,
+                    IdempotencyKey = model.IdempotencyKey
+                }));
 
-            TempData["SuccessMessage"] = result.EmailNotificationFailed
-                ? "Transferencia realizada exitosamente. No se pudo enviar la notificación por correo electrónico."
-                : "Transferencia realizada exitosamente.";
+                TempData["SuccessMessage"] = result.EmailNotificationFailed
+                    ? "Transferencia realizada exitosamente. No se pudo enviar la notificaciÃ³n por correo electrÃ³nico."
+                    : "Transferencia realizada exitosamente.";
 
-            return RedirectToAction(nameof(Index));
+                return RedirectToAction(nameof(Index));
+            }
+            catch (Exception ex)
+            {
+                model.HasError = true; model.Error = ex.Message;
+                model.Options = await GetOptionsAsync();
+                return View(model);
+            }
         }
 
         private async Task<TransactionOptionsViewModel> GetOptionsAsync()
@@ -54,3 +63,4 @@ namespace ArtemisBankingPro.Areas.Client.Controllers
         }
     }
 }
+
