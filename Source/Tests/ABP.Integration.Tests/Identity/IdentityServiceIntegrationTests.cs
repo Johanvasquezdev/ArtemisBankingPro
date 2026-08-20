@@ -87,10 +87,17 @@ public sealed class IdentityServiceIntegrationTests : IDisposable
         await DefaultUsers.SeedAsync(_userManager);
 
         var users = await _userManager.Users.ToListAsync();
-        users.Should().HaveCount(3);
-        users.Should().OnlyContain(user => user.IsActive && user.EmailConfirmed);
+        users.Should().HaveCount(4);
+        
+        var activeUsers = users.Where(u => u.Role != UserRole.Commerce).ToList();
+        activeUsers.Should().OnlyContain(user => user.IsActive && user.EmailConfirmed);
+        
+        var commerceUser = users.Single(u => u.Role == UserRole.Commerce);
+        commerceUser.IsActive.Should().BeTrue();
+        commerceUser.EmailConfirmed.Should().BeTrue();
+        
         users.Select(user => user.Role).Should().BeEquivalentTo(
-            [UserRole.Admin, UserRole.Cashier, UserRole.Client]);
+            [UserRole.Admin, UserRole.Cashier, UserRole.Client, UserRole.Commerce]);
     }
 
     [Fact]
@@ -196,10 +203,10 @@ public sealed class IdentityServiceIntegrationTests : IDisposable
         user.Should().NotBeNull();
         user!.Role.Should().Be(UserRole.Commerce);
         user.CommerceId.Should().Be(7);
-        user.IsActive.Should().BeTrue();
+        user.IsActive.Should().BeFalse();
         _savings.Verify(service => service.CreateAccountAsync(
             user.Id, "SYSTEM", 0, AccountType.Primary), Times.Once);
-        _email.Verify(service => service.SendEmailAsync(It.IsAny<EmailRequest>()), Times.Never);
+        _email.Verify(service => service.SendEmailAsync(It.IsAny<EmailRequest>()), Times.Once);
 
         _commerce.Setup(service => service.GetByIdAsync(8))
             .ReturnsAsync(new CommerceDto { Id = 8, IsActive = false });

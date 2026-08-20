@@ -16,7 +16,10 @@ namespace ABP.Core.Application.Mappings
         public AutoMapperProfile()
         {
             CreateMap<SavingsAccount, SavingsAccountDto>().ReverseMap();
-            CreateMap<CreditCard, CreditCardDto>().ReverseMap();
+            CreateMap<CreditCard, CreditCardDto>()
+                .ForMember(dest => dest.CardNumber, opt => opt.MapFrom(src => $"**** **** **** {src.CardNumber.Substring(src.CardNumber.Length - 4)}"))
+                .ReverseMap()
+                .ForMember(dest => dest.CardNumber, opt => opt.Ignore());
 
             #region Loan Mapping
             CreateMap<Loan, LoanDto>()

@@ -149,7 +149,7 @@ internal sealed class ClientTransactionService : IClientTransactionService
             await _transactionRecorder.RecordWithoutSaveAsync(new TransactionEntry
             {
                 Amount = effectiveAmount,
-                Type = TransactionType.Debit,
+                Type = TransactionType.Payment,
                 Origin = source.AccountNumber,
                 Beneficiary = cardReference,
                 SourceAccountNumber = source.AccountNumber,
@@ -236,7 +236,7 @@ internal sealed class ClientTransactionService : IClientTransactionService
             await _transactionRecorder.RecordWithoutSaveAsync(new TransactionEntry
             {
                 Amount = allocation.TotalApplied,
-                Type = TransactionType.Debit,
+                Type = TransactionType.Payment,
                 Origin = source.AccountNumber,
                 Beneficiary = loan.LoanNumber,
                 SourceAccountNumber = source.AccountNumber,

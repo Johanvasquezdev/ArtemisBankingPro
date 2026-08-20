@@ -165,8 +165,8 @@ namespace ABP.Infraestructure.identity.Services
                 Cedula = cedula,
                 UserName = username,
                 Email = email,
-                EmailConfirmed = true,
-                IsActive = true,
+                EmailConfirmed = false,
+                IsActive = false,
                 Role = UserRole.Commerce,
                 CommerceId = commerceId
             };
@@ -201,8 +201,7 @@ namespace ABP.Infraestructure.identity.Services
                 return false;
             }
 
-            // Since Admin creates these, we activate them by default.
-            // await SendActivationEmailAsync(user, emailChannel);
+            await SendActivationEmailAsync(user, emailChannel);
 
             return true;
         }

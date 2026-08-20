@@ -7,7 +7,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ABP.API.Controllers.v1.Admin
 {
-    [Route("api/v{version:apiVersion}/Admin/commerce")]
+    [Route("api/v{version:apiVersion}/commerce")]
     [Authorize(AuthenticationSchemes = "Bearer", Roles = "Admin")]
     public class CommerceController(IMediator mediator) : BaseApiController
     {

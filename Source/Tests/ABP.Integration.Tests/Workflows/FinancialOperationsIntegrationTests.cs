@@ -123,8 +123,10 @@ public sealed class FinancialOperationsIntegrationTests : IDisposable
         await _context.Loans.AddAsync(loan);
         await _context.SaveChangesAsync();
 
+        var mockUserService = new Moq.Mock<ABP.Core.Application.Interfaces.IServices.IUserReadOnlyService>();
+        var loanRepo = new LoanRepository(_context, mockUserService.Object);
         var service = new LoanService(
-            new LoanRepository(_context),
+            loanRepo,
             new LoanInstallmentRepository(_context),
             new TransactionRepository(_context),
             new SavingsAccountRepository(_context),
@@ -185,7 +187,7 @@ public sealed class FinancialOperationsIntegrationTests : IDisposable
         await _context.SaveChangesAsync();
 
         var handler = new ABP.Core.Application.Features.Functions.Commands.RunLoanLateFeeAndInterestCommandHandler(
-            new LoanInstallmentRepository(_context), new LoanRepository(_context), _unitOfWork);
+            new LoanInstallmentRepository(_context), new LoanRepository(_context, new Moq.Mock<ABP.Core.Application.Interfaces.IServices.IUserReadOnlyService>().Object), _unitOfWork);
 
         var result = await handler.Handle(
             new ABP.Core.Application.Features.Functions.Commands.RunLoanLateFeeAndInterestCommand(),

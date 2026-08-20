@@ -7,8 +7,9 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ABP.Infraestructure.Persistence.Repositories
 {
-    public class LoanRepository(ArtemisBankingDbContext context) : GenericRepository<Loan>(context), ILoanRepository
+    public class LoanRepository(ArtemisBankingDbContext context, ABP.Core.Application.Interfaces.IServices.IUserReadOnlyService userService) : GenericRepository<Loan>(context), ILoanRepository
     {
+        private readonly ABP.Core.Application.Interfaces.IServices.IUserReadOnlyService _userService = userService;
 
         public override async Task<Loan?> GetByIdAsync(int id)
         {
@@ -68,14 +69,19 @@ namespace ABP.Infraestructure.Persistence.Repositories
 
         public async Task<decimal> GetAverageDebtAsync()
         {
-            // average debt = total debt of active loans / number of active loans
-            var clientWithDebt = await _dbSet.Where(l => l.Status == LoanStatus.Active).GroupBy(l => l.ClientId)
-                .Select(a => a.Sum(l => l.Installments.Where(i => i.Status != InstallmentStatus.Paid)
-                .Sum(i => i.InstallmentAmount - i.AmountPaid))).ToListAsync();
+            // average debt = (total debt of active loans + total debt of active credit cards) / number of active clients
+            var totalLoanDebt = await _dbSet.Where(l => l.Status == LoanStatus.Active)
+                .SelectMany(l => l.Installments).Where(i => i.Status != InstallmentStatus.Paid)
+                .SumAsync(i => i.InstallmentAmount - i.AmountPaid);
 
-            if (clientWithDebt.Count == 0) return 0;
+            var totalCardDebt = await _context.CreditCards.Where(cc => cc.Status == CardStatus.Active)
+                .SumAsync(cc => cc.AmountOwed);
 
-            return clientWithDebt.Average();
+            var activeClientsCount = await _userService.GetActiveClientsCountAsync();
+
+            if (activeClientsCount == 0) return 0;
+
+            return (totalLoanDebt + totalCardDebt) / activeClientsCount;
         }
 
         public async Task<Loan?> GetByLoanNumberAsync(string loanNumber)

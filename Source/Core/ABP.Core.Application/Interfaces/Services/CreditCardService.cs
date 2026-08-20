@@ -121,7 +121,7 @@ namespace ABP.Core.Application.Interfaces.Services
             {
                 CardNumber = cardNumber,
                 CreditLimit = dto.CreditLimit,
-                ExpirationDate = DateTime.UtcNow.AddYears(5).ToString("MM/yy"),
+                ExpirationDate = DateTime.UtcNow.AddYears(3).ToString("MM/yy"),
                 AmountOwed = 0,
                 CVCHash = cvcHash,
                 Status = CardStatus.Active,
@@ -144,10 +144,9 @@ namespace ABP.Core.Application.Interfaces.Services
                         user.Email,
                         "Nueva Tarjeta de Crédito Asignada",
                         $"Se le ha asignado una nueva tarjeta de crédito.<br>" +
-                        $"Número: {cardNumber}<br>" +
-                        $"Fecha de Expiración: {card.ExpirationDate}<br>" +
-                        $"CVC: {cvc}<br><br>" +
-                        $"Por favor guarde esta información de forma segura, ya que el CVC no podrá ser visualizado en el sistema por motivos de seguridad."
+                        $"Número: **** **** **** {cardNumber[^4..]}<br>" +
+                        $"Fecha de Expiración: {card.ExpirationDate}<br><br>" +
+                        $"Por favor guarde esta información de forma segura."
                     );
                 }
                 catch (Exception ex)

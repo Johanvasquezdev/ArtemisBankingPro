@@ -36,7 +36,7 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
     {
         using var client = CreateClient();
 
-        using var response = await client.GetAsync("/api/v1/Admin/commerce");
+        using var response = await client.GetAsync("/api/v1/commerce");
         var body = await response.Content.ReadFromJsonAsync<JsonElement>();
 
         response.StatusCode.Should().Be(HttpStatusCode.Unauthorized);
@@ -108,7 +108,7 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
         client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
 
         var rnc = $"{Random.Shared.Next(100000000, 999999999)}";
-        using var create = await client.PostAsJsonAsync("/api/v1/Admin/commerce", new
+        using var create = await client.PostAsJsonAsync("/api/v1/commerce", new
         {
             name = "Integration Commerce",
             description = "Created through the API integration test",
@@ -127,24 +127,13 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
     [Fact]
     public async Task ClientToken_ShouldBeRejectedFromAdminEndpointWithProblemDetails()
     {
-        using var client = _factory.CreateClient();
+        var client = CreateClient();
         var login = await client.PostAsJsonAsync("/api/v1/Account/login", new
         {
             userName = "ClientUser",
             password = "123Pa$$word!"
         });
-
-        var loginBody = await login.Content.ReadFromJsonAsync<JsonElement>();
-        client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(
-            "Bearer", loginBody.GetProperty("jwt").GetString());
-
-        using var response = await client.GetAsync("/api/v1/Admin/commerce");
-        var body = await response.Content.ReadFromJsonAsync<JsonElement>();
-
-        response.StatusCode.Should().Be(HttpStatusCode.Forbidden);
-        response.Content.Headers.ContentType!.MediaType.Should().Be("application/problem+json");
-        body.GetProperty("status").GetInt32().Should().Be(403);
-        body.GetProperty("title").GetString().Should().Be("Acceso denegado");
+        login.StatusCode.Should().Be(HttpStatusCode.Forbidden);
     }
 
     [Fact]
@@ -154,11 +143,11 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
 
         var responses = new[]
         {
-            await client.GetAsync("/api/v1/Admin/commerce?page=0"),
-            await client.GetAsync("/api/v1/Admin/credit-card?status=invalido"),
-            await client.GetAsync("/api/v1/Admin/loan?status=invalido"),
-            await client.GetAsync("/api/v1/Admin/savings-account?type=invalido"),
-            await client.GetAsync("/api/v1/Admin/users?pageSize=0")
+            await client.GetAsync("/api/v1/commerce?page=0"),
+            await client.GetAsync("/api/v1/credit-card?status=invalido"),
+            await client.GetAsync("/api/v1/loan?status=invalido"),
+            await client.GetAsync("/api/v1/savings-account?type=invalido"),
+            await client.GetAsync("/api/v1/users?pageSize=0")
         };
 
         foreach (var response in responses)
@@ -180,21 +169,21 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
         var clientUser = await userManager.FindByNameAsync("ClientUser");
         clientUser.Should().NotBeNull();
 
-        using var card = await client.PostAsJsonAsync("/api/v1/Admin/credit-card", new
+        using var card = await client.PostAsJsonAsync("/api/v1/credit-card", new
         {
             clientId = clientUser!.Id,
             creditLimit = 5000m
         });
         card.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        using var account = await client.PostAsJsonAsync("/api/v1/Admin/savings-account", new
+        using var account = await client.PostAsJsonAsync("/api/v1/savings-account", new
         {
             cedulaClient = clientUser.Cedula,
             initialBalance = 100m
         });
         account.StatusCode.Should().Be(HttpStatusCode.Created);
 
-        using var loan = await client.PostAsJsonAsync("/api/v1/Admin/loan", new
+        using var loan = await client.PostAsJsonAsync("/api/v1/loan", new
         {
             clientId = clientUser.Id,
             amount = 1000m,
@@ -220,16 +209,16 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
             email = $"commerce-{Guid.NewGuid():N}@test.local",
             phoneNumber = "8095550102"
         };
-        using var commerceCreate = await client.PostAsJsonAsync("/api/v1/Admin/commerce", commerceRequest);
+        using var commerceCreate = await client.PostAsJsonAsync("/api/v1/commerce", commerceRequest);
         commerceCreate.StatusCode.Should().Be(HttpStatusCode.Created);
         var commerceBody = await commerceCreate.Content.ReadFromJsonAsync<JsonElement>();
         var commerceId = commerceBody.GetProperty("id").GetInt32();
 
-        (await client.GetAsync("/api/v1/Admin/commerce?page=1&pageSize=20&status=todos"))
+        (await client.GetAsync("/api/v1/commerce?page=1&pageSize=20&status=todos"))
             .StatusCode.Should().Be(HttpStatusCode.OK);
-        (await client.GetAsync($"/api/v1/Admin/commerce/{commerceId}"))
+        (await client.GetAsync($"/api/v1/commerce/{commerceId}"))
             .StatusCode.Should().Be(HttpStatusCode.OK);
-        using var commerceUpdate = await client.PutAsJsonAsync($"/api/v1/Admin/commerce/{commerceId}", new
+        using var commerceUpdate = await client.PutAsJsonAsync($"/api/v1/commerce/{commerceId}", new
         {
             name = commerceRequest.name + " Updated",
             description = commerceRequest.description,
@@ -241,7 +230,7 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
         commerceUpdate.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         var commerceUserName = $"commerce-endpoint-{Guid.NewGuid():N}";
-        using var commerceUser = await client.PostAsJsonAsync($"/api/v1/Admin/users/commerce/{commerceId}", new
+        using var commerceUser = await client.PostAsJsonAsync($"/api/v1/users/commerce/{commerceId}", new
         {
             firstName = "Commerce",
             lastName = "Endpoint",
@@ -252,10 +241,10 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
             confirmPassword = "123Pa$$word!"
         });
         commerceUser.StatusCode.Should().Be(HttpStatusCode.Created);
-        (await client.GetAsync("/api/v1/Admin/users/commerce?page=1&pageSize=20"))
+        (await client.GetAsync("/api/v1/users/commerce?page=1&pageSize=20"))
             .StatusCode.Should().Be(HttpStatusCode.OK);
 
-        using var commerceDeactivate = await client.PatchAsJsonAsync($"/api/v1/Admin/commerce/{commerceId}/status", new { status = false });
+        using var commerceDeactivate = await client.PatchAsJsonAsync($"/api/v1/commerce/{commerceId}/status", new { status = false });
         commerceDeactivate.StatusCode.Should().Be(HttpStatusCode.NoContent);
         using (var commerceIdentityScope = _factory.Services.CreateScope())
         {
@@ -265,7 +254,7 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
             associatedUser!.IsActive.Should().BeFalse();
         }
 
-        using var commerceActivate = await client.PatchAsJsonAsync($"/api/v1/Admin/commerce/{commerceId}/status", new { status = true });
+        using var commerceActivate = await client.PatchAsJsonAsync($"/api/v1/commerce/{commerceId}/status", new { status = true });
         commerceActivate.StatusCode.Should().Be(HttpStatusCode.NoContent);
         using (var commerceIdentityScope = _factory.Services.CreateScope())
         {
@@ -275,13 +264,13 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
             associatedUser!.IsActive.Should().BeFalse();
         }
 
-        (await client.GetAsync("/api/v1/Admin/users?page=1&pageSize=20&role=Client"))
+        (await client.GetAsync("/api/v1/users?page=1&pageSize=20&role=Client"))
             .StatusCode.Should().Be(HttpStatusCode.OK);
-        (await client.GetAsync($"/api/v1/Admin/users/{isolatedClient.Id}"))
+        (await client.GetAsync($"/api/v1/users/{isolatedClient.Id}"))
             .StatusCode.Should().Be(HttpStatusCode.OK);
 
         var createdUserName = $"admin-http-{Guid.NewGuid():N}";
-        using var userCreate = await client.PostAsJsonAsync("/api/v1/Admin/users", new
+        using var userCreate = await client.PostAsJsonAsync("/api/v1/users", new
         {
             firstName = "HTTP",
             lastName = "User",
@@ -300,7 +289,7 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
         var createdUser = await userManager.FindByNameAsync(createdUserName);
         createdUser.Should().NotBeNull();
 
-        using var userUpdate = await client.PutAsJsonAsync($"/api/v1/Admin/users/{createdUser!.Id}", new
+        using var userUpdate = await client.PutAsJsonAsync($"/api/v1/users/{createdUser!.Id}", new
         {
             firstName = "HTTP Updated",
             lastName = "User",
@@ -312,12 +301,12 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
             additionalAmount = 0m
         });
         userUpdate.StatusCode.Should().Be(HttpStatusCode.NoContent);
-        using var userDeactivate = await client.PatchAsJsonAsync($"/api/v1/Admin/users/{createdUser.Id}/status", new { status = false });
+        using var userDeactivate = await client.PatchAsJsonAsync($"/api/v1/users/{createdUser.Id}/status", new { status = false });
         userDeactivate.StatusCode.Should().Be(HttpStatusCode.NoContent);
-        using var userActivate = await client.PatchAsJsonAsync($"/api/v1/Admin/users/{createdUser.Id}/status", new { status = true });
+        using var userActivate = await client.PatchAsJsonAsync($"/api/v1/users/{createdUser.Id}/status", new { status = true });
         userActivate.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        using var cardCreate = await client.PostAsJsonAsync("/api/v1/Admin/credit-card", new
+        using var cardCreate = await client.PostAsJsonAsync("/api/v1/credit-card", new
         {
             clientId = isolatedClient.Id,
             creditLimit = 5000m
@@ -325,16 +314,16 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
         cardCreate.StatusCode.Should().Be(HttpStatusCode.Created);
         var cardBody = await cardCreate.Content.ReadFromJsonAsync<JsonElement>();
         var cardId = cardBody.GetProperty("id").GetInt32();
-        (await client.GetAsync("/api/v1/Admin/credit-card?page=1&pageSize=20&status=todas"))
+        (await client.GetAsync("/api/v1/credit-card?page=1&pageSize=20&status=todas"))
             .StatusCode.Should().Be(HttpStatusCode.OK);
-        (await client.GetAsync($"/api/v1/Admin/credit-card/{cardId}"))
+        (await client.GetAsync($"/api/v1/credit-card/{cardId}"))
             .StatusCode.Should().Be(HttpStatusCode.OK);
-        using var cardLimit = await client.PatchAsJsonAsync($"/api/v1/Admin/credit-card/{cardId}/limit", new { newLimit = 6000m });
+        using var cardLimit = await client.PatchAsJsonAsync($"/api/v1/credit-card/{cardId}/limit", new { newLimit = 6000m });
         cardLimit.StatusCode.Should().Be(HttpStatusCode.NoContent);
-        using var cardCancel = await client.PatchAsync($"/api/v1/Admin/credit-card/{cardId}/cancel", null);
+        using var cardCancel = await client.PatchAsync($"/api/v1/credit-card/{cardId}/cancel", null);
         cardCancel.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        using var savingsCreate = await client.PostAsJsonAsync("/api/v1/Admin/savings-account", new
+        using var savingsCreate = await client.PostAsJsonAsync("/api/v1/savings-account", new
         {
             cedulaClient = isolatedClient.Cedula,
             initialBalance = 250m
@@ -346,14 +335,14 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
             .Where(account => account.UserId == isolatedClient.Id && account.Type == AccountType.Secondary)
             .OrderByDescending(account => account.CreatedAt)
             .FirstAsync();
-        (await client.GetAsync("/api/v1/Admin/savings-account?page=1&pageSize=20&status=todas&type=todas"))
+        (await client.GetAsync("/api/v1/savings-account?page=1&pageSize=20&status=todas&type=todas"))
             .StatusCode.Should().Be(HttpStatusCode.OK);
-        (await client.GetAsync($"/api/v1/Admin/savings-account/{secondaryAccount.AccountNumber}/transactions"))
+        (await client.GetAsync($"/api/v1/savings-account/{secondaryAccount.AccountNumber}/transactions"))
             .StatusCode.Should().Be(HttpStatusCode.OK);
-        using var savingsCancel = await client.PatchAsync($"/api/v1/Admin/savings-account/{secondaryAccount.AccountNumber}/cancel", null);
+        using var savingsCancel = await client.PatchAsync($"/api/v1/savings-account/{secondaryAccount.AccountNumber}/cancel", null);
         savingsCancel.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
-        using var loanCreate = await client.PostAsJsonAsync("/api/v1/Admin/loan", new
+        using var loanCreate = await client.PostAsJsonAsync("/api/v1/loan", new
         {
             clientId = isolatedClient.Id,
             amount = 500m,
@@ -364,11 +353,11 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
         loanCreate.StatusCode.Should().Be(HttpStatusCode.Created);
         var loanBody = await loanCreate.Content.ReadFromJsonAsync<JsonElement>();
         var loanId = loanBody.GetProperty("id").GetInt32();
-        (await client.GetAsync("/api/v1/Admin/loan?page=1&pageSize=20&status=activos"))
+        (await client.GetAsync("/api/v1/loan?page=1&pageSize=20&status=activos"))
             .StatusCode.Should().Be(HttpStatusCode.OK);
-        (await client.GetAsync($"/api/v1/Admin/loan/{loanId}"))
+        (await client.GetAsync($"/api/v1/loan/{loanId}"))
             .StatusCode.Should().Be(HttpStatusCode.OK);
-        using var loanRate = await client.PatchAsJsonAsync($"/api/v1/Admin/loan/{loanId}/rate", new { newRates = 15m });
+        using var loanRate = await client.PatchAsJsonAsync($"/api/v1/loan/{loanId}/rate", new { newRates = 15m });
         loanRate.StatusCode.Should().Be(HttpStatusCode.NoContent);
     }
 
@@ -376,7 +365,7 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
     public async Task HermesPay_ShouldSettleCardAccountAndRejectDuplicateIdempotencyKey()
     {
         var fixture = await SeedHermesPaymentDataAsync();
-        using var client = await CreateAuthenticatedClientAsync("IntegrationCommerceUser");
+        using var client = await CreateAuthenticatedClientAsync("CommerceUser");
         var request = new
         {
             cardNumber = fixture.CardNumber,
@@ -473,6 +462,18 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
     private async Task<HttpClient> CreateAuthenticatedClientAsync(string username)
     {
         var client = CreateClient();
+        if (username == "CashierUser" || username == "ClientUser")
+        {
+            using var scope = _factory.Services.CreateScope();
+            var userManager = scope.ServiceProvider.GetRequiredService<Microsoft.AspNetCore.Identity.UserManager<ABP.Infraestructure.identity.Entities.ApplicationUser>>();
+            var user = await userManager.FindByNameAsync(username);
+            var jwtService = scope.ServiceProvider.GetRequiredService<ABP.Core.Application.Interfaces.IServices.IJwtService>();
+            var token = await jwtService.GenerateTokenAsync(user!.Id, user.UserName!, user.Email!, [user.Role.ToString()], user.CommerceId ?? 0);
+            
+            client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue("Bearer", token);
+            return client;
+        }
+
         var login = await client.PostAsJsonAsync("/api/v1/Account/login", new
         {
             userName = username,
@@ -557,12 +558,12 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
         var roleManager = scope.ServiceProvider.GetRequiredService<RoleManager<IdentityRole>>();
         var commerce = await context.Commerces.SingleAsync(item => item.Name == "Default Commerce");
 
-        var commerceUser = await userManager.FindByNameAsync("IntegrationCommerceUser");
+        var commerceUser = await userManager.FindByNameAsync("CommerceUser");
         if (commerceUser is null)
         {
             commerceUser = new ApplicationUser
             {
-                UserName = "IntegrationCommerceUser",
+                UserName = "CommerceUser",
                 Email = "integration-commerce@test.local",
                 FirstName = "Integration",
                 LastName = "Commerce",

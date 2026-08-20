@@ -55,7 +55,8 @@ public sealed class AdminFinancialWorkflowIntegrationTests : IDisposable
 
         result.Id.Should().BeGreaterThan(0);
         result.CreditLimit.Should().Be(5000);
-        result.CardNumber.Should().HaveLength(16);
+        result.CardNumber.Should().HaveLength(19);
+        result.CardNumber.Should().MatchRegex(@"^\*\*\*\* \*\*\*\* \*\*\*\* \d{4}$");
         result.ExpirationDate.Should().MatchRegex(@"^\d{2}/\d{2}$");
 
         var persisted = await _context.CreditCards.SingleAsync();
@@ -221,7 +222,7 @@ public sealed class AdminFinancialWorkflowIntegrationTests : IDisposable
 
     private LoanService CreateLoanService()
         => new(
-            new LoanRepository(_context),
+            new LoanRepository(_context, new Moq.Mock<ABP.Core.Application.Interfaces.IServices.IUserReadOnlyService>().Object),
             new LoanInstallmentRepository(_context),
             new TransactionRepository(_context),
             new SavingsAccountRepository(_context),

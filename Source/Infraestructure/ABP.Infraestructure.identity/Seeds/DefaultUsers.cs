@@ -43,6 +43,19 @@ namespace ABP.Infraestructure.identity.Seeds
                 IsActive = true,
                 Role = UserRole.Client
             }, "123Pa$$word!", UserRole.Client);
+
+            await SeedUserAsync(userManager, new ApplicationUser
+            {
+                UserName = "CommerceUser",
+                Email = "commerce@artemisbank.com",
+                FirstName = "Commerce",
+                LastName = "ArtemisBank",
+                Cedula = "00000000004",
+                EmailConfirmed = true,
+                IsActive = true,
+                Role = UserRole.Commerce,
+                CommerceId = defaultCommerceId ?? 1
+            }, "123Pa$$word!", UserRole.Commerce);
         }
 
         private static async Task SeedUserAsync(UserManager<ApplicationUser> userManager, ApplicationUser user, string password, UserRole role)

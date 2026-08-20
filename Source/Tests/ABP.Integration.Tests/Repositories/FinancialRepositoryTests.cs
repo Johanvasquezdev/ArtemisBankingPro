@@ -4,6 +4,7 @@ using ABP.Infraestructure.Persistence.Context;
 using ABP.Infraestructure.Persistence.Repositories;
 using FluentAssertions;
 using Microsoft.EntityFrameworkCore;
+using Moq;
 using Xunit;
 
 namespace ABP.Integration.Tests.Repositories;
@@ -49,7 +50,9 @@ public sealed class FinancialRepositoryTests : IDisposable
         await _context.Loans.AddRangeAsync(active, closed);
         await _context.SaveChangesAsync();
 
-        var repository = new LoanRepository(_context);
+        var userReadOnlyMock = new Moq.Mock<ABP.Core.Application.Interfaces.IServices.IUserReadOnlyService>();
+        userReadOnlyMock.Setup(x => x.GetActiveClientsCountAsync()).ReturnsAsync(1);
+        var repository = new LoanRepository(_context, userReadOnlyMock.Object);
 
         (await repository.ClientHasActiveLoanAsync("client-1")).Should().BeTrue();
         (await repository.GetActiveByClientIdAsync("client-1")).Should().ContainSingle(loan => loan.LoanNumber == "300000001");
@@ -68,7 +71,7 @@ public sealed class FinancialRepositoryTests : IDisposable
             Loan(3, "300000003", LoanStatus.Completed, DateTime.UtcNow));
         await _context.SaveChangesAsync();
 
-        var repository = new LoanRepository(_context);
+        var repository = new LoanRepository(_context, new Moq.Mock<ABP.Core.Application.Interfaces.IServices.IUserReadOnlyService>().Object);
 
         var result = await repository.GetAllPagedAsync(1, 1, LoanStatus.Active);
         var details = await repository.GetByIdAsync(1);

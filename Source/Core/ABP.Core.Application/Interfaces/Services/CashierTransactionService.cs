@@ -168,7 +168,7 @@ internal sealed class CashierTransactionService : ICashierTransactionService
                 {
                     Amount = dto.Amount,
                     TransactionDate = DateTime.UtcNow,
-                    Type = TransactionType.Debit,
+                    Type = TransactionType.Payment,
                     Origin = dto.SourceAccountNumber,
                     Beneficiary = dto.CardNumber,
                     Status = TransactionStatus.Declined,
@@ -203,7 +203,7 @@ internal sealed class CashierTransactionService : ICashierTransactionService
             {
                 Amount = actualPayment,
                 TransactionDate = DateTime.UtcNow,
-                Type = TransactionType.Debit,
+                Type = TransactionType.Payment,
                 Origin = dto.SourceAccountNumber,
                 Beneficiary = dto.CardNumber,
                 Status = TransactionStatus.Approved,
@@ -241,7 +241,7 @@ internal sealed class CashierTransactionService : ICashierTransactionService
                 var declinedTx = new Transaction
                 {
                     Amount = Dto.Amount,
-                    Type = TransactionType.Debit,
+                    Type = TransactionType.Payment,
                     TransactionDate = DateTime.UtcNow,
                     Origin = Dto.SourceAccountNumber,
                     Beneficiary = Dto.LoanNumber,
@@ -297,7 +297,7 @@ internal sealed class CashierTransactionService : ICashierTransactionService
             await _repo.AddWithoutSaveAsync(new Transaction
             {
                 Amount = totalActuallyPaid,
-                Type = TransactionType.Debit,
+                Type = TransactionType.Payment,
                 SourceAccountNumber = Dto.SourceAccountNumber,
                 DestinationAccountNumber = Dto.LoanNumber,
                 Description = $"Pago de prestamo aplicado a {loan.LoanNumber}",

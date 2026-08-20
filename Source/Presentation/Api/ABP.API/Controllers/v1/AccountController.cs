@@ -63,6 +63,9 @@ namespace ABP.API.Controllers.v1
             if (!result.Success)
                 return ApiProblem(401, "Autenticación fallida", result.Error ?? "Las credenciales no son válidas.");
 
+            if (result.Role != ABP.Core.Domain.Enums.UserRole.Admin && result.Role != ABP.Core.Domain.Enums.UserRole.Commerce)
+                return ApiProblem(403, "Acceso denegado", "Solo los administradores y comercios pueden acceder a la API.");
+
             return Ok(new { Jwt = result.JwtToken });
         }
 

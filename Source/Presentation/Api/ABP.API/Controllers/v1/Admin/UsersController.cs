@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ABP.API.Controllers.v1.Admin
 {
-    [Route("api/v{version:apiVersion}/Admin/users")]
+    [Route("api/v{version:apiVersion}/users")]
     [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public class UsersController(IMediator mediator) : BaseApiController
     {

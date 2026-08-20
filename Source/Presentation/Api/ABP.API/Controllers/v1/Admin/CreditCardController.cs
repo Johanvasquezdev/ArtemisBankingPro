@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http;
 using ABP.API.DTOs.CreditCard;
 using ABP.Core.Application.Features.Admin.Queries;
 using ABP.Core.Application.Features.Admin.Commands;
@@ -8,7 +8,7 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace ABP.API.Controllers.v1.Admin
 {
-    [Route("api/v{version:apiVersion}/Admin/credit-card")]
+    [Route("api/v{version:apiVersion}/credit-card")]
     [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
     public class CreditCardController(IMediator mediator) : BaseApiController
     {
