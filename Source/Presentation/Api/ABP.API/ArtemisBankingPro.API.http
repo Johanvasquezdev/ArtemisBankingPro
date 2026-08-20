@@ -1,15 +1,17 @@
-@host = http://localhost:5165
+﻿@host = https://localhost:7073
 @contentType = application/json
 
 ### 1) LOGIN
+# @name loginRequest
 POST {{host}}/api/v1/Account/login
 Content-Type: {{contentType}}
+
 {
-  "userName": "AdminUser",
-  "password": "123Pa$$word!"
+"userName": "AdminUser",
+"password": "123Pa$$word!"
 }
 
-### 2) Pega aquí el jwt 
+### 2) ¡¡¡IMPORTANTE! Pega aquííí el JWT que te devuelve el Login (paso 1)
 @token = {{loginRequest.response.body.$.jwt}}
 
 ### COMMERCE — Crear
@@ -17,42 +19,45 @@ Content-Type: {{contentType}}
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 {
-  "name": "Tienda Demo8",
-  "description": "Comercio de prueba intento numero 11?",
-  "rnc": "234106789",
-  "email": "conta109@tiendademo.com",
-  "phoneNumber": "8094441009",
+  "name": "Tienda Demo4",
+  "description": "Comercio de prueba intento numero 6?",
+  "rnc": "123456789",
+  "email": "contacto@tiendademo.com",
+  "phoneNumber": "8095551234",
   "logo": "logo-demo.png"
 }
 
-### Guarda el id que te devolvió el POST de arriba para los siguientes bloques
+### Guarda el id que te devolvióóó el POST de arriba para los siguientes bloques
 @commerceId = 7
 
 ### Caso de error esperado: RNC con menos de 9 dígitos -> 400 Bad Request
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 {
-  "name": "Comercio RNC Inválido",
-  "description": "Debe fallar",
-  "rnc": "12345",
-  "email": "invalido@demo.com",
-  "phoneNumber": "8095551234",
-  "logo": "logo.png"
+"name": "Comercio RNC Inválido",
+"description": "Debe fallar",
+"rnc": "12345",
+"email": "invalido@demo.com",
+"phoneNumber": "8095551234",
+"logo": "logo.png"
 }
 
 ### Caso de error esperado: correo con formato inválido -> 400 Bad Request
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 {
-  "name": "Comercio Email Inválido",
-  "description": "Debe fallar",
-  "rnc": "987654321",
-  "email": "esto-no-es-un-correo",
-  "phoneNumber": "8095551234",
-  "logo": "logo.png"
+"name": "Comercio Email Inválido",
+"description": "Debe fallar",
+"rnc": "987654321",
+"email": "esto-no-es-un-correo",
+"phoneNumber": "8095551234",
+"logo": "logo.png"
 }
 
 ### Caso de error esperado: RNC duplicado (repite el mismo del primer POST) -> 409 Conflict
@@ -60,26 +65,28 @@ Authorization: Bearer {{token}}
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 {
-  "name": "Tienda Demo Duplicada",
-  "description": "Mismo RNC que la primera",
-  "rnc": "123456789",
-  "email": "otro-correo@demo.com",
-  "phoneNumber": "8095551234",
-  "logo": "logo.png"
+"name": "Tienda Demo Duplicada",
+"description": "Mismo RNC que la primera",
+"rnc": "123456789",
+"email": "otro-correo@demo.com",
+"phoneNumber": "8095551234",
+"logo": "logo.png"
 }
 
 ### Caso de error esperado: correo duplicado (mismo email del primer POST, RNC distinto) -> 409 Conflict
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 {
-  "name": "Tienda Demo Email Duplicado",
-  "description": "Mismo correo que la primera",
-  "rnc": "111222333",
-  "email": "contacto@tiendademo.com",
-  "phoneNumber": "8095551234",
-  "logo": "logo.png"
+"name": "Tienda Demo Email Duplicado",
+"description": "Mismo correo que la primera",
+"rnc": "111222333",
+"email": "contacto@tiendademo.com",
+"phoneNumber": "8095551234",
+"logo": "logo.png"
 }
 ### COMMERCE — Listar
 ### Listado por defecto (activos, page=1, pageSize=20)
@@ -114,26 +121,28 @@ Authorization: Bearer {{token}}
 PUT {{host}}/api/v1/Admin/commerce/{{commerceId}}
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 {
-  "name": "Tienda Demo Actualizada",
-  "description": "Descripción actualizada",
-  "rnc": "123456789",
-  "email": "contacto.actualizado@tiendademo.com",
-  "phoneNumber": "8095555678",
-  "logo": "logo-demo-v2.png"
+"name": "Tienda Demo Actualizada",
+"description": "Descripción actualizada",
+"rnc": "123456789",
+"email": "contacto.actualizado@tiendademo.com",
+"phoneNumber": "8095555678",
+"logo": "logo-demo-v2.png"
 }
 
 ### Caso de error esperado: id inexistente -> 404 Not Found
 PUT {{host}}/api/v1/Admin/commerce/999999
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 {
-  "name": "No existe",
-  "description": "",
-  "rnc": "555555555",
-  "email": "noexiste@demo.com",
-  "phoneNumber": "8095551234",
-  "logo": "logo.png"
+"name": "No existe",
+"description": "",
+"rnc": "555555555",
+"email": "noexiste@demo.com",
+"phoneNumber": "8095551234",
+"logo": "logo.png"
 }
 
 ### COMMERCE — Cambiar estado (con cascada de usuarios asociados)
@@ -142,18 +151,21 @@ Authorization: Bearer {{token}}
 PATCH {{host}}/api/v1/Admin/commerce/{{commerceId}}/status
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 { "status": false }
 
 ### Reactivar -> 204 No Content. El usuario asociado NO debe reactivarse solo.
 PATCH {{host}}/api/v1/Admin/commerce/{{commerceId}}/status
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 { "status": true }
 
 ### Caso de error esperado: id inexistente -> 404 Not Found
 PATCH {{host}}/api/v1/Admin/commerce/999999/status
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
+
 { "status": false }
 
 ### SEGURIDAD
@@ -163,3 +175,8 @@ GET {{host}}/api/v1/Admin/commerce
 ### Token corrupto (le quito el último carácter a propósito) -> 401 Unauthorized
 GET {{host}}/api/v1/Admin/commerce
 Authorization: Bearer 1f4XSa{{token}}
+
+
+
+
+

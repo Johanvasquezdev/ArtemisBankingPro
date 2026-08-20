@@ -80,4 +80,5 @@ namespace ABP.Core.Application.Features.Client.Queries
             };
         }
     }
+
 }

@@ -27,8 +27,8 @@ builder.Host.UseSerilog((context, _, configuration) =>
          var problem = new ValidationProblemDetails(context.ModelState)
          {
              Status = StatusCodes.Status400BadRequest,
-             Title = "ValidaciÃ³n fallida",
-             Detail = "La solicitud contiene datos invÃ¡lidos.",
+             Title = "Validación fallida",
+             Detail = "La solicitud contiene datos inválidos.",
              Instance = context.HttpContext.Request.Path
          };
          problem.Extensions["traceId"] = context.HttpContext.TraceIdentifier;
@@ -42,8 +42,8 @@ builder.Host.UseSerilog((context, _, configuration) =>
  builder.Services.AddProblemDetails();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
-builder.Services.AddJwtAuthenticationLayer(builder.Configuration);
 builder.Services.AddIdentityInfrastructure(builder.Configuration);
+builder.Services.AddJwtAuthenticationLayer(builder.Configuration);
 builder.Services.AddPersistenceInfrastructure(builder.Configuration);
 builder.Services.AddSharedInfrastructure(builder.Configuration);
 builder.Services.AddApplicationLayer();
@@ -107,10 +107,10 @@ app.UseStatusCodePages(new Func<StatusCodeContext, Task>(async statusContext =>
         Status = status,
         Title = status switch
         {
-            StatusCodes.Status401Unauthorized => "AutenticaciÃ³n requerida",
+            StatusCodes.Status401Unauthorized => "Autenticación requerida",
             StatusCodes.Status403Forbidden => "Acceso denegado",
             StatusCodes.Status404NotFound => "Recurso no encontrado",
-            _ => "Solicitud invÃ¡lida"
+            _ => "Solicitud inválida"
         },
         Detail = status switch
         {
@@ -136,3 +136,4 @@ app.MapControllers();
 await app.RunAsync();
 
 public partial class Program { }
+
