@@ -108,7 +108,7 @@ internal sealed class CashierTransactionService : ICashierTransactionService
                 };
                 await _repo.AddWithoutSaveAsync(declinedTx);
                 await _unitOfWork.SaveChangesAsync();
-                throw new InvalidOperationException($"Fondos insuficientes. Balance actual: ");
+                throw new InvalidOperationException($"Fondos insuficientes. Balance actual: {account.Balance:C}");
             }
 
             await using var withdrawalTx = await _unitOfWork.BeginTransactionAsync();

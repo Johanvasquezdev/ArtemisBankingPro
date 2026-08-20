@@ -26,6 +26,7 @@ public sealed class SavingsAccountServiceTests
     {
         var account = new SavingsAccount { Id = 1, AccountNumber = "123456789", Balance = 100, Status = AccountStatus.Active };
         _accounts.Setup(x => x.GetByAccountNumberAsync(account.AccountNumber)).ReturnsAsync(account);
+        _unitOfWork.Setup(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(_transaction.Object);
 
         var result = await CreateService().DepositAsync(account.AccountNumber, 25);
 

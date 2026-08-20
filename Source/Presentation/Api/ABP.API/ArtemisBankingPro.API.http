@@ -1,4 +1,4 @@
-﻿@host = https://localhost:7073
+@host = https://localhost:7073
 @contentType = application/json
 
 ### 1) LOGIN
@@ -11,7 +11,7 @@ Content-Type: {{contentType}}
 }
 
 ### 2) TOKEN pegar el token del paso 1 aqui
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJlbWFpbCI6ImFkbWluQGFydGVtaXNiYW5rLmNvbSIsImp0aSI6ImY1ZWE4MzI3LWZkMjAtNDgyYS05MWQ4LTM1MzE4ZTdiM2FiZSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pblVzZXIiLCJ1aWQiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJjb21tZXJjZUlkIjoiMCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNzg3MjU3NTEyLCJpc3MiOiJBcnRlbWlzQmFuay5BUEkiLCJhdWQiOiJBcnRlbWlzQmFuay5DbGllbnQifQ.8OznSiz-0wA4jgLJNo9DaQuUpxvjyoEBdFNzjdU8-TQ
+@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJlbWFpbCI6ImFkbWluQGFydGVtaXNiYW5rLmNvbSIsImp0aSI6ImFiYzVkZWE5LTZhMDUtNGJjYi1iYjU2LWZjN2U5ZDE4YjRjYSIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pblVzZXIiLCJ1aWQiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJjb21tZXJjZUlkIjoiMCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNzg3MjY0NTM5LCJpc3MiOiJBcnRlbWlzQmFuay5BUEkiLCJhdWQiOiJBcnRlbWlzQmFuay5DbGllbnQifQ.X3HBGywCvfhHuzJ7yqL4H69dIouFuI1gE9uoJ22rPnE
 
 ### COMMERCE â€” Crear
 # Esperado: 201 Created
@@ -27,7 +27,7 @@ Authorization: Bearer {{token}}
   "logo": "logo-demo.png"
 }
 ###
-@commerceId = 7
+@commerceId = 15
 ###
 ### Esperado: 400 Bad Request
 POST {{host}}/api/v1/Admin/commerce
@@ -169,41 +169,44 @@ Authorization: Bearer 1f4XSa{{token}}
 ### HERMES PAY (Simulacion de Terminal de Pagos)
 ### ========================================
 
-### COMMERCE - Crear comercio para Hermes Pay
+# ¡ATENCION! CAMBIA ESTE NUMERO AL ID QUE TE DEVUELVA EL COMERCIO NUEVO
+@hermesCommerceId = 15
+
+### 1) COMMERCE - Crear comercio nuevo (Prueba limpia)
 # Esperado: 201 Created
+# --> FÍJATE EN EL ID QUE TE DEVUELVE Y PONLO EN @hermesCommerceId ARRIBA
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
 
 {
-  "name": "Tienda Demo Hermes",
+  "name": "Super Tienda Hermes 100",
   "description": "Comercio de prueba para pagos Hermes Pay",
-  "rnc": "101999999",
-  "email": "contacto@tiendademohermes.com",
-  "phoneNumber": "8095551234",
+  "rnc": "123123123",
+  "email": "contacto100@supertiendahermes.com",
+  "phoneNumber": "8095551254",
   "logo": "logo-hermes.png"
 }
 
-
-### COMMERCE - Crear un usuario asociado al comercio (REQUERIDO PARA COBRAR)
+### 2) COMMERCE - Crear un usuario (REQUERIDO PARA COBRAR)
 # Esperado: 201 Created
-POST {{host}}/api/v1/Admin/users/commerce/{{commerceId}}
+POST {{host}}/api/v1/Admin/users/commerce/{{hermesCommerceId}}
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
 
 {
-  "firstName": "Admin",
-  "lastName": "Tienda Demo",
-  "cedula": "00100000002",
-  "email": "contacto@tiendademohermes.com",
-  "userName": "tiendademohermes",
-  "password": "123Paword!",
-  "confirmPassword": "123Paword!"
+  "firstName": "Super",
+  "lastName": "Admin Hermes",
+  "cedula": "00111111111",
+  "email": "admin100@supertiendahermes.com",
+  "userName": "superadminhermes100",
+  "password": "1234Password!",
+  "confirmPassword": "1234Password!"
 }
 
-### HERMES PAY - Procesar un pago
+### 3) HERMES PAY - Procesar un pago
 # Esperado: 204 No Content
-POST {{host}}/api/v1/pay/process-payment/{{commerceId}}
+POST {{host}}/api/v1/pay/process-payment/{{hermesCommerceId}}
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
 Idempotency-Key: {{$guid}}
@@ -216,23 +219,8 @@ Idempotency-Key: {{$guid}}
   "transactionAmount": 500.00
 }
 
-### HERMES PAY - Obtener transacciones del comercio
+### 4) HERMES PAY - Obtener transacciones del comercio
 # Esperado: 200 OK
-GET {{host}}/api/v1/pay/get-transactions/{{commerceId}}
+GET {{host}}/api/v1/pay/get-transactions/{{hermesCommerceId}}
 Authorization: Bearer {{token}}
-
-### HERMES PAY - Pago con tarjeta declinada (fondos insuficientes)
-# Esperado: 400 Bad Request
-POST {{host}}/api/v1/pay/process-payment/{{commerceId}}
-Content-Type: {{contentType}}
-Authorization: Bearer {{token}}
-Idempotency-Key: {{$guid}}
-
-{
-  "cardNumber": "4111222233334444",
-  "monthExpirationCard": "12",
-  "yearExpirationCard": "2028",
-  "cvc": "123",
-  "transactionAmount": 999999999.00
-}
 

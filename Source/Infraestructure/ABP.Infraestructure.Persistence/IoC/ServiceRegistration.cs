@@ -40,10 +40,6 @@ namespace ABP.Infraestructure.Persistence.IoC
                     opt.UseNpgsql(npgsqlOptions =>
                     {
                         npgsqlOptions.MigrationsAssembly(typeof(ArtemisBankingDbContext).Assembly.FullName);
-                        npgsqlOptions.EnableRetryOnFailure(
-                            maxRetryCount: 3,
-                            maxRetryDelay: TimeSpan.FromSeconds(5),
-                            errorCodesToAdd: null);
                     });
                 });
             }
