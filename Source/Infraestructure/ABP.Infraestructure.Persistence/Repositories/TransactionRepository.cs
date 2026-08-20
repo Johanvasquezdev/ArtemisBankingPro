@@ -69,7 +69,7 @@ namespace ABP.Infraestructure.Persistence.Repositories
         {
             var today = DateTime.UtcNow.Date;
             return await _dbSet.CountAsync(t => t.TransactionDate.Date == today && t.Type == TransactionType.Debit && t.PerformedByUserId == userId
-            && (t.Beneficiary.Length == 16 || t.Beneficiary.Length == 9));
+            && (t.Beneficiary.Length == 16 || t.Beneficiary.Length == 9 || t.Beneficiary.Length == 4));
         }
 
         public async Task<int> GetTodayPaymentsCountAsync()
@@ -77,7 +77,7 @@ namespace ABP.Infraestructure.Persistence.Repositories
             var today = DateTime.UtcNow.Date;
             var tomorrow = today.AddDays(1);
             return await _dbSet.CountAsync(t => t.TransactionDate >= today && t.TransactionDate < tomorrow && t.Type == TransactionType.Debit 
-            && (t.Beneficiary.Length == 16 || t.Beneficiary.Length == 9));
+            && (t.Beneficiary.Length == 16 || t.Beneficiary.Length == 9 || t.Beneficiary.Length == 4));
         }
 
         public async Task<int> GetTodayTransactionsByUserIdCountAsync(string userId)
@@ -122,7 +122,7 @@ namespace ABP.Infraestructure.Persistence.Repositories
         public async Task<int> GetTotalPaymentsCountAsync()
         {
             return await _dbSet.CountAsync(t => t.Type == TransactionType.Debit
-                    && (t.Beneficiary.Length == 16 || t.Beneficiary.Length == 9));
+                    && (t.Beneficiary.Length == 16 || t.Beneficiary.Length == 9 || t.Beneficiary.Length == 4));
         }
 
         public async Task<int> GetTotalTransactionsCountAsync()

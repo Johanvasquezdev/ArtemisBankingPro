@@ -91,7 +91,24 @@ internal sealed class CashierTransactionService : ICashierTransactionService
                 throw new InvalidOperationException("No se puede retirar dinero de una cuenta inactiva o cancelada.");
             if (account.Balance < dto.Amount)
             {
-                throw new InvalidOperationException($"Fondos insuficientes. Balance actual: ${account.Balance:N2}");
+                var declinedTx = new Transaction
+                {
+                    Amount = dto.Amount,
+                    Type = TransactionType.Debit,
+                    TransactionDate = DateTime.UtcNow,
+                    Origin = dto.AccountNumber,
+                    Beneficiary = "CAJERO",
+                    Status = TransactionStatus.Declined,
+                    SourceAccountNumber = dto.AccountNumber,
+                    DestinationAccountNumber = "CAJERO",
+                    Description = "Retiro rechazado por fondos insuficientes",
+                    CreatedAt = DateTime.UtcNow,
+                    SavingAccountId = account.Id,
+                    PerformedByUserId = dto.PerformedByUserId
+                };
+                await _repo.AddWithoutSaveAsync(declinedTx);
+                await _unitOfWork.SaveChangesAsync();
+                throw new InvalidOperationException($"Fondos insuficientes. Balance actual: ");
             }
 
             await using var withdrawalTx = await _unitOfWork.BeginTransactionAsync();
@@ -146,7 +163,26 @@ internal sealed class CashierTransactionService : ICashierTransactionService
                 throw new InvalidOperationException("No se pueden procesar pagos para una tarjeta inactiva o cancelada.");
 
             if (account.Balance < dto.Amount)
+            {
+                var declinedTx = new Transaction
+                {
+                    Amount = dto.Amount,
+                    TransactionDate = DateTime.UtcNow,
+                    Type = TransactionType.Debit,
+                    Origin = dto.SourceAccountNumber,
+                    Beneficiary = dto.CardNumber,
+                    Status = TransactionStatus.Declined,
+                    SavingAccountId = account.Id,
+                    SourceAccountNumber = dto.SourceAccountNumber,
+                    DestinationAccountNumber = $"CARD-{card.CardNumber[^4..]}",
+                    Description = "Pago de tarjeta rechazado por fondos insuficientes",
+                    CreatedAt = DateTime.UtcNow,
+                    PerformedByUserId = dto.PerformedByUserId
+                };
+                await _repo.AddWithoutSaveAsync(declinedTx);
+                await _unitOfWork.SaveChangesAsync();
                 throw new InvalidOperationException("Fondos insuficientes en la cuenta de origen.");
+            }
 
             if (card.AmountOwed <= 0)
                 throw new InvalidOperationException("Esta tarjeta no tiene deuda pendiente.");
@@ -200,7 +236,27 @@ internal sealed class CashierTransactionService : ICashierTransactionService
             var loan = await _loanRepo.GetByLoanNumberAsync(Dto.LoanNumber);
 
             if (account == null || loan == null) throw new Exception("Cuenta o Prestamo no encontrado.");
-            if (account.Balance < Dto.Amount) throw new InvalidOperationException("Fondos insuficientes en la cuenta de origen.");
+            if (account.Balance < Dto.Amount)
+            {
+                var declinedTx = new Transaction
+                {
+                    Amount = Dto.Amount,
+                    Type = TransactionType.Debit,
+                    TransactionDate = DateTime.UtcNow,
+                    Origin = Dto.SourceAccountNumber,
+                    Beneficiary = Dto.LoanNumber,
+                    Status = TransactionStatus.Declined,
+                    SavingAccountId = account.Id,
+                    SourceAccountNumber = Dto.SourceAccountNumber,
+                    DestinationAccountNumber = Dto.LoanNumber,
+                    Description = "Pago de prestamo rechazado por fondos insuficientes",
+                    CreatedAt = DateTime.UtcNow,
+                    PerformedByUserId = Dto.PerformedByUserId
+                };
+                await _repo.AddWithoutSaveAsync(declinedTx);
+                await _unitOfWork.SaveChangesAsync();
+                throw new InvalidOperationException("Fondos insuficientes en la cuenta de origen.");
+            }
 
             var installments = (await _installmentRepo.GetByLoanIdAsync(loan.Id))
                 .Where(i => i.Status != InstallmentStatus.Paid).OrderBy(i => i.DueDate).ToList();
@@ -281,7 +337,26 @@ internal sealed class CashierTransactionService : ICashierTransactionService
                 throw new InvalidOperationException("Ambas cuentas deben estar activas.");
 
             if (sourceAccount.Balance < dto.Amount)
+            {
+                var declinedTx = new Transaction
+                {
+                    Amount = dto.Amount,
+                    Type = TransactionType.Debit,
+                    TransactionDate = DateTime.UtcNow,
+                    Origin = dto.SourceAccountNumber,
+                    Beneficiary = dto.DestinationAccountNumber,
+                    Status = TransactionStatus.Declined,
+                    SavingAccountId = sourceAccount.Id,
+                    SourceAccountNumber = dto.SourceAccountNumber,
+                    DestinationAccountNumber = dto.DestinationAccountNumber,
+                    Description = "Transferencia rechazada por fondos insuficientes",
+                    CreatedAt = DateTime.UtcNow,
+                    PerformedByUserId = dto.PerformedByUserId
+                };
+                await _repo.AddWithoutSaveAsync(declinedTx);
+                await _unitOfWork.SaveChangesAsync();
                 throw new InvalidOperationException("Fondos insuficientes en la cuenta de origen.");
+            }
 
             await using var cashierTransferTx = await _unitOfWork.BeginTransactionAsync();
             await ReserveIdempotencyAsync("cashier.transfer", dto.PerformedByUserId, dto.IdempotencyKey);

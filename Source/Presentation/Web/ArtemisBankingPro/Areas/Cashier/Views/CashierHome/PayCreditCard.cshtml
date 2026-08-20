@@ -16,6 +16,11 @@
     <form asp-action="PayCreditCard" asp-controller="CashierHome" method="post">
         <input type="hidden" name="idempotencyKey" value="@Guid.NewGuid().ToString("N")" />
         <div class="abp-mb-md">
+            <label class="abp-label">Cuenta a debitar</label>
+            <input type="text" name="sourceAccount" class="abp-input" required placeholder="Ej. 100012345" />
+        </div>
+        
+        <div class="abp-mb-md">
             <label class="abp-label">Número de tarjeta</label>
             <input type="text" name="creditCardNumber" class="abp-input" required placeholder="Ej. 400012345678" />
         </div>

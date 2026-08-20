@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Http;
 using ABP.API.DTOs.Commerce;
 using ABP.Core.Application.Features.Admin.Commands;
 using ABP.Core.Application.Features.Admin.Queries;
@@ -13,7 +14,17 @@ namespace ABP.API.Controllers.v1.Admin
     {
         private readonly IMediator _mediator = mediator;
 
-        // GET /api/v1/Admin/commerce
+        /// <summary>
+        /// Operation: GET /api/v1/Admin/commerce
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación GET en la ruta /api/v1/Admin/commerce.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string status = "activo")
         {
@@ -31,7 +42,17 @@ namespace ABP.API.Controllers.v1.Admin
             });
         }
 
-        // GET /api/v1/Admin/commerce/{id}
+        /// <summary>
+        /// Operation: GET /api/v1/Admin/commerce/{id}
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación GET en la ruta /api/v1/Admin/commerce/{id}.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
@@ -54,7 +75,17 @@ namespace ABP.API.Controllers.v1.Admin
             });
         }
 
-        // POST /api/v1/Admin/commerce
+        /// <summary>
+        /// Operation: POST /api/v1/Admin/commerce
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación POST en la ruta /api/v1/Admin/commerce.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateCommerceRequest request)
         {
@@ -73,7 +104,17 @@ namespace ABP.API.Controllers.v1.Admin
             return StatusCode(201, result.Commerce);
         }
 
-        // PUT /api/v1/Admin/commerce/{id}
+        /// <summary>
+        /// Operation: PUT /api/v1/Admin/commerce/{id}
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación PUT en la ruta /api/v1/Admin/commerce/{id}.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateCommerceRequest request)
         {
@@ -91,7 +132,17 @@ namespace ABP.API.Controllers.v1.Admin
             return NoContent();
         }
 
-        // PATCH /api/v1/Admin/commerce/{id}/status
+        /// <summary>
+        /// Operation: PATCH /api/v1/Admin/commerce/{id}/status
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación PATCH en la ruta /api/v1/Admin/commerce/{id}/status.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPatch("{id:int}/status")]
         public async Task<IActionResult> ChangeStatus(int id, [FromBody] ChangeCommerceStatusRequest request)
         {

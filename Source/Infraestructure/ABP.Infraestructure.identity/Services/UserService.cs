@@ -1,4 +1,4 @@
-using ABP.Core.Application.DTOs.User;
+﻿using ABP.Core.Application.DTOs.User;
 using ABP.Core.Application.DTOs.Account;
 using ABP.Core.Application.Interfaces.IServices;
 using ABP.Core.Domain.Enums;
@@ -30,7 +30,7 @@ namespace ABP.Infraestructure.identity.Services
 
             if (user == null)
             {
-                return Fail("The username or password are incorrect.");
+                return Fail("El usuario o la contraseña son incorrectos.");
             }
 
             if (!user.EmailConfirmed)
@@ -39,26 +39,26 @@ namespace ABP.Infraestructure.identity.Services
 
                 if (!passwordIsValid)
                 {
-                    return Fail("The username or password are incorrect.");
+                    return Fail("El usuario o la contraseña son incorrectos.");
                 }
 
                 var confirmationEmailSent = await TryResendConfirmationEmailAsync(user);
 
                 return confirmationEmailSent
-                    ? Fail("Your account has not been confirmed yet. We sent you a new confirmation email.")
-                    : Fail("Your account has not been confirmed yet. We could not send a new confirmation email right now.");
+                    ? Fail("Tu cuenta aún no ha sido confirmada. Te enviamos un nuevo correo de confirmación.")
+                    : Fail("Tu cuenta aún no ha sido confirmada. No pudimos enviar un nuevo correo de confirmación en este momento.");
             }
 
             if (!user.IsActive)
             {
-                return Fail("Your account is inactive. Please complete the pending email process or contact an administrator.");
+                return Fail("Tu cuenta está inactiva. Completa el proceso pendiente por correo o contacta a un administrador.");
             }
 
             var result = await _signInManager.PasswordSignInAsync(user, password, isPersistent: false, lockoutOnFailure: false);
 
             if (!result.Succeeded)
             {
-                return Fail("Invalid credentials.");
+                return Fail("Credenciales inválidas.");
             }
 
             var roles = await _userManager.GetRolesAsync(user);
@@ -66,7 +66,7 @@ namespace ABP.Infraestructure.identity.Services
 
             if (string.IsNullOrEmpty(roleName))
             {
-                return Fail("The user has no assigned role.");
+                return Fail("El usuario no tiene un rol asignado.");
             }
 
             var role = Enum.Parse<UserRole>(roleName);
@@ -245,15 +245,15 @@ namespace ABP.Infraestructure.identity.Services
             await _userManager.UpdateAsync(user);
 
             var resetBody = emailChannel == AccountEmailChannel.Web
-                ? $"Click the following link to reset your password: {BuildResetPasswordLink(user.UserName!, token)}"
-                : $"Artemis Banking Pro API password reset\nUserId: {user.Id}\nToken: {token}";
+                ? $"<div style=\"text-align: center;\"><p>Haga clic en el bot&oacute;n de abajo para restablecer su contrase&ntilde;a:</p><a href=\"{BuildResetPasswordLink(user.UserName!, token)}\" style=\"display: inline-block; padding: 12px 24px; background-color: #c5a059; color: #141414; text-decoration: none; border-radius: 4px; font-weight: bold; margin-top: 16px;\">Restablecer Contrase&ntilde;a</a></div>"
+                : $"<div style=\"text-align: center;\"><p>Has solicitado restablecer tu contrase&ntilde;a mediante la API.</p><p>Utiliza los siguientes datos para completar el proceso:</p><div style=\"background-color: #151515; color: #ffffff; padding: 16px; border-radius: 8px; text-align: left; margin: 16px auto; max-width: 400px; word-break: break-all;\"><strong>UserId:</strong> {user.Id}<br><br><strong>Token:</strong> {token}</div></div>";
 
             await _emailService.SendEmailAsync(new EmailRequest
             {
                 To = user.Email!,
-                Subject = "Reset your ArtemisBank Password",
+                Subject = "Restablecer su contraseÃ±a de ArtemisBank",
                 Body = resetBody,
-                IsHtml = false
+                IsHtml = true
             });
 
             return true;
@@ -377,7 +377,7 @@ namespace ABP.Infraestructure.identity.Services
                 if (!deposited)
                 {
                     throw new InvalidOperationException(
-                        "El usuario se actualizó, pero no fue posible acreditar el monto adicional en su cuenta principal.");
+                        "El usuario se actualizÃƒÂ³, pero no fue posible acreditar el monto adicional en su cuenta principal.");
                 }
             }
 
@@ -472,11 +472,11 @@ namespace ABP.Infraestructure.identity.Services
                 </tr>
               </table>
 
-              <p style="margin:0 0 22px; color:#5f625f; font-size:15px; line-height:1.6;">Cuando estés listo, utiliza el botón para confirmar tu correo y habilitar el acceso.</p>
+              <p style="margin:0 0 22px; color:#5f625f; font-size:15px; line-height:1.6;">Cuando estÃƒÂ©s listo, utiliza el botÃƒÂ³n para confirmar tu correo y habilitar el acceso.</p>
               <table role="presentation" cellspacing="0" cellpadding="0">
                 <tr>
                   <td style="border-radius:8px; background:#c5a059;">
-                    <a href="{{safeActivationLink}}" style="display:inline-block; padding:15px 24px; color:#141414; font-size:15px; font-weight:bold; text-decoration:none;">Activar mi cuenta&nbsp; →</a>
+                    <a href="{{safeActivationLink}}" style="display:inline-block; padding:15px 24px; color:#141414; font-size:15px; font-weight:bold; text-decoration:none;">Activar mi cuenta&nbsp; Ã¢â€ â€™</a>
                   </td>
                 </tr>
               </table>
@@ -485,7 +485,7 @@ namespace ABP.Infraestructure.identity.Services
             </td>
           </tr>
           <tr>
-            <td style="padding:22px 38px; border-top:1px solid #eeeae2; background:#faf9f6; color:#88847b; font-size:12px; line-height:1.6;">Artemis Banking Pro · Private Wealth<br>Este mensaje fue enviado automáticamente; por favor, no respondas a este correo.</td>
+            <td style="padding:22px 38px; border-top:1px solid #eeeae2; background:#faf9f6; color:#88847b; font-size:12px; line-height:1.6;">Artemis Banking Pro Ã‚Â· Private Wealth<br>Este mensaje fue enviado automÃƒÂ¡ticamente; por favor, no respondas a este correo.</td>
           </tr>
         </table>
       </td>
@@ -497,7 +497,7 @@ namespace ABP.Infraestructure.identity.Services
         }
 
         private static string BuildActivationEmailText(ApplicationUser user, string activationLink) =>
-            $"Hola {user.FirstName},\n\nTu cuenta de Artemis Banking Pro está lista. Activa tus credenciales para comenzar.\n\nUsuario: {user.UserName}\nPerfil: {GetRoleLabel(user.Role)}\n\nActiva tu cuenta aquí:\n{activationLink}\n\nEste enlace es personal y de un solo uso. Si no reconoces esta solicitud, puedes ignorar este mensaje.\n\nArtemis Banking Pro · Private Wealth";
+            $"Hola {user.FirstName},\n\nTu cuenta de Artemis Banking Pro está lista. Activa tus credenciales para comenzar.\n\nUsuario: {user.UserName}\nPerfil: {GetRoleLabel(user.Role)}\n\nActiva tu cuenta aquÃƒÂ­:\n{activationLink}\n\nEste enlace es personal y de un solo uso. Si no reconoces esta solicitud, puedes ignorar este mensaje.\n\nArtemis Banking Pro Ã‚Â· Private Wealth";
 
         private static string GetRoleLabel(UserRole role) => role switch
         {
@@ -566,3 +566,7 @@ namespace ABP.Infraestructure.identity.Services
         #endregion
     }
 }
+
+
+
+
