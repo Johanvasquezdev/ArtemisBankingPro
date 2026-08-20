@@ -11,10 +11,10 @@ Content-Type: {{contentType}}
   "password": "123Pa$$word!"
 }
 
-### 2) Se captura automáticamente el JWT de la respuesta del LOGIN
-@token = {{loginRequest.response.body.$.jwt}}
+### 2) Â¡IMPORTANTE! Pega aquÃ­ el JWT que te devuelve el Login (paso 1)
+@token = PEGA_TU_TOKEN_AQUI
 
-### COMMERCE — Crear
+### COMMERCE â€” Crear
 ### Caso feliz: debe dar 201 Created
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
@@ -28,15 +28,15 @@ Authorization: Bearer {{token}}
   "logo": "logo-demo.png"
 }
 
-### Guarda el id que te devolvió el POST de arriba para los siguientes bloques
+### Guarda el id que te devolviÃ³ el POST de arriba para los siguientes bloques
 @commerceId = 7
 
-### Caso de error esperado: RNC con menos de 9 dígitos -> 400 Bad Request
+### Caso de error esperado: RNC con menos de 9 dÃ­gitos -> 400 Bad Request
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
 {
-  "name": "Comercio RNC Inválido",
+  "name": "Comercio RNC InvÃ¡lido",
   "description": "Debe fallar",
   "rnc": "12345",
   "email": "invalido@demo.com",
@@ -44,12 +44,12 @@ Authorization: Bearer {{token}}
   "logo": "logo.png"
 }
 
-### Caso de error esperado: correo con formato inválido -> 400 Bad Request
+### Caso de error esperado: correo con formato invÃ¡lido -> 400 Bad Request
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
 {
-  "name": "Comercio Email Inválido",
+  "name": "Comercio Email InvÃ¡lido",
   "description": "Debe fallar",
   "rnc": "987654321",
   "email": "esto-no-es-un-correo",
@@ -58,7 +58,7 @@ Authorization: Bearer {{token}}
 }
 
 ### Caso de error esperado: RNC duplicado (repite el mismo del primer POST) -> 409 Conflict
-### Este SÍ debe venir en formato ApiProblem ("title": "Comercio duplicado", ...)
+### Este SÃ debe venir en formato ApiProblem ("title": "Comercio duplicado", ...)
 POST {{host}}/api/v1/Admin/commerce
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
@@ -83,7 +83,7 @@ Authorization: Bearer {{token}}
   "phoneNumber": "8095551234",
   "logo": "logo.png"
 }
-### COMMERCE — Listar
+### COMMERCE â€” Listar
 ### Listado por defecto (activos, page=1, pageSize=20)
 GET {{host}}/api/v1/Admin/commerce
 Authorization: Bearer {{token}}
@@ -102,7 +102,7 @@ Authorization: Bearer {{token}}
 GET {{host}}/api/v1/Admin/commerce?pageSize=50
 Authorization: Bearer {{token}}
 
-### COMMERCE — Consultar por Id
+### COMMERCE â€” Consultar por Id
 ### Debe existir (usa el {{commerceId}} guardado arriba)
 GET {{host}}/api/v1/Admin/commerce/{{commerceId}}
 Authorization: Bearer {{token}}
@@ -111,14 +111,14 @@ Authorization: Bearer {{token}}
 GET {{host}}/api/v1/Admin/commerce/999999
 Authorization: Bearer {{token}}
 
-### COMMERCE — Actualizar
-### Actualización válida -> 204 No Content
+### COMMERCE â€” Actualizar
+### ActualizaciÃ³n vÃ¡lida -> 204 No Content
 PUT {{host}}/api/v1/Admin/commerce/{{commerceId}}
 Content-Type: {{contentType}}
 Authorization: Bearer {{token}}
 {
   "name": "Tienda Demo Actualizada",
-  "description": "Descripción actualizada",
+  "description": "DescripciÃ³n actualizada",
   "rnc": "123456789",
   "email": "contacto.actualizado@tiendademo.com",
   "phoneNumber": "8095555678",
@@ -138,7 +138,7 @@ Authorization: Bearer {{token}}
   "logo": "logo.png"
 }
 
-### COMMERCE — Cambiar estado (con cascada de usuarios asociados)
+### COMMERCE â€” Cambiar estado (con cascada de usuarios asociados)
 ### Desactivar -> 204 No Content. Si el comercio tiene un usuario Comercio
 ### asociado y activo, revisa en Supabase que haya quedado IsActive=false.
 PATCH {{host}}/api/v1/Admin/commerce/{{commerceId}}/status
@@ -162,7 +162,7 @@ Authorization: Bearer {{token}}
 ### Sin token -> 401 Unauthorized
 GET {{host}}/api/v1/Admin/commerce
 
-### Token corrupto (le quito el último carácter a propósito) -> 401 Unauthorized
+### Token corrupto (le quito el Ãºltimo carÃ¡cter a propÃ³sito) -> 401 Unauthorized
 GET {{host}}/api/v1/Admin/commerce
 Authorization: Bearer 1f4XSa{{token}}
 
