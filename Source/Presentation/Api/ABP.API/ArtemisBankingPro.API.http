@@ -1,7 +1,8 @@
-@host = http://localhost:5165
+﻿@host = http://localhost:5165
 @contentType = application/json
 
 ### 1) LOGIN
+# @name loginRequest
 POST {{host}}/api/v1/Account/login
 Content-Type: {{contentType}}
 {
@@ -9,8 +10,8 @@ Content-Type: {{contentType}}
   "password": "123Pa$$word!"
 }
 
-### 2) Pega aquí el jwt 
-@token = eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJlbWFpbCI6ImFkbWluQGFydGVtaXNiYW5rLmNvbSIsImp0aSI6IjhiNjQ5MmU5LTVjMjItNGQxYy1iMzMyLTNhNTkxZTY5NGZkZiIsImh0dHA6Ly9zY2hlbWFzLnhtbHNvYXAub3JnL3dzLzIwMDUvMDUvaWRlbnRpdHkvY2xhaW1zL25hbWUiOiJBZG1pblVzZXIiLCJ1aWQiOiJlNjdlYmI5ZC02Njc5LTQxYWItODg4NS0wMDliZmI3OWYzYWYiLCJjb21tZXJjZUlkIjoiMCIsImh0dHA6Ly9zY2hlbWFzLm1pY3Jvc29mdC5jb20vd3MvMjAwOC8wNi9pZGVudGl0eS9jbGFpbXMvcm9sZSI6IkFkbWluIiwiZXhwIjoxNzg3MTQwMzgzLCJpc3MiOiJBcnRlbWlzQmFuay5BUEkiLCJhdWQiOiJBcnRlbWlzQmFuay5DbGllbnQifQ.hyhJL8-TVjU2KqtRrqHYHffe5nHUabih76K9_54b5kQ
+### 2) Se captura automáticamente el JWT de la respuesta del LOGIN
+@token = {{loginRequest.response.body.jwt}}
 
 ### COMMERCE — Crear
 ### Caso feliz: debe dar 201 Created
