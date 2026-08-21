@@ -120,7 +120,10 @@ namespace ABP.Infraestructure.identity.Services
                 return false;
             }
 
-            if (!result.Succeeded) return false;
+            if (!result.Succeeded)
+            {
+                return false;
+            }
 
             if (parsedRole == UserRole.Client && initialAmount >= 0)
             {
@@ -141,13 +144,11 @@ namespace ABP.Infraestructure.identity.Services
         public async Task<bool> RegisterCommerceUserAsync(string firstName, string lastName, string cedula, string username, string email, string password, int commerceId, AccountEmailChannel emailChannel = AccountEmailChannel.Api)
         {
             var commerce = await _commerceService.GetByIdAsync(commerceId);
-            if (commerce is null || !commerce.IsActive)
-                return false;
+            if (commerce is null || !commerce.IsActive) return false;
 
             var alreadyAssociated = await _userManager.Users.AnyAsync(user =>
                 user.Role == UserRole.Commerce && user.CommerceId == commerceId);
-            if (alreadyAssociated)
-                return false;
+            if (alreadyAssociated) return false;
 
             var existingUser = await _userManager.FindByNameAsync(username);
             if (existingUser != null) return false;
@@ -181,7 +182,10 @@ namespace ABP.Infraestructure.identity.Services
                 return false;
             }
 
-            if (!result.Succeeded) return false;
+            if (!result.Succeeded)
+            {
+                return false;
+            }
 
             var roleResult = await _userManager.AddToRoleAsync(user, UserRole.Commerce.ToString());
             if (!roleResult.Succeeded)
@@ -366,7 +370,10 @@ namespace ABP.Infraestructure.identity.Services
                 return false;
             }
 
-            if (!result.Succeeded) return false;
+            if (!result.Succeeded)
+            {
+                return false;
+            }
 
             if (additionalAmount > 0 && primaryAccount is not null)
             {
@@ -566,6 +573,12 @@ namespace ABP.Infraestructure.identity.Services
         #endregion
     }
 }
+
+
+
+
+
+
 
 
 

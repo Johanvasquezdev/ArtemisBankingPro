@@ -21,7 +21,7 @@ namespace ABP.API.Controllers.v1.Admin
         /// Ejecuta la operación GET en la ruta /api/v1/savings-account.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
@@ -42,7 +42,7 @@ namespace ABP.API.Controllers.v1.Admin
         /// Ejecuta la operación POST en la ruta /api/v1/savings-account.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -61,7 +61,7 @@ namespace ABP.API.Controllers.v1.Admin
             }
             catch (KeyNotFoundException ex)
             {
-                return ApiProblem(StatusCodes.Status400BadRequest, "Cliente no encontrado", ex.Message);
+                return ApiProblem(StatusCodes.Status404NotFound, "Cliente no encontrado", ex.Message);
             }
             catch (InvalidOperationException ex)
             {
@@ -76,14 +76,14 @@ namespace ABP.API.Controllers.v1.Admin
         /// Ejecuta la operación GET en la ruta /api/v1/savings-account/{accountNumber}/transactions.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("{accountNumber}/transactions")]
         public async Task<IActionResult> GetTransactions(string accountNumber, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             var result = await _mediator.Send(new GetSavingsAccountTransactionsQuery(accountNumber, page, pageSize));
-            if (result == null) return ApiProblem(StatusCodes.Status400BadRequest, "Cuenta no encontrada", "La cuenta especificada no existe.");
+            if (result == null) return ApiProblem(StatusCodes.Status404NotFound, "Cuenta no encontrada", "La cuenta especificada no existe.");
 
             return Ok(new
             {
@@ -108,7 +108,7 @@ namespace ABP.API.Controllers.v1.Admin
         /// Ejecuta la operación PATCH en la ruta /api/v1/savings-account/{accountNumber}/cancel.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPatch("{accountNumber}/cancel")]
@@ -125,7 +125,7 @@ namespace ABP.API.Controllers.v1.Admin
             }
             catch (Exception)
             {
-                return ApiProblem(StatusCodes.Status400BadRequest, "Cuenta no encontrada", "La cuenta especificada no existe.");
+                return ApiProblem(StatusCodes.Status404NotFound, "Cuenta no encontrada", "La cuenta especificada no existe.");
             }
         }
     }

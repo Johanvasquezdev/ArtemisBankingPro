@@ -71,7 +71,7 @@ namespace ABP.API.Controllers.v1
         /// <response code="400">Datos inválidos o comercio/tarjeta inactiva</response>
         /// <response code="401">Token ausente o inválido</response>
         [HttpPost("process-payment/{commerceId}")]
-        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(typeof(PaymentResultDto), StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> ProcessPayment(
@@ -110,7 +110,7 @@ namespace ABP.API.Controllers.v1
             if (!result.Success)
                 return ApiProblem(400, "Pago rechazado", result.Message ?? "El pago no pudo procesarse.");
 
-            return NoContent();
+            return Ok(result);
         }
     }
 }

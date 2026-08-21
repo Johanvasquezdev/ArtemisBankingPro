@@ -20,7 +20,7 @@ namespace ABP.API.Controllers.v1.Admin
         /// Ejecuta la operación GET en la ruta /api/v1/commerce.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
@@ -47,7 +47,7 @@ namespace ABP.API.Controllers.v1.Admin
         /// Ejecuta la operación GET en la ruta /api/v1/commerce/{id}.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status200OK)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("{id:int}")]
@@ -55,7 +55,7 @@ namespace ABP.API.Controllers.v1.Admin
         {
             var result = await _mediator.Send(new GetCommerceByIdQuery(id));
             if (result == null)
-                return ApiProblem(StatusCodes.Status400BadRequest, "Comercio no encontrado", "El comercio especificado no existe.");
+                return ApiProblem(StatusCodes.Status404NotFound, "Comercio no encontrado", "El comercio especificado no existe.");
 
             return Ok(new
             {
@@ -79,7 +79,7 @@ namespace ABP.API.Controllers.v1.Admin
         /// Ejecuta la operación POST en la ruta /api/v1/commerce.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status201Created)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status409Conflict)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -108,7 +108,7 @@ namespace ABP.API.Controllers.v1.Admin
         /// Ejecuta la operación PUT en la ruta /api/v1/commerce/{id}.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPut("{id:int}")]
@@ -119,7 +119,7 @@ namespace ABP.API.Controllers.v1.Admin
                 request.Email, request.PhoneNumber, request.Rnc));
 
             if (result.NotFound)
-                return ApiProblem(StatusCodes.Status400BadRequest, "Comercio no encontrado", "El comercio especificado no existe.");
+                return ApiProblem(StatusCodes.Status404NotFound, "Comercio no encontrado", "El comercio especificado no existe.");
             if (result.RncAlreadyExists)
                 return ApiProblem(StatusCodes.Status409Conflict, "RNC duplicado", "El RNC pertenece a otro comercio.");
             if (result.EmailAlreadyExists)
@@ -135,7 +135,7 @@ namespace ABP.API.Controllers.v1.Admin
         /// Ejecuta la operación PATCH en la ruta /api/v1/commerce/{id}/status.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status204NoContent)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]        [ProducesResponseType(StatusCodes.Status404NotFound)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPatch("{id:int}/status")]
@@ -143,7 +143,7 @@ namespace ABP.API.Controllers.v1.Admin
         {
             var changed = await _mediator.Send(new ChangeCommerceStatusCommand(id, request.Status));
             if (!changed)
-                return ApiProblem(StatusCodes.Status400BadRequest, "Comercio no encontrado", "El comercio especificado no existe.");
+                return ApiProblem(StatusCodes.Status404NotFound, "Comercio no encontrado", "El comercio especificado no existe.");
             return NoContent();
         }
     }

@@ -29,7 +29,7 @@ public class EmailQueueIntegrationTests
 
         var config = new ConfigurationBuilder().AddInMemoryCollection(new[]
         {
-            new System.Collections.Generic.KeyValuePair<string, string?>("AzureWebJobsStorage", connectionString)
+            new System.Collections.Generic.KeyValuePair<string, string?>("ConnectionStrings:AzureWebJobsStorage", connectionString)
         }).Build();
 
         var emailSettings = new Microsoft.Extensions.Options.OptionsWrapper<EmailSettings>(new EmailSettings

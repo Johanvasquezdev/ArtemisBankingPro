@@ -315,8 +315,8 @@ namespace ABP.Core.Application.Interfaces.Services
         {
             var recipients = new[]
             {
-                (UserId: cardOwnerId, Subject: "Hermes Pay: pago aprobado", Body: $"Tu pago de {amount:C2} en {commerceName} fue aprobado."),
-                (UserId: commerceUserId, Subject: "Hermes Pay: pago recibido", Body: $"Recibiste un pago de {amount:C2} en {commerceName}.")
+                (UserId: cardOwnerId, Subject: "Hermes Pay: pago aprobado", Body: $"Tu pago de {amount:C2} en {commerceName} fue aprobado el {DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm")}."),
+                (UserId: commerceUserId, Subject: "Hermes Pay: pago recibido", Body: $"Recibiste un pago de {amount:C2} en {commerceName} el {DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm")}.")
             };
 
             foreach (var recipient in recipients)

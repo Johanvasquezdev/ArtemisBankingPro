@@ -60,6 +60,10 @@ internal sealed class ClientTransactionService : IClientTransactionService
             var destination = await _accountRepo.GetByAccountNumberAsync(dto.DestinationAccountNumber)
                 ?? throw new InvalidAccountException();
 
+            var destOwner = await _userService.GetByIdAsync(destination.UserId);
+            if (destOwner == null || !destOwner.IsActive)
+                throw new InvalidAccountException();
+
             if (destination.Status != AccountStatus.Active)
                 throw new InvalidAccountException();
 
@@ -276,6 +280,10 @@ internal sealed class ClientTransactionService : IClientTransactionService
 
             var destination = await _accountRepo.GetByAccountNumberAsync(beneficiary.AccountNumber)
                 ?? throw new InvalidAccountException();
+
+            var destOwner = await _userService.GetByIdAsync(destination.UserId);
+            if (destOwner == null || !destOwner.IsActive)
+                throw new InvalidAccountException();
 
             if (destination.Status != AccountStatus.Active)
                 throw new InvalidAccountException();

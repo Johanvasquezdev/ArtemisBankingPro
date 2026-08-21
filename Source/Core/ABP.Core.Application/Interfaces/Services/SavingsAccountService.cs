@@ -85,6 +85,10 @@ namespace ABP.Core.Application.Interfaces.Services
 
         public async Task<SavingsAccountDto> CreateAccountAsync(string clientId, string adminId, decimal initialAmount, AccountType type = AccountType.Primary)
         {
+            var user = await _userService.GetByIdAsync(clientId);
+            if (user == null)
+                throw new InvalidOperationException("El usuario debe existir para crear cuentas.");
+
             string accountNumber;
             do
             {
@@ -293,6 +297,10 @@ namespace ABP.Core.Application.Interfaces.Services
 
         public async Task AssignSecondaryAsync(AssignSavingsAccountDto dto)
         {
+            var user = await _userService.GetByIdAsync(dto.ClientId);
+            if (user == null)
+                throw new InvalidOperationException("El usuario debe existir para asignar cuentas.");
+
             string accountNumber;
             do
             {
@@ -404,3 +412,4 @@ namespace ABP.Core.Application.Interfaces.Services
 
     }
 }
+

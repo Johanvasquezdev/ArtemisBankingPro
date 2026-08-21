@@ -22,9 +22,8 @@ namespace ABP.Core.Domain.Entities
         public DateTime CreatedAt { get; set; }
         public string Description { get; set; } = string.Empty;
         /// <summary>
-        /// Identity user that physically performed the operation (for example, a cashier).
-        /// It is nullable because client/system operations do not have a cashier actor.
+        /// Identity user that physically performed the operation.
         /// </summary>
-        public string? PerformedByUserId { get; set; }
+        public string PerformedByUserId { get; set; } = string.Empty;
     }
 }

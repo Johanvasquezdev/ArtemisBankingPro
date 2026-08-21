@@ -240,7 +240,8 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
             password = "123Pa$$word!",
             confirmPassword = "123Pa$$word!"
         });
-        commerceUser.StatusCode.Should().Be(HttpStatusCode.Created);
+        var commerceUserBodyStr = await commerceUser.Content.ReadAsStringAsync();
+        commerceUser.StatusCode.Should().Be(HttpStatusCode.Created, $"Body: {commerceUserBodyStr}");
         (await client.GetAsync("/api/v1/users/commerce?page=1&pageSize=20"))
             .StatusCode.Should().Be(HttpStatusCode.OK);
 
@@ -383,7 +384,7 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
         first.Headers.Add("Idempotency-Key", "hermes-integration-001");
         using var firstResponse = await client.SendAsync(first);
 
-        firstResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
+        firstResponse.StatusCode.Should().Be(HttpStatusCode.OK);
 
         using var second = new HttpRequestMessage(HttpMethod.Post,
             $"/api/v1/pay/process-payment/{fixture.CommerceId}")
