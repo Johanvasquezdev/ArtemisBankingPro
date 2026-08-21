@@ -66,6 +66,7 @@ namespace ABP.Infraestructure.identity
             services.AddTransient<IJwtService, JwtService>();
             services.AddTransient<ICorreoServices, EmailService>();
             services.AddTransient<IEmailServices, EmailService>();
+            services.AddTransient<ABP.Core.Application.Interfaces.Services.IWebAuthnService, WebAuthnService>();
             #endregion
         }
         #endregion

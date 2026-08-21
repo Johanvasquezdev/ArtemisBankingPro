@@ -1,0 +1,90 @@
+@{
+    ViewData["Title"] = "Hermes Pay - La Pasarela de Pagos";
+    Layout = "~/Views/Shared/_Layout.cshtml"; // Public layout
+}
+
+<div class="bg-obsidian text-ivory py-20 px-6">
+    <div class="max-w-4xl mx-auto text-center">
+        <h1 class="text-4xl md:text-6xl font-serif font-bold mb-6 text-gold">Hermes Pay</h1>
+        <p class="text-lg md:text-xl text-ivory/80 mb-10">La pasarela de pagos definitiva para tu comercio. Conecta con tus clientes, procesa pagos al instante y gestiona tus transacciones con facilidad.</p>
+        <a href="#demo" class="abp-btn abp-btn-gold inline-flex items-center justify-center px-8 text-obsidian bg-gold hover:bg-gold/90 transition-colors">Ver Demo</a>
+        <a href="/Admin/Commerces/Create" class="ml-4 inline-flex items-center justify-center px-8 py-3 rounded-md font-bold border border-gold text-gold hover:bg-gold/10 transition-colors">Registrar Comercio</a>
+    </div>
+</div>
+
+<div class="py-16 bg-white" id="demo">
+    <div class="max-w-4xl mx-auto px-6">
+        <h2 class="text-3xl font-serif font-bold text-obsidian text-center mb-12">¿Cómo funciona Hermes Pay?</h2>
+        
+        <div class="grid md:grid-cols-2 gap-12 items-center">
+            <div>
+                <ol class="space-y-6">
+                    <li class="flex gap-4">
+                        <div class="w-10 h-10 rounded-full bg-gold/20 text-gold flex items-center justify-center font-bold flex-shrink-0">1</div>
+                        <div>
+                            <h3 class="text-lg font-bold text-obsidian">Integración Sencilla</h3>
+                            <p class="text-obsidian/70">Añade nuestro botón de pago en tu sitio web. Configura tu cuenta de comercio en minutos.</p>
+                        </div>
+                    </li>
+                    <li class="flex gap-4">
+                        <div class="w-10 h-10 rounded-full bg-gold/20 text-gold flex items-center justify-center font-bold flex-shrink-0">2</div>
+                        <div>
+                            <h3 class="text-lg font-bold text-obsidian">Procesamiento Seguro</h3>
+                            <p class="text-obsidian/70">Tus clientes introducen su tarjeta de crédito. Validamos y procesamos la transacción en tiempo real.</p>
+                        </div>
+                    </li>
+                    <li class="flex gap-4">
+                        <div class="w-10 h-10 rounded-full bg-gold/20 text-gold flex items-center justify-center font-bold flex-shrink-0">3</div>
+                        <div>
+                            <h3 class="text-lg font-bold text-obsidian">Liquidación Inmediata</h3>
+                            <p class="text-obsidian/70">Los fondos se acreditan a tu cuenta de liquidación principal de Artemis Banking Pro.</p>
+                        </div>
+                    </li>
+                </ol>
+            </div>
+            
+            <div class="abp-panel bg-white p-6 border border-obsidian/10 shadow-lg">
+                <h4 class="text-xl font-serif font-bold text-obsidian mb-4 text-center">Demo de Checkout</h4>
+                <div class="bg-gray-50 p-4 rounded-md mb-6 border border-gray-200">
+                    <div class="flex justify-between items-center mb-2">
+                        <span class="text-obsidian/70">Producto de prueba</span>
+                        <span class="font-bold text-obsidian">RD$ 1,500.00</span>
+                    </div>
+                    <div class="flex justify-between items-center">
+                        <span class="text-obsidian/70">Impuestos</span>
+                        <span class="font-bold text-obsidian">RD$ 270.00</span>
+                    </div>
+                    <hr class="my-2 border-gray-200" />
+                    <div class="flex justify-between items-center">
+                        <span class="font-bold text-obsidian">Total</span>
+                        <span class="font-bold text-gold text-xl">RD$ 1,770.00</span>
+                    </div>
+                </div>
+                
+                <form class="abp-form flex flex-col" onsubmit="event.preventDefault(); alert('¡Pago procesado con éxito a través de Hermes Pay!');">
+                    <div>
+                        <label class="abp-label">Número de Tarjeta</label>
+                        <input type="text" class="abp-input w-full px-4 border border-obsidian/20" placeholder="0000 0000 0000 0000" disabled />
+                    </div>
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <label class="abp-label">Vencimiento</label>
+                            <input type="text" class="abp-input w-full px-4 border border-obsidian/20" placeholder="MM/YY" disabled />
+                        </div>
+                        <div>
+                            <label class="abp-label">CVC</label>
+                            <input type="text" class="abp-input w-full px-4 border border-obsidian/20" placeholder="123" disabled />
+                        </div>
+                    </div>
+                    <button type="button" onclick="alert('Esta es una demo. Registra tu comercio para usar Hermes Pay en la vida real.')" class="abp-btn abp-btn-gold bg-gold text-obsidian w-full mt-4 flex items-center justify-center gap-2">
+                        <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect>
+                            <line x1="1" y1="10" x2="23" y2="10"></line>
+                        </svg>
+                        Pagar RD$ 1,770.00
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>

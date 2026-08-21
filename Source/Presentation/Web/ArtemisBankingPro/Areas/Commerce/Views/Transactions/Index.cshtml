@@ -1,0 +1,83 @@
+@model ABP.Core.Application.DTOs.PaginatedResult<ABP.Core.Application.DTOs.Payment.PaymentTransactionDto>
+
+@{
+    ViewData["Title"] = "Transacciones";
+}
+
+<div class="abp-content-header flex flex-col md:flex-row md:items-end justify-between gap-4 mb-8">
+    <div>
+        <h2 class="text-2xl font-serif font-bold text-obsidian tracking-tight">Transacciones</h2>
+        <p class="text-sm text-obsidian/60 mt-1">Historial completo de ventas a través de Hermes Pay.</p>
+    </div>
+</div>
+
+<div class="abp-panel bg-white border border-obsidian/10 overflow-hidden">
+    <div class="overflow-x-auto">
+        <table class="abp-table w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-obsidian/5 border-b border-obsidian/10">
+                    <th class="px-6 py-3 text-obsidian/60 font-semibold w-1/5">ID</th>
+                    <th class="px-6 py-3 text-obsidian/60 font-semibold w-1/5">FECHA</th>
+                    <th class="px-6 py-3 text-obsidian/60 font-semibold w-1/5">TARJETA</th>
+                    <th class="px-6 py-3 text-obsidian/60 font-semibold w-1/5 text-right">MONTO</th>
+                    <th class="px-6 py-3 text-obsidian/60 font-semibold w-1/5 text-center">ESTADO</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-obsidian/5 text-sm">
+                @if (Model != null && Model.Items.Any())
+                {
+                    foreach (var tx in Model.Items)
+                    {
+                        <tr>
+                            <td class="px-6 py-4 text-obsidian/60">#@tx.Id</td>
+                            <td class="px-6 py-4 text-obsidian/80">@tx.TransactionDate.ToString("dd MMM yyyy, HH:mm")</td>
+                            <td class="px-6 py-4 text-obsidian font-medium font-mono">**** @tx.CardLastFourDigits</td>
+                            <td class="px-6 py-4 text-obsidian font-bold text-right">RD$ @string.Format("{0:N2}", tx.Amount)</td>
+                            <td class="px-6 py-4 text-center">
+                                @if (tx.Status == ABP.Core.Domain.Enums.TransactionStatus.Approved)
+                                {
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-green-100 text-green-700">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-green-500"></span> Aprobada
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-red-100 text-red-700">
+                                        <span class="w-1.5 h-1.5 rounded-full bg-red-500"></span> Rechazada
+                                    </span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="5" class="px-6 py-8 text-center text-obsidian/50">
+                            No se encontraron transacciones.
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+    
+    @if (Model != null && Model.TotalCount > Model.PageSize)
+    {
+        <div class="px-6 py-4 border-t border-obsidian/5 flex items-center justify-between">
+            <div class="text-sm text-obsidian/60">
+                Mostrando @(((Model.Page - 1) * Model.PageSize) + 1) a @Math.Min(Model.Page * Model.PageSize, Model.TotalCount) de @Model.TotalCount
+            </div>
+            <div class="flex gap-2">
+                @if (Model.Page > 1)
+                {
+                    <a href="/Commerce/Transactions?page=@(Model.Page - 1)" class="px-3 py-1.5 rounded-md border border-obsidian/20 text-sm font-medium hover:bg-obsidian/5 transition-colors">Anterior</a>
+                }
+                @if (Model.Page * Model.PageSize < Model.TotalCount)
+                {
+                    <a href="/Commerce/Transactions?page=@(Model.Page + 1)" class="px-3 py-1.5 rounded-md border border-obsidian/20 text-sm font-medium hover:bg-obsidian/5 transition-colors">Siguiente</a>
+                }
+            </div>
+        </div>
+    }
+</div>

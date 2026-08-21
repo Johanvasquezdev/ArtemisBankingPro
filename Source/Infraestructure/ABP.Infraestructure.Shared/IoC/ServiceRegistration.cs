@@ -1,4 +1,5 @@
 using ABP.Core.Application.Interfaces.IServices;
+using ABP.Core.Application.Interfaces.Services;
 using ABP.Core.Domain.Interfaces;
 using ABP.Infraestructure.Shared.EmailServices;
 using ABP.Infraestructure.Shared.Services;
@@ -15,6 +16,10 @@ namespace ABP.Infraestructure.Shared.IoC
             services.Configure<EmailSettings>(configuration.GetSection("EmailSettings"));
             services.AddTransient<IEmailServices, EmailService>();
             services.AddSingleton<IDateTimeProvider, SystemDateTimeProvider>();
+            
+            services.AddTransient<IPaymentGatewayService, StripePaymentService>();
+            services.AddTransient<ISmsService, TwilioSmsService>();
+            services.AddTransient<IOcrService, TesseractOcrService>();
         }
     }
 }

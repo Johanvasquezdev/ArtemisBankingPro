@@ -21,7 +21,12 @@ namespace ArtemisBankingPro.Controllers
         {
             if (User.Identity != null && User.Identity.IsAuthenticated)
             {
-                return RedirectToDashboard(User.IsInRole(UserRole.Admin.ToString()), User.IsInRole(UserRole.Cashier.ToString()));
+                var role = UserRole.Client;
+                if (User.IsInRole(UserRole.Admin.ToString())) role = UserRole.Admin;
+                else if (User.IsInRole(UserRole.Cashier.ToString())) role = UserRole.Cashier;
+                else if (User.IsInRole(UserRole.Commerce.ToString())) role = UserRole.Commerce;
+                
+                return RedirectToDashboard(role);
             }
             return View(new LoginViewModel());
         }
@@ -39,7 +44,7 @@ namespace ArtemisBankingPro.Controllers
 
             if (result.Success)
             {
-                return RedirectToDashboard(result.Role == UserRole.Admin, result.Role == UserRole.Cashier);
+                return RedirectToDashboard(result.Role);
             }
 
             model.HasError = true;
@@ -121,15 +126,19 @@ namespace ArtemisBankingPro.Controllers
             return View();
         }
 
-        private IActionResult RedirectToDashboard(bool isAdmin, bool isCashier)
+        private IActionResult RedirectToDashboard(UserRole role)
         {
-            if (isAdmin)
+            if (role == UserRole.Admin)
             {
                 return RedirectToAction("Index", "Dashboard", new { area = "Admin" });
             }
-            if (isCashier)
+            if (role == UserRole.Cashier)
             {
                 return RedirectToAction("Index", "CashierHome", new { area = "Cashier" });
+            }
+            if (role == UserRole.Commerce)
+            {
+                return RedirectToAction("Index", "Dashboard", new { area = "Commerce" });
             }
             return RedirectToAction("Index", "Home", new { area = "Client" });
         }

@@ -14,6 +14,9 @@ namespace ABP.Infraestructure.Persistence.Context
         public DbSet<SavingsAccount> Savings { get; set; }
         public DbSet<Transaction> Transactions { get; set; }
         public DbSet<IdempotencyRecord> IdempotencyRecords { get; set; }
+        public DbSet<ExternalPaymentTransaction> ExternalPayments { get; set; }
+        public DbSet<IdentityVerificationDocument> VerificationDocuments { get; set; }
+        public DbSet<UserBiometricCredential> BiometricCredentials { get; set; }
 
         protected override void OnModelCreating(ModelBuilder mb)
         {
