@@ -117,6 +117,7 @@ namespace ABP.Infraestructure.Shared.EmailServices
             email.Body = builder.ToMessageBody();
 
             using var smtp = new SmtpClient();
+            smtp.CheckCertificateRevocation = _settings.CheckCertificateRevocation;
 
             var socketOptions = _settings.SmtpPort == 465
                 ? SecureSocketOptions.SslOnConnect

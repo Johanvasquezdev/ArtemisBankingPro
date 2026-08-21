@@ -10,6 +10,11 @@ namespace ABP.Infraestructure.Persistence.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.Sql(
+                "UPDATE \"artemisBankingPro\".\"Transactions\" " +
+                "SET \"PerformedByUserId\" = 'legacy-system' " +
+                "WHERE \"PerformedByUserId\" IS NULL OR BTRIM(\"PerformedByUserId\") = '';");
+
             migrationBuilder.AlterColumn<string>(
                 name: "PerformedByUserId",
                 schema: "artemisBankingPro",
@@ -17,7 +22,6 @@ namespace ABP.Infraestructure.Persistence.Migrations
                 type: "character varying(450)",
                 maxLength: 450,
                 nullable: false,
-                defaultValue: "",
                 oldClrType: typeof(string),
                 oldType: "character varying(450)",
                 oldMaxLength: 450,
