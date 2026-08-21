@@ -50,7 +50,7 @@ public class HermesPayControllerTests
     }
 
     [Fact]
-    public async Task GetTransactions_InactiveCommerce_ShouldReturnProblemDetailsNotFound()
+    public async Task GetTransactions_InactiveCommerce_ShouldReturnProblemDetailsBadRequest()
     {
         var mediator = new Mock<IMediator>();
         var commerceRepo = new Mock<ICommerceRepository>();
@@ -66,8 +66,8 @@ public class HermesPayControllerTests
         var result = await controller.GetTransactions(10, 1, 20);
         
         var problem = result.Should().BeOfType<ObjectResult>().Subject;
-        problem.StatusCode.Should().Be(StatusCodes.Status404NotFound);
+        problem.StatusCode.Should().Be(StatusCodes.Status400BadRequest);
         problem.Value.Should().BeOfType<ProblemDetails>()
-            .Which.Title.Should().Be("Comercio no encontrado");
+            .Which.Title.Should().Be("Comercio inactivo");
     }
 }

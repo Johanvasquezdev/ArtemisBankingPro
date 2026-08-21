@@ -21,8 +21,7 @@ namespace ABP.Core.Application.DTOs.Loan
         public string StatusDisplay => Status switch
         {
             LoanStatus.Active => "Activo",
-            LoanStatus.Paid => "Pagado",
-            LoanStatus.Overdue => "Atrasado",
+            LoanStatus.Completed => "Pagado",
             _ => Status.ToString()
         };
         

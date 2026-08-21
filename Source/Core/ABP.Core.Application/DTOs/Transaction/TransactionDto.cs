@@ -15,10 +15,9 @@ namespace ABP.Core.Application.DTOs.Transaction
         [JsonPropertyName("type")]
         public string TypeDisplay => Type switch
         {
-            TransactionType.Deposit => "Depósito",
-            TransactionType.Withdrawal => "Retiro",
-            TransactionType.Transfer => "Transferencia",
+            TransactionType.Debit => "Débito",
             TransactionType.Credit => "Crédito",
+            TransactionType.Payment => "Pago",
             _ => Type.ToString()
         };
         

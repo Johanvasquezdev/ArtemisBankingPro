@@ -15,7 +15,7 @@ namespace ABP.Core.Application.DTOs.SavingsAccount
         [JsonPropertyName("type")]
         public string TypeDisplay => Type switch
         {
-            AccountType.Main => "Principal",
+            AccountType.Primary => "Principal",
             AccountType.Secondary => "Secundaria",
             _ => Type.ToString()
         };
