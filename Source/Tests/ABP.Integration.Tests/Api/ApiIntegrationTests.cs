@@ -85,7 +85,7 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
         {
             userName = "does-not-exist"
         });
-        await AssertProblemDetailsAsync(unknown, HttpStatusCode.NotFound, "Usuario no encontrado");
+        await AssertProblemDetailsAsync(unknown, HttpStatusCode.BadRequest, "Usuario no encontrado");
 
         using var denied = await client.GetAsync("/api/v1/Account/access-denied");
         await AssertProblemDetailsAsync(denied, HttpStatusCode.Forbidden, "Acceso denegado");

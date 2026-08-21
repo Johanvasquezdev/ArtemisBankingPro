@@ -56,6 +56,7 @@ public sealed class IdempotencyServiceTests
         idempotency.Setup(x => x.GetAsync("hermes.pay", "duplicate-key", "commerce-user"))
             .ReturnsAsync(new IdempotencyRecord { Operation = "hermes.pay", Key = "duplicate-key", ActorUserId = "commerce-user" });
         unitOfWork.Setup(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>())).ReturnsAsync(transaction.Object);
+        users.Setup(x => x.GetByIdAsync(It.IsAny<string>())).ReturnsAsync(new UserDto { IsActive = true, Id = "card-owner" });
 
         var service = new PaymentProcessorService(
             cards.Object, commerces.Object, consumptions.Object, accounts.Object, transactions.Object,

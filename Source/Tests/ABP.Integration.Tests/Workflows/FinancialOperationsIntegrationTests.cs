@@ -132,6 +132,8 @@ public sealed class FinancialOperationsIntegrationTests : IDisposable
             new SavingsAccountRepository(_context),
             _users.Object,
             _mapper,
+            new Mock<IEmailServices>().Object,
+            NullLogger<LoanService>.Instance,
             _unitOfWork);
 
         var result = await service.PayLoanInstallmentAsync("100000004", "300000001", 150);

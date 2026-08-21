@@ -114,7 +114,7 @@ internal sealed class ClientTransactionService : IClientTransactionService
         {
             var source = await GetOwnedActiveAccountAsync(dto.ClientId, dto.SourceAccountNumber);
 
-            var card = await _creditCardRepo.GetByCardNumberAsync(dto.CreditCardNumber)
+            var card = await _creditCardRepo.GetByIdAsync(dto.CreditCardId)
                 ?? throw new CardNotFoundException();
 
             if (card.ClientId != dto.ClientId)

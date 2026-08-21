@@ -42,7 +42,7 @@ namespace ABP.Integration.Tests.Repositories
                 SavingAccountId = savings.Id,
                 Origin = "Deposit",
                 TransactionDate = DateTime.UtcNow,
-                Description = "Test Deposit"
+                Description = "Test Deposit", PerformedByUserId = "user"
             };
 
             // Act

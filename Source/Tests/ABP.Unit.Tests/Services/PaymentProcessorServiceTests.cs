@@ -37,7 +37,7 @@ public class PaymentProcessorServiceTests
         _transactionRepository.Setup(x => x.AddWithoutSaveAsync(It.IsAny<ABP.Core.Domain.Entities.Transaction>())).Returns(Task.CompletedTask);
         _accountService.Setup(x => x.UpdateWithoutSaveAsync(It.IsAny<SavingsAccountDto>())).Returns(Task.CompletedTask);
         _emailService.Setup(x => x.SendAsync(It.IsAny<string>(), It.IsAny<string>(), It.IsAny<string>())).Returns(Task.CompletedTask);
-        _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>())).ReturnsAsync(new UserDto { Email = "user@example.com" });
+        _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>())).ReturnsAsync(new UserDto { IsActive = true, Email = "user@example.com" });
 
         _service = new PaymentProcessorService(
             _cardService.Object,

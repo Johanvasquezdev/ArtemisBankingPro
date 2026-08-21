@@ -27,7 +27,7 @@ public sealed class MissingClientCommandHandlerTests
     {
         var service = new Mock<IClientTransactionService>();
         var beneficiary = new PayBeneficiaryDto { ClientId = "client-1", BeneficiaryId = 3, SourceAccountNumber = "123456789", Amount = 100, IdempotencyKey = "b-1" };
-        var card = new PayCreditCardDto { ClientId = "client-1", SourceAccountNumber = "123456789", CreditCardNumber = "1234567890123456", Amount = 200, IdempotencyKey = "c-1" };
+        var card = new PayCreditCardDto { ClientId = "client-1", SourceAccountNumber = "123456789", CreditCardId = 5, Amount = 200, IdempotencyKey = "c-1" };
         var loan = new PayLoanDto { ClientId = "client-1", SourceAccountNumber = "123456789", LoanNumber = "LN-1", Amount = 300, IdempotencyKey = "l-1" };
         var transfer = new TransferOwnAccountsDto { ClientId = "client-1", SourceAccountNumber = "123456789", DestinationAccountNumber = "987654321", Amount = 400, IdempotencyKey = "t-1" };
         service.Setup(x => x.PayBeneficiaryAsync(beneficiary)).ReturnsAsync(CommandResult.Success());

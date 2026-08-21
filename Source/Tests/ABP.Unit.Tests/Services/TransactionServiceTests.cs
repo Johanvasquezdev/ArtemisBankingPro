@@ -62,6 +62,8 @@ namespace ABP.Unit.Tests.Services
             _dateTimeProvider.Setup(x => x.UtcNow).Returns(new DateTime(2026, 8, 9, 12, 0, 0));
             _unitOfWork.Setup(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(_transaction.Object);
+            _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>()))
+                .ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { Id = "test", IsActive = true });
 
             _transactionRecorder.Setup(x => x.RecordAsync(It.IsAny<TransactionEntry>()))
                 .Callback<TransactionEntry>(entry =>
@@ -122,7 +124,7 @@ namespace ABP.Unit.Tests.Services
             var account = new SavingsAccount { Id = 1, AccountNumber = "ACC-1", Balance = 500, Status = AccountStatus.Active };
 
             _accountRepo.Setup(x => x.GetByAccountNumberAsync(request.AccountNumber)).ReturnsAsync(account);
-            _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>())).ReturnsAsync((ABP.Core.Application.DTOs.User.UserDto?)null);
+            _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>())).ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { Id = "test", IsActive = true });
 
             await _service.DepositAsync(request);
 
@@ -182,7 +184,7 @@ namespace ABP.Unit.Tests.Services
             _accountRepo.Setup(x => x.GetByAccountNumberAsync(source.AccountNumber)).ReturnsAsync(source);
             _accountRepo.Setup(x => x.GetByAccountNumberAsync(destination.AccountNumber)).ReturnsAsync(destination);
             _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>()))
-                .ReturnsAsync((string id) => new ABP.Core.Application.DTOs.User.UserDto { Id = id, Email = $"{id}@test.com" });
+                .ReturnsAsync((string id) => new ABP.Core.Application.DTOs.User.UserDto { IsActive = true, Id = id, Email = $"{id}@test.com" });
 
             var dto = new MakeExpressTransactionDto
             {
@@ -232,13 +234,13 @@ namespace ABP.Unit.Tests.Services
             var source = Account("CLIENT-1", "000000001", 1000m);
             var card = Card("CLIENT-1", "1111222233334444", 0m, CardStatus.Active);
             _accountRepo.Setup(x => x.GetByAccountNumberAsync(source.AccountNumber)).ReturnsAsync(source);
-            _creditCardRepo.Setup(x => x.GetByCardNumberAsync(card.CardNumber)).ReturnsAsync(card);
+            _creditCardRepo.Setup(x => x.GetByIdAsync(It.IsAny<int>())).ReturnsAsync(card);
 
             var dto = new PayCreditCardDto
             {
                 ClientId = "CLIENT-1",
                 SourceAccountNumber = source.AccountNumber,
-                CreditCardNumber = card.CardNumber,
+                CreditCardId = card.Id,
                 Amount = 100m
             };
 
@@ -254,15 +256,15 @@ namespace ABP.Unit.Tests.Services
             var source = Account("CLIENT-1", "000000001", 1000m);
             var card = Card("CLIENT-1", "1111222233334444", 100m, CardStatus.Active);
             _accountRepo.Setup(x => x.GetByAccountNumberAsync(source.AccountNumber)).ReturnsAsync(source);
-            _creditCardRepo.Setup(x => x.GetByCardNumberAsync(card.CardNumber)).ReturnsAsync(card);
+            _creditCardRepo.Setup(x => x.GetByIdAsync(It.IsAny<int>())).ReturnsAsync(card);
             _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>()))
-                .ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { Id = "CLIENT-1", Email = "c@test.com" });
+                .ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { IsActive = true, Id = "CLIENT-1", Email = "c@test.com" });
 
             var dto = new PayCreditCardDto
             {
                 ClientId = "CLIENT-1",
                 SourceAccountNumber = source.AccountNumber,
-                CreditCardNumber = card.CardNumber,
+                CreditCardId = card.Id,
                 Amount = 500m
             };
 
@@ -284,7 +286,7 @@ namespace ABP.Unit.Tests.Services
             card.CreditLimit = 1000m;
             card.ExpirationDate = "12/30";
             var account = Account("CLIENT-1", "000000001", 500m);
-            _creditCardRepo.Setup(x => x.GetByIdAsync(card.Id)).ReturnsAsync(card);
+            _creditCardRepo.Setup(x => x.GetByIdAsync(It.IsAny<int>())).ReturnsAsync(card);
             _accountRepo.Setup(x => x.GetByIdAsync(account.Id)).ReturnsAsync(account);
 
             var dto = new CashAdvanceDto
@@ -312,7 +314,7 @@ namespace ABP.Unit.Tests.Services
             card.CreditLimit = 50m;
             card.ExpirationDate = "12/30";
             var account = Account("CLIENT-1", "000000001", 500m);
-            _creditCardRepo.Setup(x => x.GetByIdAsync(card.Id)).ReturnsAsync(card);
+            _creditCardRepo.Setup(x => x.GetByIdAsync(It.IsAny<int>())).ReturnsAsync(card);
             _accountRepo.Setup(x => x.GetByIdAsync(account.Id)).ReturnsAsync(account);
 
             var dto = new CashAdvanceDto
@@ -334,7 +336,7 @@ namespace ABP.Unit.Tests.Services
             var card = Card("OTHER-CLIENT", "1111222233334444", 0m, CardStatus.Active);
             card.ExpirationDate = "12/30";
             var account = Account("CLIENT-1", "000000001", 500m);
-            _creditCardRepo.Setup(x => x.GetByIdAsync(card.Id)).ReturnsAsync(card);
+            _creditCardRepo.Setup(x => x.GetByIdAsync(It.IsAny<int>())).ReturnsAsync(card);
             _accountRepo.Setup(x => x.GetByIdAsync(account.Id)).ReturnsAsync(account);
 
             var dto = new CashAdvanceDto
@@ -366,7 +368,7 @@ namespace ABP.Unit.Tests.Services
             _loanRepo.Setup(x => x.GetByLoanNumberAsync(loan.LoanNumber)).ReturnsAsync(loan);
             _installmentRepo.Setup(x => x.GetByLoanIdAsync(loan.Id)).ReturnsAsync(new[] { installment1, installment2 });
             _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>()))
-                .ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { Id = "CLIENT-1", Email = "c@test.com" });
+                .ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { IsActive = true, Id = "CLIENT-1", Email = "c@test.com" });
 
             var dto = new PayLoanDto
             {
@@ -396,7 +398,7 @@ namespace ABP.Unit.Tests.Services
             _loanRepo.Setup(x => x.GetByLoanNumberAsync(loan.LoanNumber)).ReturnsAsync(loan);
             _installmentRepo.Setup(x => x.GetByLoanIdAsync(loan.Id)).ReturnsAsync(new[] { installment1 });
             _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>()))
-                .ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { Id = "CLIENT-1", Email = "c@test.com" });
+                .ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { IsActive = true, Id = "CLIENT-1", Email = "c@test.com" });
 
             var dto = new PayLoanDto
             {
@@ -451,7 +453,7 @@ namespace ABP.Unit.Tests.Services
             _accountRepo.Setup(x => x.GetByAccountNumberAsync(destination.AccountNumber)).ReturnsAsync(destination);
             _beneficiaryRepo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(beneficiary);
             _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>()))
-                .ReturnsAsync((string id) => new ABP.Core.Application.DTOs.User.UserDto { Id = id, Email = $"{id}@test.com" });
+                .ReturnsAsync((string id) => new ABP.Core.Application.DTOs.User.UserDto { IsActive = true, Id = id, Email = $"{id}@test.com" });
 
             var dto = new PayBeneficiaryDto
             {
@@ -519,7 +521,7 @@ namespace ABP.Unit.Tests.Services
             var destination = Account("CLIENT-1", "000000002", 100m);
             _accountRepo.Setup(x => x.GetActiveAccountsByClientIdAsync("CLIENT-1")).ReturnsAsync(new[] { source, destination });
             _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>()))
-                .ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { Id = "CLIENT-1", Email = "c@test.com" });
+                .ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { IsActive = true, Id = "CLIENT-1", Email = "c@test.com" });
 
             var dto = new TransferOwnAccountsDto
             {

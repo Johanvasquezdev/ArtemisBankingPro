@@ -9,6 +9,22 @@ namespace ABP.Infraestructure.Persistence.Repositories
 {
     public class TransactionRepository(ArtemisBankingDbContext context) : GenericRepository<Transaction>(context), ITransactionRepository
     {
+        public override async Task AddAsync(Transaction entity)
+        {
+            if (string.IsNullOrWhiteSpace(entity.PerformedByUserId))
+                throw new InvalidOperationException("No se puede guardar una transacción sin PerformedByUserId.");
+            
+            await base.AddAsync(entity);
+        }
+
+        public override async Task AddWithoutSaveAsync(Transaction entity)
+        {
+            if (string.IsNullOrWhiteSpace(entity.PerformedByUserId))
+                throw new InvalidOperationException("No se puede guardar una transacción sin PerformedByUserId.");
+                
+            await base.AddWithoutSaveAsync(entity);
+        }
+
         public async Task<IEnumerable<Transaction>> GetByAccountIdAsync(int savingsAccountId)
         {
             return await _dbSet.AsNoTracking()

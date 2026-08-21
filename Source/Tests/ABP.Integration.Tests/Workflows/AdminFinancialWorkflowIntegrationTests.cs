@@ -29,6 +29,7 @@ public sealed class AdminFinancialWorkflowIntegrationTests : IDisposable
 
     public AdminFinancialWorkflowIntegrationTests()
     {
+        _users.Setup(x => x.GetByIdAsync(It.IsAny<string>())).ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { IsActive = true, Id = "client-1" });
         var options = new DbContextOptionsBuilder<ArtemisBankingDbContext>()
             .UseInMemoryDatabase(Guid.NewGuid().ToString())
             .Options;
@@ -228,6 +229,8 @@ public sealed class AdminFinancialWorkflowIntegrationTests : IDisposable
             new SavingsAccountRepository(_context),
             _users.Object,
             _mapper,
+            new Mock<IEmailServices>().Object,
+            NullLogger<LoanService>.Instance,
             _unitOfWork);
 
     private async Task<SavingsAccount> AddPrimaryAccountAsync(string clientId, decimal balance)

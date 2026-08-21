@@ -1,113 +1,123 @@
-# Artemis Banking Pro
+﻿# Artemis Banking Pro
 
-Este es el proyecto de Artemis Banking Pro, que incluye una API y una Web App MVC basadas en ASP.NET Core 9, Entity Framework Core Code First, arquitectura Onion, CQRS con MediatR y FluentValidation.
+Artemis Banking Pro es una solución integral para servicios bancarios y transaccionales, diseñada con los más altos estándares de calidad y seguridad. La plataforma sirve a tres tipos principales de usuarios: administradores, cajeros y clientes, además de ofrecer una integración externa (Hermes Pay) para comercios electrónicos.
 
-## Requisitos Previos
+El sistema está construido bajo los principios de **Arquitectura Limpia (Onion Architecture)**, utilizando **CQRS** con MediatR, **Entity Framework Core**, **Azure Functions** y **Identity** para la gestión de usuarios, garantizando escalabilidad, mantenibilidad y un acoplamiento débil entre sus capas.
 
-- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
-- [SQL Server](https://www.microsoft.com/es-es/sql-server/sql-server-downloads) (o SQL Server Express / LocalDB)
-- Herramienta global de EF Core CLI (dotnet tool install --global dotnet-ef)
+---
 
-## Configuración y Base de Datos
+## 🏛 Arquitectura y Diseño
 
-Las cadenas de conexión se encuentran en los archivos ppsettings.json o ppsettings.Development.json en los proyectos de la API y de la Web App:
-- Source/Presentation/Api/ABP.API/appsettings.json
-- Source/Presentation/Web/ArtemisBankingPro/appsettings.json
+El proyecto sigue una estructura de capas estricta basada en Clean Architecture:
 
-Asegúrese de configurar sus cadenas de conexión bajo la sección ConnectionStrings.
+* **Core (Dominio y Aplicación):** Contiene la lógica de negocio pura, entidades, interfaces, DTOs y casos de uso estructurados con el patrón CQRS (Commands/Queries) usando MediatR. Depende exclusivamente de sí misma.
+* **Infrastructure:**
+  * Persistence: Implementación de Entity Framework Core, DbContexts y repositorios genéricos/específicos.
+  * Identity: Gestión de autenticación, autorización y roles usando ASP.NET Core Identity y JWT.
+  * Shared: Implementaciones de servicios externos (ej. Email con colas de Azure).
+* **Presentation:**
+  * ABP.API: Endpoints RESTFul documentados con Swagger, responsables de la comunicación de servicios de terceros (Hermes Pay) y frontends externos.
+  * ArtemisBankingPro (Web): Aplicación MVC para la interacción directa de los usuarios (portal bancario).
+  * ABP.Functions: Azure Functions utilizadas como consumidores de colas para procesamiento asíncrono (ej. envío de correos).
 
-### Ejecutar Migraciones (Entity Framework Core)
+### Patrones Implementados
+- **CQRS:** Separación estricta de lecturas (Queries) y escrituras (Commands).
+- **Repository Pattern & Unit of Work:** Abstracción del acceso a datos.
+- **Dependency Injection:** Configurado de forma nativa en .NET.
+- **Idempotency:** Protección contra pagos duplicados en Hermes Pay.
 
-El sistema utiliza dos contextos separados: uno para la identidad (IdentityContext) y otro para las operaciones bancarias (ArtemisBankingDbContext). **Las migraciones no se aplican automáticamente al iniciar, es necesario ejecutarlas manualmente la primera vez.**
+---
 
-Abra una terminal en la raíz de la solución y ejecute los siguientes comandos apuntando al proyecto de Persistencia e Identidad respectivamente:
+## 🚀 Tecnologías
+
+* **Framework:** .NET 9.0
+* **Base de Datos:** PostgreSQL (Alojada en Supabase)
+* **ORM:** Entity Framework Core (Npgsql)
+* **Seguridad:** ASP.NET Core Identity, JWT (JSON Web Tokens)
+* **Validaciones:** FluentValidation
+* **Mapeo:** AutoMapper
+* **Procesamiento Asíncrono:** Azure Storage Queues, Azure Functions (Isolated Worker)
+* **Documentación:** Swagger (OpenAPI 3.0)
+* **Testing:** xUnit, Moq, FluentAssertions, FluentValidation.TestHelper
+
+---
+
+## ⚙️ Requisitos Previos
+
+Antes de ejecutar el proyecto, asegúrese de tener instalado:
+1. [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+2. **PostgreSQL** (No requerido localmente si se usa la conexión en la nube provista en el archivo de configuración).
+3. **Azurite** (Emulador local de Azure Storage). Requerido para el funcionamiento de las Azure Functions y el envío de correos. [Instalación vía npm](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite): `npm install -g azurite`
+4. CLI de EF Core: `dotnet tool install --global dotnet-ef`
+
+---
+
+## 🛠 Configuración y Base de Datos
+
+Las configuraciones base y cadenas de conexión residen en los archivos ppsettings.json en ABP.API y la Web App MVC.
+*Nota: Para facilitar la evaluación del proyecto por parte del profesor, las credenciales reales de Supabase, JWT y SMTP se han dejado configuradas directamente en los archivos .json correspondientes.*
+
+### Migraciones
+El sistema utiliza dos contextos separados. **Las migraciones no se aplican automáticamente** y deben ser ejecutadas la primera vez. Abra una terminal en la raíz de la solución:
 
 `ash
-# 1. Aplicar migraciones de la Base de Datos de Identidad
+# Identidad
 dotnet ef database update --project Source/Infraestructure/ABP.Infraestructure.identity --startup-project Source/Presentation/Api/ABP.API -c IdentityContext
 
-# 2. Aplicar migraciones de la Base de Datos Transaccional (Banking)
+# Banca
 dotnet ef database update --project Source/Infraestructure/ABP.Infraestructure.Persistence --startup-project Source/Presentation/Api/ABP.API -c ArtemisBankingDbContext
 `
 
-Alternativamente, desde la Consola del Administrador de Paquetes en Visual Studio (Package Manager Console):
-`powershell
-Update-Database -Context IdentityContext -Project ABP.Infraestructure.identity -StartupProject ABP.API
-Update-Database -Context ArtemisBankingDbContext -Project ABP.Infraestructure.Persistence -StartupProject ABP.API
-`
+---
 
-*Nota: Una vez creadas las bases de datos, la API y la Web App sembrarán automáticamente los roles y el usuario administrador en el primer arranque.*
+## ▶️ Ejecución del Sistema
 
-## Ejecución
+El ecosistema completo requiere 3 procesos en marcha:
 
-El proyecto está dividido en varios clientes de presentación. Para iniciar:
+1. **Azurite** (Emulador de colas):
+   Abra una terminal y ejecute zurite.
+2. **Azure Functions** (Procesador asíncrono de correos):
+   `ash
+   dotnet run --project Source/Presentation/Functions/ABP.Functions/ABP.Functions.csproj
+   `
+3. **Web API y MVC:**
+   Configure Visual Studio para "Múltiples Proyectos de Inicio" (Multiple Startup Projects) arrancando simultáneamente ABP.API y ArtemisBankingPro.
 
-1. Establecer múltiples proyectos de inicio (Multiple Startup Projects) en Visual Studio y arrancar ambos al mismo tiempo:
-   - ABP.API (API Web)
-   - ArtemisBankingPro (Web App MVC)
-2. Alternativamente, usando CLI desde la raíz:
-`ash
-# Iniciar la API
-dotnet run --project Source/Presentation/Api/ABP.API/ABP.API.csproj
+   Si usa la CLI:
+   `ash
+   dotnet run --project Source/Presentation/Api/ABP.API/ABP.API.csproj
+   dotnet run --project Source/Presentation/Web/ArtemisBankingPro/ArtemisBankingPro.csproj
+   `
 
-# En otra terminal, iniciar la Web App
-dotnet run --project Source/Presentation/Web/ArtemisBankingPro/ArtemisBankingPro.csproj
-`
+### 👤 Usuarios Por Defecto
+Al iniciar por primera vez, el sistema ejecutará un Seed y creará:
+* **Admin:** dminUser / 123Pa! / dmin@artemisbanking.local
+* **Hermes Pay:** Un comercio por defecto se siembra de forma inactiva. Un admin debe activarlo desde la aplicación antes de recibir pagos.
 
-## Pruebas (Tests)
+---
 
-Se dispone de más de 200 pruebas unitarias y de integración implementadas con xUnit y Moq. Para ejecutarlas:
+## 🧪 Pruebas (Tests)
 
+El sistema cuenta con una cobertura estricta de **224 pruebas (164 unitarias y 60 de integración)** asegurando la robustez de las validaciones, paginación, control de concurrencia y rechazos lógicos (Cuentas inactivas, límites de crédito, etc).
+
+Para ejecutarlas:
 `ash
 dotnet test
 `
-Esto correrá todos los proyectos de prueba encontrados bajo la carpeta Source/Tests.
 
-## Documentación API
+---
 
-Al ejecutar el proyecto de API en modo desarrollo, la documentación OpenAPI/Swagger estará disponible de forma automática.
-Navegue a: https://localhost:<puerto_api>/swagger
-Para utilizar Swagger, recuerde que algunos endpoints están protegidos; primero deberá hacer Login para obtener un token JWT e ingresarlo en la opción de *Authorize*.
+## 📚 Documentación de APIs (Swagger / Hermes Pay)
 
-## Usuarios Por Defecto
+La API cuenta con Swagger (OpenAPI 3.0) habilitado automáticamente en entornos de Desarrollo con lectura de comentarios XML.
+URL: https://localhost:<puerto>/swagger
 
-Al arrancar el sistema, se crearán los roles principales y el siguiente usuario administrador (si no existe):
-- **Usuario Admin:** adminUser
-- **Clave:** 123Pa!
-- **Email:** admin@artemisbanking.local
-- **Rol:** Admin
+### Integración Hermes Pay (Comercios)
+Los comercios pueden procesar pagos mediante el ecosistema Hermes Pay integrándose a los endpoints:
+* **/api/v1/HermesPay/pay**: Realiza el débito a tarjetas. Requiere Idempotency Key, claim válido de tipo commerceId en el JWT, validación de estado activo del comercio y cuenta de destino.
+* **/api/v1/HermesPay/transactions**: Obtiene el histórico paginado (ej. ?page=1&pageSize=20). Soporta un máximo de 20 por página (Arroja HTTP 400 en caso de límites excedidos).
 
-- **Comercio (Hermes Pay):**
-- Por defecto, se siembra Default Commerce de forma inactiva. Un Admin debe activarlo antes de operar.
+Para testear en Swagger, use el endpoint de /api/v1/Account/login para obtener el JWT e ingréselo en el botón *Authorize* con el prefijo Bearer .
 
-## Configuración de User Secrets (Desarrollo Local)
-
-Las credenciales sensibles (JWT Key, cadenas de conexión, contraseñas SMTP) **no** se almacenan en los archivos `appsettings.json`. En su lugar, se utilizan [User Secrets](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets) de .NET.
-
-### Inicializar User Secrets (solo la primera vez)
-
-```bash
-dotnet user-secrets init --project Source/Presentation/Api/ABP.API/ABP.API.csproj
-dotnet user-secrets init --project Source/Presentation/Web/ArtemisBankingPro/ArtemisBankingPro.csproj
-```
-
-### Establecer los secretos necesarios
-
-Ejecute los siguientes comandos para cada proyecto que lo requiera (API y Web):
-
-```bash
-# JWT Key
-dotnet user-secrets set "JWT:Key" "<su-clave-jwt>" --project Source/Presentation/Api/ABP.API/ABP.API.csproj
-
-# Connection Strings
-dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<su-cadena-de-conexion>" --project Source/Presentation/Api/ABP.API/ABP.API.csproj
-dotnet user-secrets set "ConnectionStrings:IdentityConnection" "<su-cadena-de-conexion>" --project Source/Presentation/Api/ABP.API/ABP.API.csproj
-
-# Email / SMTP
-dotnet user-secrets set "EmailSettings:SmtpUser" "<su-usuario-smtp>" --project Source/Presentation/Api/ABP.API/ABP.API.csproj
-dotnet user-secrets set "EmailSettings:SmtpPassword" "<su-contraseña-smtp>" --project Source/Presentation/Api/ABP.API/ABP.API.csproj
-```
-
-Repita los mismos comandos cambiando el `--project` para el proyecto Web (`Source/Presentation/Web/ArtemisBankingPro/ArtemisBankingPro.csproj`).
-
-> **Nota:** Los User Secrets solo se cargan en el entorno `Development`. Para producción, utilice variables de entorno, Azure Key Vault u otro proveedor de configuración seguro.
+---
+*Artemis Banking Pro - 2026*

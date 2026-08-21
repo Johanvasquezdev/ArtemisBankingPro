@@ -1,4 +1,4 @@
-﻿using ABP.Core.Application.DTOs.Transaction;
+using ABP.Core.Application.DTOs.Transaction;
 using ABP.Core.Application.Features.Client.Commands;
 using ABP.Core.Application.Features.Client.Queries;
 using ABP.Core.Application.ViewModels.Client;
@@ -92,7 +92,7 @@ namespace ArtemisBankingPro.Areas.Client.Controllers
                 {
                     ClientId = clientId,
                     SourceAccountNumber = model.SourceAccountNumber,
-                    CreditCardNumber = card.CardNumber,
+                    CreditCardId = model.CreditCardId,
                     Amount = model.Amount,
                     IdempotencyKey = model.IdempotencyKey
                 }));
