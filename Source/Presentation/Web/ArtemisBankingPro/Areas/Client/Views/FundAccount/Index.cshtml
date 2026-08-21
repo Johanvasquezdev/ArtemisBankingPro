@@ -1,0 +1,51 @@
+@{
+    ViewData["Title"] = "Fund Your Account";
+}
+
+<div class="flex items-center justify-center min-h-[70vh]">
+    <div class="abp-glass-card w-full max-w-md p-8 rounded-2xl shadow-xl relative overflow-hidden">
+        <div class="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 rounded-full bg-blue-500 opacity-20 blur-2xl"></div>
+        <div class="absolute bottom-0 left-0 -ml-8 -mb-8 w-32 h-32 rounded-full bg-purple-500 opacity-20 blur-2xl"></div>
+        
+        <h2 class="text-3xl font-extrabold text-white mb-6 text-center tracking-tight">Top-Up Account</h2>
+        <p class="text-gray-300 text-sm mb-8 text-center">Select an account and amount to fund instantly with Stripe.</p>
+        
+        <form action="/Client/FundAccount/Checkout" method="post" class="space-y-6 relative z-10">
+            <div>
+                <label for="targetAccountId" class="block text-sm font-medium text-gray-200 mb-2">Target Account</label>
+                <div class="relative">
+                    <select id="targetAccountId" name="targetAccountId" class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-white focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none appearance-none transition-all [&>option]:bg-gray-800" required>
+                        <option value="" disabled selected>Select an account...</option>
+                        @if(ViewBag.Accounts != null)
+                        {
+                            foreach(var account in ViewBag.Accounts)
+                            {
+                                <option value="@account.Id">@account.Name - @account.Number</option>
+                            }
+                        }
+                    </select>
+                    <div class="absolute inset-y-0 right-0 flex items-center px-4 pointer-events-none text-gray-400">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                </div>
+            </div>
+
+            <div>
+                <label for="amount" class="block text-sm font-medium text-gray-200 mb-2">Amount</label>
+                <div class="relative">
+                    <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
+                        <span class="text-gray-400 font-medium">$</span>
+                    </div>
+                    <input type="number" id="amount" name="amount" min="1" step="0.01" class="w-full bg-white/5 border border-white/10 rounded-xl pl-8 pr-4 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" placeholder="0.00" required />
+                </div>
+            </div>
+
+            <button type="submit" class="w-full flex items-center justify-center gap-2 bg-[#635BFF] hover:bg-[#5851df] text-white font-semibold py-3 px-4 rounded-xl transition-colors duration-200 shadow-lg shadow-indigo-500/30 mt-4">
+                <svg class="w-5 h-5" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M19.7424 0C8.83549 0 0 8.83549 0 19.7424C0 30.6493 8.83549 39.4847 19.7424 39.4847C30.6493 39.4847 39.4847 30.6493 39.4847 19.7424C39.4847 8.83549 30.6493 0 19.7424 0ZM27.876 13.9161L18.4237 28.5301C18.0664 29.0827 17.3876 29.3514 16.7454 29.1979C16.1031 29.0443 15.6179 28.5204 15.5398 27.8687L14.7709 21.4646L8.41165 19.9234C7.75549 19.7644 7.2798 19.2319 7.22874 18.5728C7.17769 17.9138 7.5614 17.2605 8.1818 16.9458L22.9515 9.45899C23.5134 9.17424 24.1953 9.2435 24.693 9.63588C25.1908 10.0283 25.4054 10.6698 25.2405 11.2721L22.756 20.354L27.1895 15.6961C27.671 15.1898 28.4878 15.2267 28.9248 15.7725C29.3618 16.3182 29.3175 17.1147 28.8258 17.6063C28.8259 17.6062 27.876 13.9161 27.876 13.9161Z" fill="white"/>
+                </svg>
+                Pay with Stripe
+            </button>
+        </form>
+    </div>
+</div>

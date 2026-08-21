@@ -1,0 +1,51 @@
+@{
+    ViewData["Title"] = "Biometric Setup - Step 3";
+}
+
+<div class="flex items-center justify-center min-h-[80vh] py-10">
+    <div class="abp-glass-card w-full max-w-lg p-8 rounded-2xl shadow-xl text-center relative overflow-hidden">
+        <div class="absolute top-0 right-0 w-48 h-48 bg-purple-500/20 rounded-full blur-3xl -mr-20 -mt-20"></div>
+        <div class="absolute bottom-0 left-0 w-48 h-48 bg-blue-500/20 rounded-full blur-3xl -ml-20 -mb-20"></div>
+
+        <div class="relative z-10">
+            <div class="mb-8">
+                <div class="flex justify-between items-center mb-2">
+                    <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">Step 3 of 3</span>
+                    <span class="text-xs font-medium text-gray-400">Security</span>
+                </div>
+                <div class="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
+                    <div class="bg-gradient-to-r from-blue-500 to-cyan-400 h-1.5 rounded-full" style="width: 100%"></div>
+                </div>
+            </div>
+
+            <div class="my-10 flex justify-center">
+                <div class="relative group cursor-pointer">
+                    <div class="absolute inset-0 bg-blue-500 rounded-full blur-xl opacity-30 group-hover:opacity-60 transition-opacity duration-300"></div>
+                    <div class="relative w-32 h-32 bg-gradient-to-tr from-blue-600 to-purple-600 rounded-full p-1 flex items-center justify-center animate-pulse group-hover:animate-none transition-all duration-300 scale-100 group-hover:scale-105 shadow-2xl shadow-blue-500/40">
+                        <div class="w-full h-full bg-gray-900 rounded-full flex items-center justify-center">
+                            <svg class="w-14 h-14 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"></path>
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <h2 class="text-3xl font-bold text-white mb-4">Enable Biometric Login</h2>
+            <p class="text-gray-300 text-sm mb-10 leading-relaxed px-4">
+                Use FaceID or Fingerprint to securely access your Artemis Banking Pro account without needing to type your password every time.
+            </p>
+
+            <form action="/AdvancedRegistration/Step3" method="post" class="space-y-5">
+                <button type="submit" class="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-4 px-6 rounded-xl transition-all duration-300 shadow-lg shadow-indigo-500/30 flex items-center justify-center gap-3 text-lg hover:shadow-indigo-500/50 hover:-translate-y-0.5">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z"></path></svg>
+                    Register Device
+                </button>
+                
+                <a href="/AdvancedRegistration/Complete" class="block w-full text-center text-gray-400 hover:text-white py-2 transition-colors text-sm font-medium hover:underline">
+                    Skip for now
+                </a>
+            </form>
+        </div>
+    </div>
+</div>
