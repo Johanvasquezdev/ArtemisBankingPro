@@ -384,7 +384,7 @@ public sealed class ApiIntegrationTests : IClassFixture<ApiApplicationFactory>
         first.Headers.Add("Idempotency-Key", "hermes-integration-001");
         using var firstResponse = await client.SendAsync(first);
 
-        firstResponse.StatusCode.Should().Be(HttpStatusCode.OK);
+        firstResponse.StatusCode.Should().Be(HttpStatusCode.NoContent);
 
         using var second = new HttpRequestMessage(HttpMethod.Post,
             $"/api/v1/pay/process-payment/{fixture.CommerceId}")
