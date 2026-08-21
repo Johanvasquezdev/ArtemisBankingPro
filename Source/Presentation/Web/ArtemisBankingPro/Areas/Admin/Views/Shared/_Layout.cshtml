@@ -22,12 +22,11 @@
         })();
     </script>
 </head>
-<body class="abp-shell abp-shell-admin bg-ivory text-obsidian font-sans antialiased min-h-screen flex">
+<body class="abp-shell abp-shell-admin bg-ivory text-obsidian font-sans antialiased min-h-screen flex relative">
     <div id="sidebar-overlay" class="fixed inset-0 bg-obsidian/50 z-20 hidden md:hidden" onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full'); this.classList.toggle('hidden');"></div>
-    <div class="flex-1 flex bg-app-bg text-obsidian font-sans antialiased overflow-hidden w-full">
-        
-        <!-- ═══ SIDEBAR ═══ -->
-        <aside id="sidebar" class="abp-sidebar w-64 bg-obsidian text-ivory flex flex-col shadow-xl z-30 fixed md:sticky top-0 h-screen transition-transform -translate-x-full md:translate-x-0">
+    
+    <!-- ═══ SIDEBAR ═══ -->
+    <aside id="sidebar" class="abp-sidebar w-64 bg-obsidian text-ivory flex flex-col shadow-xl z-30 fixed inset-y-0 transition-transform -translate-x-full md:translate-x-0">
             <div class="p-4 border-b border-white/10">
             <a asp-area="Admin" asp-controller="Dashboard" asp-action="Index" class="abp-brand-lockup block w-56 no-underline">
                 <partial name="_BrandLogo" model='"light"' />
@@ -71,7 +70,7 @@
     </aside>
 
     <!-- ═══ MAIN CONTENT ═══ -->
-    <div class="flex-1 flex flex-col min-h-screen overflow-hidden">
+    <div class="flex-1 flex flex-col min-h-screen overflow-hidden md:ml-64">
         
         <header class="abp-topbar bg-panel border-b border-obsidian/5 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
             <div class="flex items-center gap-3">
