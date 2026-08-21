@@ -46,7 +46,7 @@ public sealed class FinancialOperationsIntegrationTests : IDisposable
 
         var result = await service.TransferAsync("100000001", "100000002", 250);
 
-        result.Should().BeTrue();
+        if (!result) throw new Exception("Result was false!"); result.Should().BeTrue();
         (await BalanceAsync("100000001")).Should().Be(750);
         (await BalanceAsync("100000002")).Should().Be(350);
     }
@@ -69,10 +69,12 @@ public sealed class FinancialOperationsIntegrationTests : IDisposable
         });
         await _context.SaveChangesAsync();
 
+        _users.Setup(s => s.GetByIdAsync(It.IsAny<string>())).ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { Id = "client1", IsActive = true });
         var service = new CreditCardService(
             new CreditCardRepository(_context),
             new CreditCardConsumptionRepository(_context),
             new SavingsAccountRepository(_context),
+            new TransactionRepository(_context),
             _mapper,
             _users.Object,
             new Mock<IEmailServices>().Object,
@@ -81,7 +83,7 @@ public sealed class FinancialOperationsIntegrationTests : IDisposable
 
         var result = await service.PayCreditCardAsync("100000003", "4111111111111111", 200);
 
-        result.Should().BeTrue();
+        if (!result) throw new Exception("Result was false!"); result.Should().BeTrue();
         (await BalanceAsync("100000003")).Should().Be(800);
         (await _context.CreditCards.Select(card => card.AmountOwed).SingleAsync()).Should().Be(100);
     }
@@ -123,8 +125,9 @@ public sealed class FinancialOperationsIntegrationTests : IDisposable
         await _context.Loans.AddAsync(loan);
         await _context.SaveChangesAsync();
 
-        var mockUserService = new Moq.Mock<ABP.Core.Application.Interfaces.IServices.IUserReadOnlyService>();
-        var loanRepo = new LoanRepository(_context, mockUserService.Object);
+        
+        _users.Setup(s => s.GetByIdAsync(It.IsAny<string>())).ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { Id = "client1", IsActive = true });
+        var loanRepo = new LoanRepository(_context, _users.Object);
         var service = new LoanService(
             loanRepo,
             new LoanInstallmentRepository(_context),
@@ -138,7 +141,7 @@ public sealed class FinancialOperationsIntegrationTests : IDisposable
 
         var result = await service.PayLoanInstallmentAsync("100000004", "300000001", 150);
 
-        result.Should().BeTrue();
+        if (!result) throw new Exception("Result was false!"); result.Should().BeTrue();
         (await BalanceAsync("100000004")).Should().Be(850);
         var installments = await _context.Installments.OrderBy(item => item.InstallmentNumber).ToListAsync();
         installments[0].AmountPaid.Should().Be(150);
@@ -244,3 +247,9 @@ public sealed class FinancialOperationsIntegrationTests : IDisposable
         public ValueTask DisposeAsync() => ValueTask.CompletedTask;
     }
 }
+
+
+
+
+
+

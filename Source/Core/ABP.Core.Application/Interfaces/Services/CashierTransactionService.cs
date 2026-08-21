@@ -369,6 +369,14 @@ internal sealed class CashierTransactionService : ICashierTransactionService
             if (sourceAccount.Status != AccountStatus.Active || destAccount.Status != AccountStatus.Active)
                 throw new InvalidOperationException("Ambas cuentas deben estar activas.");
 
+            var sourceUserValidation = await _userService.GetByIdAsync(sourceAccount.UserId);
+            if (sourceUserValidation == null || !sourceUserValidation.IsActive)
+                throw new InvalidOperationException("El cliente de la cuenta de origen está inactivo.");
+            
+            var destUserValidation = await _userService.GetByIdAsync(destAccount.UserId);
+            if (destUserValidation == null || !destUserValidation.IsActive)
+                throw new InvalidOperationException("El cliente de la cuenta de destino está inactivo.");
+
             if (sourceAccount.Balance < dto.Amount)
             {
                 var declinedTx = new Transaction

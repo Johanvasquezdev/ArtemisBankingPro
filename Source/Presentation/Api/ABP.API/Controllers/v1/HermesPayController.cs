@@ -50,14 +50,21 @@ namespace ABP.API.Controllers.v1
                 actualCommerceId = parsedCommerceId;
             }
 
-            var transactions = await _mediator.Send(new GetCommerceTransactionsQuery(actualCommerceId, page, pageSize));
             var commerce = await _commerceRepo.GetByIdAsync(actualCommerceId);
+            if (commerce == null || !commerce.IsActive)
+            {
+                return BadRequest("El comercio no existe o está inactivo.");
+            }
+
+            var transactions = await _mediator.Send(new GetCommerceTransactionsQuery(actualCommerceId, page, pageSize));
 
             return Ok(new
             {
-                commerceId = commerce?.Id ?? actualCommerceId,
-                commerceName = commerce?.Name ?? "Comercio Desconocido",
-                data = transactions
+                page = transactions.Page,
+                pageSize = transactions.PageSize,
+                totalRecords = transactions.TotalCount,
+                totalPages = transactions.TotalPages,
+                data = transactions.Items
             });
         }
 

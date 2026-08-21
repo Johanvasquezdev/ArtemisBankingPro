@@ -104,14 +104,15 @@ public class PaymentProcessorServiceTests
     public async Task GetCommerceTransactionsAsync_ShouldQueryByCommerceId()
     {
         _commerceService.Setup(x => x.GetByIdAsync(10)).ReturnsAsync(new ABP.Core.Application.DTOs.Commerce.CommerceDto { Id = 10, IsActive = true });
-        _consumptionService.Setup(x => x.GetByCommerceIdAsync(10)).ReturnsAsync([
-            new CreditCardConsumptionDto { Id = 1, CommerceId = 10, Amount = 42, Status = ConsumptionStatus.Approved }
-        ]);
+        _consumptionService.Setup(x => x.GetByCommerceIdPagedAsync(10, 1, 10)).ReturnsAsync((
+            new List<CreditCardConsumptionDto> { new CreditCardConsumptionDto { Id = 1, CommerceId = 10, Amount = 42, Status = ConsumptionStatus.Approved } },
+            1
+        ));
 
         var transactions = await _service.GetCommerceTransactionsAsync(10, 1, 10);
 
         transactions.Items.Should().ContainSingle().Which.Amount.Should().Be(42);
-        _consumptionService.Verify(x => x.GetByCommerceIdAsync(10), Times.Once);
+        _consumptionService.Verify(x => x.GetByCommerceIdPagedAsync(10, 1, 10), Times.Once);
         _consumptionService.Verify(x => x.GetByCardIdAsync(It.IsAny<int>()), Times.Never);
     }
 

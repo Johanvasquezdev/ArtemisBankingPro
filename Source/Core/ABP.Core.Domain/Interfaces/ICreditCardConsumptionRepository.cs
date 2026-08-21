@@ -7,5 +7,6 @@ namespace ABP.Core.Domain.Interfaces
     {
         Task<IEnumerable<CreditCardConsumption>> GetByCardIdAsync(int creditCardId);
         Task<IEnumerable<CreditCardConsumption>> GetByCommerceIdAsync(int commerceId);
+        Task<(IEnumerable<CreditCardConsumption> Items, int TotalCount)> GetByCommerceIdPagedAsync(int commerceId, int page, int pageSize);
     }
 }

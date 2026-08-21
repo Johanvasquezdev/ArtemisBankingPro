@@ -174,7 +174,8 @@ namespace ABP.Core.Application.Interfaces.Services
                     .FirstOrDefault() ?? savedConsumption;
             }
 
-            await SendNotificationsAsync(card.ClientId, commerceUserId, commerce.Name, paymentDto.TransactionAmount);
+            var cardLastFour = card.CardNumber.Length >= 4 ? card.CardNumber[^4..] : "****";
+            await SendNotificationsAsync(card.ClientId, commerceUserId, commerce.Name, paymentDto.TransactionAmount, cardLastFour);
 
             return new PaymentResultDto
             {
@@ -193,14 +194,7 @@ namespace ABP.Core.Application.Interfaces.Services
             if (!commerce.IsActive)
                 throw new InactiveCommerceException();
 
-            var consumptions = await _consumptionService.GetByCommerceIdAsync(commerceId);
-            var query = consumptions.AsQueryable();
-
-            int totalCount = query.Count();
-            var pagedConsumptions = query
-                .Skip((page - 1) * pageSize)
-                .Take(pageSize)
-                .ToList();
+            var (pagedConsumptions, totalCount) = await _consumptionService.GetByCommerceIdPagedAsync(commerceId, page, pageSize);
 
             var items = new List<PaymentTransactionDto>();
             foreach (var c in pagedConsumptions)
@@ -219,7 +213,7 @@ namespace ABP.Core.Application.Interfaces.Services
                     Id = c.Id,
                     Amount = c.Amount,
                     TransactionDate = c.TransactionDate,
-                    CardNumber = last4,
+                    CardLastFourDigits = last4,
                     Description = c.CommerceName,
                     Status = c.Status == ConsumptionStatus.Approved ? TransactionStatus.Approved : TransactionStatus.Declined
                 });
@@ -311,12 +305,13 @@ namespace ABP.Core.Application.Interfaces.Services
                    DateTime.UtcNow <= lastValidMoment;
         }
 
-        private async Task SendNotificationsAsync(string cardOwnerId, string commerceUserId, string commerceName, decimal amount)
+        private async Task SendNotificationsAsync(string cardOwnerId, string commerceUserId, string commerceName, decimal amount, string cardLastFour)
         {
+            var exactTime = DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm:ss");
             var recipients = new[]
             {
-                (UserId: cardOwnerId, Subject: "Hermes Pay: pago aprobado", Body: $"Tu pago de {amount:C2} en {commerceName} fue aprobado el {DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm")}."),
-                (UserId: commerceUserId, Subject: "Hermes Pay: pago recibido", Body: $"Recibiste un pago de {amount:C2} en {commerceName} el {DateTime.UtcNow.ToString("dd/MM/yyyy HH:mm")}.")
+                (UserId: cardOwnerId, Subject: "Hermes Pay: pago aprobado", Body: $"Tu pago de {amount:C2} en {commerceName} con la tarjeta terminada en {cardLastFour} fue aprobado el {exactTime}."),
+                (UserId: commerceUserId, Subject: "Hermes Pay: pago recibido", Body: $"Recibiste un pago de {amount:C2} en {commerceName} con la tarjeta terminada en {cardLastFour} el {exactTime}.")
             };
 
             foreach (var recipient in recipients)

@@ -26,9 +26,10 @@ namespace ABP.Core.Application.Interfaces.Services
         public async Task<LoanDto> GetByIdAsync(int id)
         {
             var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) return null!;
             var dto = _mapper.Map<LoanDto>(entity);
             // Actualizar cuotas y pendiente
-            var installments = await _installmentRepo.GetByLoanIdAsync(entity!.Id);
+            var installments = await _installmentRepo.GetByLoanIdAsync(entity.Id);
             dto.TotalInstallments = installments.Count();
             dto.PaidInstallments = installments.Count(i => i.Status == InstallmentStatus.Paid);
             dto.PendingAmount = installments.Where(i => i.Status != InstallmentStatus.Paid).Sum(i => i.InstallmentAmount - i.AmountPaid);
@@ -248,6 +249,12 @@ namespace ABP.Core.Application.Interfaces.Services
             var loan = await _repo.GetByLoanNumberAsync(loanNumber);
             if (loan == null || loan.Status != LoanStatus.Active) return false;
 
+            var accountOwner = await _userService.GetByIdAsync(account.UserId);
+            if (accountOwner == null || !accountOwner.IsActive) return false;
+
+            var loanOwner = await _userService.GetByIdAsync(loan.ClientId);
+            if (loanOwner == null || !loanOwner.IsActive) return false;
+
             var installments = (await _installmentRepo.GetByLoanIdAsync(loan.Id))
                 .Where(i => i.Status != InstallmentStatus.Paid)
                 .OrderBy(i => i.InstallmentNumber)
@@ -357,9 +364,7 @@ namespace ABP.Core.Application.Interfaces.Services
             await _repo.UpdateWithoutSaveAsync(loan);
             if (!pendingInstallments.Any())
             {
-                await _unitOfWork.SaveChangesAsync();
-                await rateTransaction.CommitAsync();
-                return;
+                throw new InvalidOperationException("No pending installments to update.");
             }
 
             // Calculate remaining principal. Assuming AmountPaid pays interest first, then principal.

@@ -11,11 +11,12 @@ using System.Text;
 
 namespace ABP.Core.Application.Interfaces.Services
 {
-    public class CreditCardService(ICreditCardRepository repo, ICreditCardConsumptionRepository consumptionService, ISavingsAccountRepository accountRepo, IMapper mapper, IUserReadOnlyService user, IEmailServices email, ILogger<CreditCardService> logger, IUnitOfWork unitOfWork) : ICreditCardService
+    public class CreditCardService(ICreditCardRepository repo, ICreditCardConsumptionRepository consumptionService, ISavingsAccountRepository accountRepo, ITransactionRepository transactionRepo, IMapper mapper, IUserReadOnlyService user, IEmailServices email, ILogger<CreditCardService> logger, IUnitOfWork unitOfWork) : ICreditCardService
     {
         private readonly ICreditCardRepository _repo = repo;
         private readonly ICreditCardConsumptionRepository _consumptionRepo = consumptionService;
         private readonly ISavingsAccountRepository _accountRepo = accountRepo;
+        private readonly ITransactionRepository _transactionRepo = transactionRepo;
         private readonly IMapper _mapper = mapper;
         private readonly IUserReadOnlyService _userService = user;
         private readonly IEmailServices _emailService = email;
@@ -183,13 +184,36 @@ namespace ABP.Core.Application.Interfaces.Services
             var card = await _repo.GetByCardNumberAsync(cardNumber);
             if (card == null || card.Status != CardStatus.Active) return false;
 
+            var accountOwner = await _userService.GetByIdAsync(account.UserId);
+            if (accountOwner == null || !accountOwner.IsActive) return false;
+
+            var cardOwner = await _userService.GetByIdAsync(card.ClientId);
+            if (cardOwner == null || !cardOwner.IsActive) return false;
+
             var paymentAmount = Math.Min(amount, card.AmountOwed);
             account.Balance -= paymentAmount;
             card.AmountOwed -= paymentAmount;
 
+            var transaction = new Transaction
+            {
+                Amount = paymentAmount,
+                Type = TransactionType.Payment,
+                TransactionDate = DateTime.UtcNow,
+                Origin = sourceAccountNumber,
+                Beneficiary = $"CARD-{card.CardNumber[^4..]}",
+                Status = TransactionStatus.Approved,
+                SavingAccountId = account.Id,
+                SourceAccountNumber = sourceAccountNumber,
+                DestinationAccountNumber = $"CARD-{card.CardNumber[^4..]}",
+                Description = "Pago de tarjeta de crédito",
+                CreatedAt = DateTime.UtcNow,
+                PerformedByUserId = account.UserId
+            };
+
             await using var paymentTransaction = await _unitOfWork.BeginTransactionAsync();
             await _accountRepo.UpdateWithoutSaveAsync(account);
             await _repo.UpdateWithoutSaveAsync(card);
+            await _transactionRepo.AddWithoutSaveAsync(transaction);
             await _unitOfWork.SaveChangesAsync();
             await paymentTransaction.CommitAsync();
             return true;
@@ -205,19 +229,36 @@ namespace ABP.Core.Application.Interfaces.Services
             var account = await _accountRepo.GetByIdAsync(dto.SavingsAccountId);
             if (account == null || account.Status != AccountStatus.Active) return false;
 
-            var availableCredit = card.CreditLimit - card.AmountOwed;
-            if (dto.Amount > availableCredit) return false;
-
-            // 6.25% interest on cash advances
             var totalWithInterest = dto.Amount * 1.0625m;
+            var availableCredit = card.CreditLimit - card.AmountOwed;
+            if (totalWithInterest > availableCredit) return false;
 
             card.AmountOwed += totalWithInterest;
             account.Balance += dto.Amount;
+
+            var transaction = new Transaction
+            {
+                Amount = dto.Amount,
+                Type = TransactionType.Credit,
+                TransactionDate = DateTime.UtcNow,
+                Origin = $"CARD-{card.CardNumber[^4..]}",
+                Beneficiary = account.AccountNumber,
+                Status = TransactionStatus.Approved,
+                SavingAccountId = account.Id,
+                SourceAccountNumber = $"CARD-{card.CardNumber[^4..]}",
+                DestinationAccountNumber = account.AccountNumber,
+                Description = "Avance de efectivo de tarjeta de crédito",
+                CreatedAt = DateTime.UtcNow,
+                PerformedByUserId = account.UserId
+            };
 
             await using var advanceTransaction = await _unitOfWork.BeginTransactionAsync();
             await _repo.UpdateWithoutSaveAsync(card);
             await _accountRepo.UpdateWithoutSaveAsync(account);
 
+            await _transactionRepo.AddWithoutSaveAsync(transaction);
+
+            await _transactionRepo.AddWithoutSaveAsync(transaction);
             await _consumptionRepo.AddWithoutSaveAsync(new CreditCardConsumption
             {
                 Amount = dto.Amount,
@@ -322,3 +363,5 @@ namespace ABP.Core.Application.Interfaces.Services
         }
     }
 }
+
+

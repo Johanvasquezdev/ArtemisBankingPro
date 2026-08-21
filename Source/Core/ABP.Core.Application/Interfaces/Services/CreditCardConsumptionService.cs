@@ -37,6 +37,12 @@ namespace ABP.Core.Application.Interfaces.Services
             return _mapper.Map<IEnumerable<CreditCardConsumptionDto>>(entities);
         }
 
+        public async Task<(IEnumerable<CreditCardConsumptionDto> Items, int TotalCount)> GetByCommerceIdPagedAsync(int commerceId, int page, int pageSize)
+        {
+            var (entities, totalCount) = await _repo.GetByCommerceIdPagedAsync(commerceId, page, pageSize);
+            return (_mapper.Map<IEnumerable<CreditCardConsumptionDto>>(entities), totalCount);
+        }
+
         public async Task<CreditCardConsumptionDto> AddAsync(CreditCardConsumptionDto dto)
         {
             var entity = _mapper.Map<CreditCardConsumption>(dto);

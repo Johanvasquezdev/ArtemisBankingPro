@@ -193,7 +193,8 @@ namespace ABP.Core.Application.Interfaces.Services
                 SourceAccountNumber = "SYSTEM",
                 DestinationAccountNumber = accountNumber,
                 Description = "Depósito de saldo adicional",
-                CreatedAt = DateTime.UtcNow
+                CreatedAt = DateTime.UtcNow,
+                PerformedByUserId = account.UserId
             };
 
             await _transrepo.AddWithoutSaveAsync(transaction);

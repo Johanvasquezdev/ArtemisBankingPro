@@ -19,5 +19,19 @@ namespace ABP.Infraestructure.Persistence.Repositories
                 .OrderByDescending(c => c.TransactionDate)
                 .ToListAsync();
         }
+
+        public async Task<(IEnumerable<CreditCardConsumption> Items, int TotalCount)> GetByCommerceIdPagedAsync(int commerceId, int page, int pageSize)
+        {
+            var query = _dbSet.Where(c => c.CommerceId == commerceId);
+            int totalCount = await query.CountAsync();
+            
+            var items = await query
+                .OrderByDescending(c => c.TransactionDate)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToListAsync();
+                
+            return (items, totalCount);
+        }
     }
 }

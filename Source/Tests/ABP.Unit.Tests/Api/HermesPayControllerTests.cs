@@ -58,10 +58,11 @@ public class HermesPayControllerTests
         }));
         controller.ControllerContext = new ControllerContext { HttpContext = new DefaultHttpContext { User = user } };
         
-        mediator.Setup(m => m.Send(It.IsAny<GetCommerceTransactionsQuery>(), default))
-            .ThrowsAsync(new System.Exception("Commerce is inactive"));
+        commerceRepo.Setup(r => r.GetByIdAsync(10)).ReturnsAsync(new ABP.Core.Domain.Entities.Commerce { Id = 10, IsActive = false });
 
-        var act = async () => await controller.GetTransactions(10, 1, 20);
-        await act.Should().ThrowAsync<System.Exception>().WithMessage("*inactive*");
+        var result = await controller.GetTransactions(10, 1, 20);
+        
+        var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+        badRequestResult.Value.Should().Be("El comercio no existe o está inactivo.");
     }
 }

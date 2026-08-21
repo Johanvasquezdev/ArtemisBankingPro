@@ -207,6 +207,7 @@ public sealed class AdminFinancialWorkflowIntegrationTests : IDisposable
             new CreditCardRepository(_context),
             new CreditCardConsumptionRepository(_context),
             new SavingsAccountRepository(_context),
+            new TransactionRepository(_context),
             _mapper,
             _users.Object,
             new Mock<IEmailServices>().Object,
