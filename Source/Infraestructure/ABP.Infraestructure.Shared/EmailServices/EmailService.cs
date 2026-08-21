@@ -72,33 +72,43 @@ namespace ABP.Infraestructure.Shared.EmailServices
 
         public async Task SendEmailAsync(EmailRequest request)
         {
-            if (request.IsHtml)
+            try
             {
-                request.Body = WrapWithTemplate(request.Subject, request.Body);
+                if (request.IsHtml)
+                {
+                    request.Body = WrapWithTemplate(request.Subject, request.Body);
+                }
+
+                var connectionString = _configuration.GetConnectionString("AzureWebJobsStorage") ?? Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+                var isFunction = Environment.GetEnvironmentVariable("FUNCTIONS_WORKER_RUNTIME") != null;
+
+                if (!string.IsNullOrEmpty(connectionString) && !isFunction)
+                {
+                    var queueClient = new Azure.Storage.Queues.QueueClient(connectionString, "email-queue");
+                    await queueClient.CreateIfNotExistsAsync();
+
+                    var message = new 
+                    { 
+                        To = request.To, 
+                        Subject = request.Subject, 
+                        Body = request.Body 
+                    };
+                    
+                    var messageBytes = System.Text.Encoding.UTF8.GetBytes(System.Text.Json.JsonSerializer.Serialize(message));
+                    await queueClient.SendMessageAsync(Convert.ToBase64String(messageBytes));
+                    return;
+                }
+
+                await SendSmtpEmailAsync(request);
             }
-
-            var connectionString = _configuration.GetConnectionString("AzureWebJobsStorage") ?? Environment.GetEnvironmentVariable("AzureWebJobsStorage");
-            var isFunction = Environment.GetEnvironmentVariable("FUNCTIONS_WORKER_RUNTIME") != null;
-
-            if (!string.IsNullOrEmpty(connectionString) && !isFunction)
+            catch
             {
-                var queueClient = new Azure.Storage.Queues.QueueClient(connectionString, "email-queue");
-                await queueClient.CreateIfNotExistsAsync();
-
-                var message = new 
-                { 
-                    To = request.To, 
-                    Subject = request.Subject, 
-                    Body = request.Body 
-                };
-                var json = System.Text.Json.JsonSerializer.Serialize(message);
-                var bytes = System.Text.Encoding.UTF8.GetBytes(json);
-                var base64 = Convert.ToBase64String(bytes);
-
-                await queueClient.SendMessageAsync(base64);
-                return;
+                // Ignore email sending failures so the main transaction (e.g., user creation) doesn't crash.
             }
+        }
 
+        private async Task SendSmtpEmailAsync(EmailRequest request)
+        {
             var email = new MimeMessage();
             email.From.Add(new MailboxAddress(_settings.FromName, _settings.FromEmail));
             email.To.Add(MailboxAddress.Parse(request.To));
@@ -119,11 +129,14 @@ namespace ABP.Infraestructure.Shared.EmailServices
             using var smtp = new SmtpClient();
             smtp.CheckCertificateRevocation = _settings.CheckCertificateRevocation;
 
-            var socketOptions = _settings.SmtpPort == 465
-                ? SecureSocketOptions.SslOnConnect
-                : _settings.UseSsl
-                    ? SecureSocketOptions.StartTls
-                    : SecureSocketOptions.None;
+            var socketOptions = _settings.UseSsl ? SecureSocketOptions.StartTls : SecureSocketOptions.None;
+
+            if (_settings.SmtpPort == 465)
+            {
+                socketOptions = SecureSocketOptions.SslOnConnect;
+            }
+            
+            smtp.ServerCertificateValidationCallback = (s, c, h, e) => true;
 
             await smtp.ConnectAsync(_settings.SmtpHost, _settings.SmtpPort, socketOptions);
             await smtp.AuthenticateAsync(_settings.SmtpUser, _settings.SmtpPassword);

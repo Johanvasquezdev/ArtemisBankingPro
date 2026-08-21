@@ -29,7 +29,8 @@ namespace ABP.Core.Application.ViewModels.User
 
         [Required(ErrorMessage = "La contraseña es requerida.")]
         [DataType(DataType.Password)]
-        [StringLength(100, ErrorMessage = "La contraseña debe tener entre {2} y {1} caracteres.", MinimumLength = 6)]
+        [StringLength(100, ErrorMessage = "La contraseña debe tener al menos {2} caracteres.", MinimumLength = 8)]
+        [RegularExpression(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$", ErrorMessage = "La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial.")]
         public string Password { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "La confirmación de contraseña es requerida.")]

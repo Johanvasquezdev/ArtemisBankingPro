@@ -27,7 +27,11 @@ namespace ABP.Core.Application.Features.Admin.Commands
             RuleFor(x => x.Cedula).NotEmpty();
             RuleFor(x => x.UserName).NotEmpty();
             RuleFor(x => x.Email).NotEmpty().EmailAddress();
-            RuleFor(x => x.Password).NotEmpty();
+            RuleFor(x => x.Password)
+                .NotEmpty()
+                .MinimumLength(8)
+                .Matches(@"^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^a-zA-Z\d]).{8,}$")
+                .WithMessage("La contraseña debe tener al menos 8 caracteres, una mayúscula, una minúscula, un número y un carácter especial.");
             RuleFor(x => x.Role)
                 .Must(r => Enum.TryParse<UserRole>(r, true, out var parsed) && parsed != UserRole.Commerce)
                 .WithMessage("El rol debe ser Administrador, Cajero o Cliente.");
