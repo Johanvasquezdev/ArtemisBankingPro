@@ -22,7 +22,7 @@ namespace ABP.API.Controllers.v1.Admin
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string status = "activo")
@@ -50,14 +50,14 @@ namespace ABP.API.Controllers.v1.Admin
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
             var result = await _mediator.Send(new GetCommerceByIdQuery(id));
             if (result == null)
-                return ApiProblem(StatusCodes.Status404NotFound, "Comercio no encontrado", "El comercio especificado no existe.");
+                return ApiProblem(StatusCodes.Status400BadRequest, "Comercio no encontrado", "El comercio especificado no existe.");
 
             return Ok(new
             {
@@ -112,7 +112,7 @@ namespace ABP.API.Controllers.v1.Admin
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateCommerceRequest request)
@@ -122,7 +122,7 @@ namespace ABP.API.Controllers.v1.Admin
                 request.Email, request.PhoneNumber, request.Rnc));
 
             if (result.NotFound)
-                return ApiProblem(StatusCodes.Status404NotFound, "Comercio no encontrado", "El comercio especificado no existe.");
+                return ApiProblem(StatusCodes.Status400BadRequest, "Comercio no encontrado", "El comercio especificado no existe.");
             if (result.RncAlreadyExists)
                 return ApiProblem(StatusCodes.Status409Conflict, "RNC duplicado", "El RNC pertenece a otro comercio.");
             if (result.EmailAlreadyExists)
@@ -140,14 +140,14 @@ namespace ABP.API.Controllers.v1.Admin
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPatch("{id:int}/status")]
         public async Task<IActionResult> ChangeStatus(int id, [FromBody] ChangeCommerceStatusRequest request)
         {
             var changed = await _mediator.Send(new ChangeCommerceStatusCommand(id, request.Status));
             if (!changed)
-                return ApiProblem(StatusCodes.Status404NotFound, "Comercio no encontrado", "El comercio especificado no existe.");
+                return ApiProblem(StatusCodes.Status400BadRequest, "Comercio no encontrado", "El comercio especificado no existe.");
             return NoContent();
         }
     }

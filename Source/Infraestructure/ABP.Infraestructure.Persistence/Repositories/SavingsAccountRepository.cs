@@ -32,7 +32,7 @@ namespace ABP.Infraestructure.Persistence.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<SavingsAccount>> GetAllPagedAsync(int page, int pageSize, AccountStatus? status = null, AccountType? type = null)
+        public async Task<IEnumerable<SavingsAccount>> GetAllPagedAsync(int page, int pageSize, AccountStatus? status = null, AccountType? type = null, string? userId = null)
         {
             var query = _dbSet.AsNoTracking();
 
@@ -43,6 +43,10 @@ namespace ABP.Infraestructure.Persistence.Repositories
             if (type.HasValue) 
             {
                 query = query.Where(a => a.Type == type.Value);
+            }
+            if (!string.IsNullOrEmpty(userId))
+            {
+                query = query.Where(a => a.UserId == userId);
             }
 
             return await query.OrderByDescending(q => q.CreatedAt).Skip((page - 1) * pageSize)
@@ -59,9 +63,14 @@ namespace ABP.Infraestructure.Persistence.Repositories
             return await _dbSet.FirstOrDefaultAsync(a => a.UserId == clientId && a.Type == AccountType.Primary && a.Status == AccountStatus.Active);
         }
 
-        public async Task<int> GetTotalActiveAccountsCountAsync()
+        public async Task<int> GetTotalActiveAccountsCountAsync(AccountStatus? status = null, AccountType? type = null, string? userId = null)
         {
-            return await _dbSet.CountAsync(a => a.Status == AccountStatus.Active);
+            var query = _dbSet.AsNoTracking();
+            if (status.HasValue) query = query.Where(a => a.Status == status.Value);
+            if (type.HasValue) query = query.Where(a => a.Type == type.Value);
+            if (!string.IsNullOrEmpty(userId)) query = query.Where(a => a.UserId == userId);
+
+            return await query.CountAsync();
         }
     }
 }

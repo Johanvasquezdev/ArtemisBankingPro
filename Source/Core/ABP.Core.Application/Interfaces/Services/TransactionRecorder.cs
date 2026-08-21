@@ -30,7 +30,8 @@ namespace ABP.Core.Application.Interfaces.Services
                 DestinationAccountNumber = entry.DestinationAccountNumber,
                 Description = entry.Description,
                 SavingAccountId = entry.SavingAccountId,
-                Status = entry.Status
+                Status = entry.Status,
+                PerformedByUserId = entry.PerformedByUserId
             });
             await _unitOfWork.SaveChangesAsync();
         }
@@ -51,7 +52,8 @@ namespace ABP.Core.Application.Interfaces.Services
                 DestinationAccountNumber = entry.DestinationAccountNumber,
                 Description = entry.Description,
                 SavingAccountId = entry.SavingAccountId,
-                Status = entry.Status
+                Status = entry.Status,
+                PerformedByUserId = entry.PerformedByUserId
             });
         }
 

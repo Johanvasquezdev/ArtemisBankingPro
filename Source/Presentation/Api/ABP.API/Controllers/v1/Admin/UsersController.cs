@@ -23,7 +23,7 @@ namespace ABP.API.Controllers.v1.Admin
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? role = null)
@@ -43,7 +43,7 @@ namespace ABP.API.Controllers.v1.Admin
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("commerce")]
         public async Task<IActionResult> GetCommerceUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
@@ -61,13 +61,13 @@ namespace ABP.API.Controllers.v1.Admin
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
             var user = await _mediator.Send(new GetUserByIdQuery(id));
-            if (user == null) return ApiProblem(StatusCodes.Status404NotFound, "Usuario no encontrado", "El usuario especificado no existe.");
+            if (user == null) return ApiProblem(StatusCodes.Status400BadRequest, "Usuario no encontrado", "El usuario especificado no existe.");
             return Ok(user);
         }
 
@@ -134,7 +134,7 @@ namespace ABP.API.Controllers.v1.Admin
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(string id, [FromBody] UpdateUserRequest request)
@@ -158,7 +158,7 @@ namespace ABP.API.Controllers.v1.Admin
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> ChangeStatus(string id, [FromBody] ChangeUserStatusRequest request)
@@ -173,7 +173,7 @@ namespace ABP.API.Controllers.v1.Admin
             if (result.SelfModificationForbidden)
                 return ApiProblem(StatusCodes.Status403Forbidden, "Operación no permitida", "No puede modificar su propia cuenta.");
             if (result.UserNotFound)
-                return ApiProblem(StatusCodes.Status404NotFound, "Usuario no encontrado", "El usuario especificado no existe.");
+                return ApiProblem(StatusCodes.Status400BadRequest, "Usuario no encontrado", "El usuario especificado no existe.");
 
             return NoContent();
         }

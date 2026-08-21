@@ -23,7 +23,7 @@ namespace ABP.API.Controllers.v1.Admin
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string status = "activos", 
@@ -44,13 +44,13 @@ namespace ABP.API.Controllers.v1.Admin
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
             var loan = await _mediator.Send(new GetLoanByIdQuery(id));
-            if (loan == null) return ApiProblem(StatusCodes.Status404NotFound, "Préstamo no encontrado", "El préstamo especificado no existe.");
+            if (loan == null) return ApiProblem(StatusCodes.Status400BadRequest, "Préstamo no encontrado", "El préstamo especificado no existe.");
             return Ok(loan);
         }
 
@@ -105,7 +105,7 @@ namespace ABP.API.Controllers.v1.Admin
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPatch("{id:int}/rate")]
         public async Task<IActionResult> UpdateRate(int id, [FromBody] UpdateRateRequest request)
@@ -113,7 +113,7 @@ namespace ABP.API.Controllers.v1.Admin
             try
             {
                 var updated = await _mediator.Send(new UpdateLoanRateCommand(id, request.NewRates));
-                if (!updated) return ApiProblem(StatusCodes.Status404NotFound, "Préstamo no encontrado", "El préstamo especificado no existe.");
+                if (!updated) return ApiProblem(StatusCodes.Status400BadRequest, "Préstamo no encontrado", "El préstamo especificado no existe.");
                 return NoContent();
             }
             catch (Exception ex)

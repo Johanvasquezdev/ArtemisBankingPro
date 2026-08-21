@@ -107,6 +107,10 @@ namespace ABP.Core.Application.Interfaces.Services
 
         public async Task<CreditCardDto> AssignAsync(AssignCreditCardDto dto)
         {
+            var user = await _userService.GetByIdAsync(dto.ClientId);
+            if (user == null || !user.IsActive)
+                throw new InvalidOperationException("Client must be active to assign a credit card.");
+
             string cardNumber;
             do
             {

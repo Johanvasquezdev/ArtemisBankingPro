@@ -44,14 +44,23 @@ namespace ABP.Core.Application.Interfaces.Services
 
         public async Task<PaginatedResult<SavingsAccountDto>> GetAllPagedAsync(int page, int pageSize = 20, AccountStatus? status = null, AccountType? type = null, string? cedula = null)
         {
-            var entities = await _repo.GetAllPagedAsync(page, pageSize, status, type);
+            string? clientId = null;
             if (!string.IsNullOrWhiteSpace(cedula))
             {
-                var clientId = await _userService.GetUserIdByCedulaAsync(cedula);
-                entities = clientId is null
-                    ? []
-                    : entities.Where(account => account.UserId == clientId);
+                clientId = await _userService.GetUserIdByCedulaAsync(cedula);
+                if (clientId is null)
+                {
+                    return new PaginatedResult<SavingsAccountDto>
+                    {
+                        Items = [],
+                        TotalCount = 0,
+                        Page = page,
+                        PageSize = pageSize
+                    };
+                }
             }
+
+            var entities = await _repo.GetAllPagedAsync(page, pageSize, status, type, clientId);
             var items = _mapper.Map<IEnumerable<SavingsAccountDto>>(entities);
             var usersById = (await _userService.GetByIdsAsync(items.Select(item => item.UserId)))
                 .ToDictionary(user => user.Id);
@@ -63,7 +72,7 @@ namespace ABP.Core.Application.Interfaces.Services
                     item.OwnerFullName = $"{user.FirstName} {user.LastName}";
             }
 
-            var totalCount = await _repo.GetTotalActiveAccountsCountAsync();
+            var totalCount = await _repo.GetTotalActiveAccountsCountAsync(status, type, clientId);
 
             return new PaginatedResult<SavingsAccountDto>
             {

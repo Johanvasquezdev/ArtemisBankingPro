@@ -23,7 +23,7 @@ namespace ABP.API.Controllers.v1.Admin
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20,
@@ -62,7 +62,7 @@ namespace ABP.API.Controllers.v1.Admin
             }
             catch (KeyNotFoundException ex)
             {
-                return ApiProblem(StatusCodes.Status404NotFound, "Cliente no encontrado", ex.Message);
+                return ApiProblem(StatusCodes.Status400BadRequest, "Cliente no encontrado", ex.Message);
             }
             catch (InvalidOperationException ex)
             {
@@ -79,13 +79,13 @@ namespace ABP.API.Controllers.v1.Admin
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("{accountNumber}/transactions")]
         public async Task<IActionResult> GetTransactions(string accountNumber, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             var result = await _mediator.Send(new GetSavingsAccountTransactionsQuery(accountNumber, page, pageSize));
-            if (result == null) return ApiProblem(StatusCodes.Status404NotFound, "Cuenta no encontrada", "La cuenta especificada no existe.");
+            if (result == null) return ApiProblem(StatusCodes.Status400BadRequest, "Cuenta no encontrada", "La cuenta especificada no existe.");
 
             return Ok(new
             {
@@ -112,7 +112,7 @@ namespace ABP.API.Controllers.v1.Admin
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPatch("{accountNumber}/cancel")]
         public async Task<IActionResult> Cancel(string accountNumber)
@@ -128,7 +128,7 @@ namespace ABP.API.Controllers.v1.Admin
             }
             catch (Exception)
             {
-                return ApiProblem(StatusCodes.Status404NotFound, "Cuenta no encontrada", "La cuenta especificada no existe.");
+                return ApiProblem(StatusCodes.Status400BadRequest, "Cuenta no encontrada", "La cuenta especificada no existe.");
             }
         }
     }

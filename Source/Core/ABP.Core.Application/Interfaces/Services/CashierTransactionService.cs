@@ -73,8 +73,9 @@ internal sealed class CashierTransactionService : ICashierTransactionService
             {
                 try
                 {
+                    string maskedAccount = cashierDepositDto.AccountNumber.Length >= 4 ? $"****{cashierDepositDto.AccountNumber[^4..]}" : cashierDepositDto.AccountNumber;
                     await _emailService.SendAsync(user.Email, "Deposito Recibido",
-                        $"Un deposito de {cashierDepositDto.Amount:C2} se ha credito a tu cuenta {cashierDepositDto.AccountNumber}.");
+                        $"Un deposito de {cashierDepositDto.Amount:C2} se ha credito a tu cuenta {maskedAccount}.");
                 }
                 catch (Exception ex) { _logger.LogWarning(ex, "Email notification failed."); }
             }
@@ -139,8 +140,9 @@ internal sealed class CashierTransactionService : ICashierTransactionService
             {
                 try
                 {
+                    string maskedAccount = dto.AccountNumber.Length >= 4 ? $"****{dto.AccountNumber[^4..]}" : dto.AccountNumber;
                     await _emailService.SendAsync(user.Email, "Notificación de Retiro",
-                        $"Se ha procesado un retiro de {dto.Amount:C2} de su cuenta {dto.AccountNumber}.");
+                        $"Se ha procesado un retiro de {dto.Amount:C2} de su cuenta {maskedAccount}.");
                 }
                 catch (Exception ex) { _logger.LogWarning(ex, "Email notification failed."); }
             }
@@ -236,6 +238,13 @@ internal sealed class CashierTransactionService : ICashierTransactionService
             var loan = await _loanRepo.GetByLoanNumberAsync(Dto.LoanNumber);
 
             if (account == null || loan == null) throw new Exception("Cuenta o Prestamo no encontrado.");
+            
+            if (account.Status != AccountStatus.Active)
+                throw new InvalidOperationException("No se puede procesar el pago desde una cuenta inactiva o cancelada.");
+                
+            if (loan.Status != LoanStatus.Active)
+                throw new InvalidOperationException("No se pueden procesar pagos para un prestamo inactivo o completado.");
+
             if (account.Balance < Dto.Amount)
             {
                 var declinedTx = new Transaction
@@ -408,8 +417,9 @@ internal sealed class CashierTransactionService : ICashierTransactionService
             {
                 try
                 {
+                    string maskedDest = dto.DestinationAccountNumber.Length >= 4 ? $"****{dto.DestinationAccountNumber[^4..]}" : dto.DestinationAccountNumber;
                     await _emailService.SendAsync(sourceUser.Email, "Transferencia Enviada",
-                        $"Ha enviado {dto.Amount:C2} a la cuenta {dto.DestinationAccountNumber}.");
+                        $"Ha enviado {dto.Amount:C2} a la cuenta {maskedDest}.");
                 }
                 catch (Exception ex) { _logger.LogWarning(ex, "Email notification failed."); }
             }
@@ -418,8 +428,9 @@ internal sealed class CashierTransactionService : ICashierTransactionService
             {
                 try
                 {
+                    string maskedSource = dto.SourceAccountNumber.Length >= 4 ? $"****{dto.SourceAccountNumber[^4..]}" : dto.SourceAccountNumber;
                     await _emailService.SendAsync(destUser.Email, "Transferencia Recibida",
-                        $"Ha recibido {dto.Amount:C2} desde la cuenta {dto.SourceAccountNumber}.");
+                        $"Ha recibido {dto.Amount:C2} desde la cuenta {maskedSource}.");
                 }
                 catch (Exception ex) { _logger.LogWarning(ex, "Email notification failed."); }
             }

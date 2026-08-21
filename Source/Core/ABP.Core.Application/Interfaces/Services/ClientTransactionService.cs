@@ -156,7 +156,8 @@ internal sealed class ClientTransactionService : IClientTransactionService
                 DestinationAccountNumber = cardReference,
                 Description = "Pago a tarjeta de credito",
                 SavingAccountId = source.Id,
-                Status = TransactionStatus.Approved
+                Status = TransactionStatus.Approved,
+                PerformedByUserId = source.UserId
             });
 
             await _unitOfWork.SaveChangesAsync();
@@ -243,7 +244,8 @@ internal sealed class ClientTransactionService : IClientTransactionService
                 DestinationAccountNumber = loan.LoanNumber,
                 Description = "Pago a prestamo",
                 SavingAccountId = source.Id,
-                Status = TransactionStatus.Approved
+                Status = TransactionStatus.Approved,
+                PerformedByUserId = source.UserId
             });
 
             await _unitOfWork.SaveChangesAsync();
@@ -429,7 +431,8 @@ internal sealed class ClientTransactionService : IClientTransactionService
                 DestinationAccountNumber = account.AccountNumber,
                 Description = "Avance de efectivo",
                 SavingAccountId = account.Id,
-                Status = TransactionStatus.Approved
+                Status = TransactionStatus.Approved,
+                PerformedByUserId = account.UserId
             });
 
             await _unitOfWork.SaveChangesAsync();
@@ -494,7 +497,8 @@ internal sealed class ClientTransactionService : IClientTransactionService
             DestinationAccountNumber = destination.AccountNumber,
             Description = description,
             SavingAccountId = source.Id,
-            Status = TransactionStatus.Approved
+            Status = TransactionStatus.Approved,
+            PerformedByUserId = source.UserId
         };
 
         private TransactionEntry BuildTransferCredit(SavingsAccount destination, SavingsAccount source, string description, decimal amount) => new()
@@ -507,7 +511,8 @@ internal sealed class ClientTransactionService : IClientTransactionService
             DestinationAccountNumber = destination.AccountNumber,
             Description = description,
             SavingAccountId = destination.Id,
-            Status = TransactionStatus.Approved
+            Status = TransactionStatus.Approved,
+            PerformedByUserId = source.UserId
         };
 
         private async Task RecordRejectedAsync(SavingsAccount source, string reference, string description, decimal amount)
@@ -522,7 +527,8 @@ internal sealed class ClientTransactionService : IClientTransactionService
                 DestinationAccountNumber = reference,
                 Description = description,
                 SavingAccountId = source.Id,
-                Status = TransactionStatus.Declined
+                Status = TransactionStatus.Declined,
+                PerformedByUserId = source.UserId
             });
         }
 

@@ -99,6 +99,10 @@ namespace ABP.Core.Application.Interfaces.Services
         }
         public async Task<LoanDto> AssignAsync(AssignLoanDto dto)
         {
+            var user = await _userService.GetByIdAsync(dto.ClientId);
+            if (user == null || !user.IsActive)
+                throw new InvalidOperationException("Client must be active to assign a loan.");
+
             if (await _repo.ClientHasActiveLoanAsync(dto.ClientId))
                 throw new InvalidOperationException("Client already has an active loan.");
 
@@ -107,7 +111,7 @@ namespace ABP.Core.Application.Interfaces.Services
             {
                 loanNumber = Random.Shared.Next(100000000, 999999999).ToString();
             }
-            while (await _repo.GetByLoanNumberAsync(loanNumber) != null);
+            while (await _accountRepo.AccountOrLoanNumberExistsAsync(loanNumber));
 
             var loan = new Loan
             {

@@ -23,7 +23,7 @@ namespace ABP.API.Controllers.v1.Admin
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20,
@@ -70,13 +70,13 @@ namespace ABP.API.Controllers.v1.Admin
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
         {
             var result = await _mediator.Send(new GetCreditCardByIdQuery(id));
-            if (result == null) return ApiProblem(StatusCodes.Status404NotFound, "Tarjeta no encontrada", "La tarjeta de crédito especificada no existe.");
+            if (result == null) return ApiProblem(StatusCodes.Status400BadRequest, "Tarjeta no encontrada", "La tarjeta de crédito especificada no existe.");
             return Ok(new { card = result.Card, consumptions = result.Consumptions });
         }
 
@@ -89,7 +89,7 @@ namespace ABP.API.Controllers.v1.Admin
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPatch("{id:int}/limit")]
         public async Task<IActionResult> UpdateLimit(int id, [FromBody] UpdateLimitRequest request)
@@ -107,7 +107,7 @@ namespace ABP.API.Controllers.v1.Admin
             }
             catch (Exception)
             {
-                return ApiProblem(StatusCodes.Status404NotFound, "Tarjeta no encontrada", "La tarjeta de crédito especificada no existe.");
+                return ApiProblem(StatusCodes.Status400BadRequest, "Tarjeta no encontrada", "La tarjeta de crédito especificada no existe.");
             }
         }
 
@@ -120,7 +120,7 @@ namespace ABP.API.Controllers.v1.Admin
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPatch("{id:int}/cancel")]
         public async Task<IActionResult> Cancel(int id)
@@ -136,7 +136,7 @@ namespace ABP.API.Controllers.v1.Admin
             }
             catch (Exception)
             {
-                return ApiProblem(StatusCodes.Status404NotFound, "Tarjeta no encontrada", "La tarjeta de crédito especificada no existe.");
+                return ApiProblem(StatusCodes.Status400BadRequest, "Tarjeta no encontrada", "La tarjeta de crédito especificada no existe.");
             }
         }
     }

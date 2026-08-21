@@ -25,22 +25,4 @@
       <Project Path="Source/Tests/ABP.Unit.Tests/ABP.Unit.Tests.csproj" />
     </Folder>
   </Folder>
-  <Folder Name="/Source/Core/">
-    <Project Path="Source/Core/ABP.Core.Application/ABP.Core.Application.csproj" />
-    <Project Path="Source/Core/ABP.Core.Domain/ABP.Core.Domain.csproj" />
-  </Folder>
-  <Folder Name="/Source/Infrastructure/">
-    <Project Path="Source/Infraestructure/ABP.Infraestructure.identity/ABP.Infraestructure.identity.csproj" />
-    <Project Path="Source/Infraestructure/ABP.Infraestructure.Persistence/ABP.Infraestructure.Persistence.csproj" />
-    <Project Path="Source/Infraestructure/ABP.Infraestructure.Shared/ABP.Infraestructure.Shared.csproj" />
-  </Folder>
-  <Folder Name="/Source/Presentation/">
-    <Project Path="Source/Presentation/Api/ABP.API/ABP.API.csproj" />
-    <Project Path="Source/Presentation/Functions/ABP.Functions/ABP.Functions.csproj" />
-    <Project Path="Source/Presentation/Web/ArtemisBankingPro/ArtemisBankingPro.csproj" />
-  </Folder>
-  <Folder Name="/Source/Test/">
-    <Project Path="Source/Tests/ABP.Integration.Tests/ABP.Integration.Tests.csproj" />
-    <Project Path="Source/Tests/ABP.Unit.Tests/ABP.Unit.Tests.csproj" />
-  </Folder>
 </Solution>
