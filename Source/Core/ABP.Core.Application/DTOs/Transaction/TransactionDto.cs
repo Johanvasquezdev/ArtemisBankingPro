@@ -1,4 +1,5 @@
 using ABP.Core.Domain.Enums;
+using System.Text.Json.Serialization;
 
 namespace ABP.Core.Application.DTOs.Transaction
 {
@@ -7,10 +8,34 @@ namespace ABP.Core.Application.DTOs.Transaction
         public int Id { get; set; }
         public decimal Amount { get; set; }
         public DateTime TransactionDate { get; set; }
+        
+        [JsonIgnore]
         public TransactionType Type { get; set; }
+        
+        [JsonPropertyName("type")]
+        public string TypeDisplay => Type switch
+        {
+            TransactionType.Deposit => "Depósito",
+            TransactionType.Withdrawal => "Retiro",
+            TransactionType.Transfer => "Transferencia",
+            TransactionType.Credit => "Crédito",
+            _ => Type.ToString()
+        };
+        
         public string Beneficiary { get; set; } = string.Empty;
         public string Origin { get; set; } = string.Empty;
+        
+        [JsonIgnore]
         public TransactionStatus Status { get; set; }
+        
+        [JsonPropertyName("status")]
+        public string StatusDisplay => Status switch
+        {
+            TransactionStatus.Approved => "APROBADO",
+            TransactionStatus.Declined => "RECHAZADO",
+            _ => Status.ToString()
+        };
+        
         public int SavingAccountId { get; set; }
         public string SourceAccountNumber { get; set; } = string.Empty;
         public string DestinationAccountNumber { get; set; } = string.Empty;

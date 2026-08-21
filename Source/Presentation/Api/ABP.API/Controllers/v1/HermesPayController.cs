@@ -1,4 +1,4 @@
-using ABP.Core.Application.DTOs.Payment;
+﻿using ABP.Core.Application.DTOs.Payment;
 using ABP.API.DTOs.Payment;
 using ABP.Core.Application.Features.Commerce.Commands;
 using ABP.Core.Application.Features.Commerce.Queries;
@@ -30,10 +30,10 @@ namespace ABP.API.Controllers.v1
         /// Si el usuario es de tipo Commerce, usa el ID del token. Si es Admin, usa el ID de la ruta.
         /// </summary>
         /// <param name="commerceId">ID del comercio (ignorado si el usuario es Commerce)</param>
-        /// <param name="page">Número de página, comenzando en 1.</param>
-        /// <param name="pageSize">Cantidad de registros por página, con un máximo de 20.</param>
+        /// <param name="page">NÃºmero de pÃ¡gina, comenzando en 1.</param>
+        /// <param name="pageSize">Cantidad de registros por pÃ¡gina, con un mÃ¡ximo de 20.</param>
         /// <response code="200">Listado retornado exitosamente</response>
-        /// <response code="401">Token ausente o inválido</response>
+        /// <response code="401">Token ausente o invÃ¡lido</response>
         [HttpGet("get-transactions/{commerceId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
@@ -49,15 +49,19 @@ namespace ABP.API.Controllers.v1
                 var commerceIdClaim = User.FindFirst("commerceId")?.Value;
                 if (string.IsNullOrEmpty(commerceIdClaim) || !int.TryParse(commerceIdClaim, out var parsedCommerceId))
                 {
-                    return ApiProblem(StatusCodes.Status403Forbidden, "Acceso denegado", "El token no contiene un comercio válido.");
+                    return ApiProblem(StatusCodes.Status403Forbidden, "Acceso denegado", "El token no contiene un comercio vÃ¡lido.");
                 }
                 actualCommerceId = parsedCommerceId;
             }
 
             var commerce = await _commerceRepo.GetByIdAsync(actualCommerceId);
-            if (commerce == null || !commerce.IsActive)
+            if (commerce == null)
             {
-                return ApiProblem(StatusCodes.Status404NotFound, "Comercio no encontrado", "El comercio no existe o está inactivo.");
+                return ApiProblem(StatusCodes.Status404NotFound, "Comercio no encontrado", "El comercio no existe.");
+            }
+            if (!commerce.IsActive)
+            {
+                return ApiProblem(StatusCodes.Status400BadRequest, "Comercio inactivo", "El comercio estÃ¡ inactivo.");
             }
 
             var transactions = await _mediator.Send(new GetCommerceTransactionsQuery(actualCommerceId, page, pageSize));
@@ -75,15 +79,15 @@ namespace ABP.API.Controllers.v1
         }
 
         /// <summary>
-        /// Procesa un pago de un comercio mediante tarjeta de crédito.
+        /// Procesa un pago de un comercio mediante tarjeta de crÃ©dito.
         /// Si el usuario es de tipo Commerce, usa el ID del token. Si es Admin, usa el ID de la ruta.
         /// </summary>
         /// <param name="commerceId">ID del comercio (ignorado si el usuario es Commerce)</param>
         /// <param name="request">Datos del pago a procesar</param>
-        /// <param name="idempotencyKey">Clave única para evitar procesar dos veces la misma solicitud.</param>
+        /// <param name="idempotencyKey">Clave Ãºnica para evitar procesar dos veces la misma solicitud.</param>
         /// <response code="204">Pago procesado exitosamente</response>
-        /// <response code="400">Datos inválidos o comercio/tarjeta inactiva</response>
-        /// <response code="401">Token ausente o inválido</response>
+        /// <response code="400">Datos invÃ¡lidos o comercio/tarjeta inactiva</response>
+        /// <response code="401">Token ausente o invÃ¡lido</response>
         [HttpPost("process-payment/{commerceId}")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -106,15 +110,19 @@ namespace ABP.API.Controllers.v1
                 var commerceIdClaim = User.FindFirst("commerceId")?.Value;
                 if (string.IsNullOrEmpty(commerceIdClaim) || !int.TryParse(commerceIdClaim, out var parsedCommerceId))
                 {
-                    return ApiProblem(StatusCodes.Status403Forbidden, "Acceso denegado", "El token no contiene un comercio válido.");
+                    return ApiProblem(StatusCodes.Status403Forbidden, "Acceso denegado", "El token no contiene un comercio vÃ¡lido.");
                 }
                 actualCommerceId = parsedCommerceId;
             }
 
             var commerce = await _commerceRepo.GetByIdAsync(actualCommerceId);
-            if (commerce == null || !commerce.IsActive)
+            if (commerce == null)
             {
-                return ApiProblem(StatusCodes.Status404NotFound, "Comercio no encontrado", "El comercio no existe o está inactivo.");
+                return ApiProblem(StatusCodes.Status404NotFound, "Comercio no encontrado", "El comercio no existe.");
+            }
+            if (!commerce.IsActive)
+            {
+                return ApiProblem(StatusCodes.Status400BadRequest, "Comercio inactivo", "El comercio estÃ¡ inactivo.");
             }
 
             var paymentDto = new ProcessPaymentDto
@@ -136,3 +144,4 @@ namespace ABP.API.Controllers.v1
         }
     }
 }
+
