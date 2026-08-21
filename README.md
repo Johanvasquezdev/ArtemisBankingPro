@@ -1,34 +1,34 @@
 # Artemis Banking Pro
 
-Artemis Banking Pro es una soluciÛn integral para servicios bancarios y transaccionales, diseÒada con los m·s altos est·ndares de calidad y seguridad. La plataforma sirve a tres tipos principales de usuarios: administradores, cajeros y clientes, adem·s de ofrecer una integraciÛn externa (Hermes Pay) para comercios electrÛnicos.
+Artemis Banking Pro es una soluci√≥n integral para servicios bancarios y transaccionales, dise√±ada con los m√°s altos est√°ndares de calidad y seguridad. La plataforma sirve a tres tipos principales de usuarios: administradores, cajeros y clientes, adem√°s de ofrecer una integraci√≥n externa (Hermes Pay) para comercios electr√≥nicos.
 
-El sistema est· construido bajo los principios de **Arquitectura Limpia (Onion Architecture)**, utilizando **CQRS** con MediatR, **Entity Framework Core**, **Azure Functions** y **Identity** para la gestiÛn de usuarios, garantizando escalabilidad, mantenibilidad y un acoplamiento dÈbil entre sus capas.
+El sistema est√° construido bajo los principios de **Arquitectura Limpia (Onion Architecture)**, utilizando **CQRS** con MediatR, **Entity Framework Core**, **Azure Functions** y **Identity** para la gesti√≥n de usuarios, garantizando escalabilidad, mantenibilidad y un acoplamiento d√©bil entre sus capas.
 
 ---
 
-## ??? Arquitectura y DiseÒo
+## üèóÔ∏è Arquitectura y Dise√±o
 
 El proyecto sigue una estructura de capas estricta basada en Clean Architecture:
 
-* **Core (Dominio y AplicaciÛn):** Contiene la lÛgica de negocio pura, entidades, interfaces, DTOs y casos de uso estructurados con el patrÛn CQRS (Commands/Queries) usando MediatR. Depende exclusivamente de sÌ misma.
+* **Core (Dominio y Aplicaci√≥n):** Contiene la l√≥gica de negocio pura, entidades, interfaces, DTOs y casos de uso estructurados con el patr√≥n CQRS (Commands/Queries) usando MediatR. Depende exclusivamente de s√≠ misma.
 * **Infrastructure:**
-  * **Persistence:** ImplementaciÛn de Entity Framework Core, DbContexts y repositorios genÈricos/especÌficos.
-  * **Identity:** GestiÛn de autenticaciÛn, autorizaciÛn y roles usando ASP.NET Core Identity y JWT.
+  * **Persistence:** Implementaci√≥n de Entity Framework Core, DbContexts y repositorios gen√©ricos/espec√≠ficos.
+  * **Identity:** Gesti√≥n de autenticaci√≥n, autorizaci√≥n y roles usando ASP.NET Core Identity y JWT.
   * **Shared:** Implementaciones de servicios externos (ej. Email con colas de Azure).
 * **Presentation:**
-  * **ABP.API:** Endpoints RESTFul documentados con Swagger, responsables de la comunicaciÛn de servicios de terceros (Hermes Pay) y frontends externos.
-  * **ArtemisBankingPro (Web):** AplicaciÛn MVC para la interacciÛn directa de los usuarios (portal bancario).
-  * **ABP.Functions:** Azure Functions utilizadas como consumidores de colas para procesamiento asÌncrono (ej. envÌo de correos).
+  * **ABP.API:** Endpoints RESTFul documentados con Swagger, responsables de la comunicaci√≥n de servicios de terceros (Hermes Pay) y frontends externos.
+  * **ArtemisBankingPro (Web):** Aplicaci√≥n MVC para la interacci√≥n directa de los usuarios (portal bancario).
+  * **ABP.Functions:** Azure Functions utilizadas como consumidores de colas para procesamiento as√≠ncrono (ej. env√≠o de correos).
 
 ### Patrones Implementados
-- **CQRS:** SeparaciÛn estricta de lecturas (Queries) y escrituras (Commands).
-- **Repository Pattern & Unit of Work:** AbstracciÛn del acceso a datos.
+- **CQRS:** Separaci√≥n estricta de lecturas (Queries) y escrituras (Commands).
+- **Repository Pattern & Unit of Work:** Abstracci√≥n del acceso a datos.
 - **Dependency Injection:** Configurado de forma nativa en .NET.
-- **Idempotency:** ProtecciÛn contra pagos duplicados en Hermes Pay.
+- **Idempotency:** Protecci√≥n contra pagos duplicados en Hermes Pay.
 
 ---
 
-## ??? TecnologÌas
+## üíª Tecnolog√≠as
 
 * **Framework:** .NET 9.0
 * **Base de Datos:** PostgreSQL (Alojada en Supabase)
@@ -36,89 +36,94 @@ El proyecto sigue una estructura de capas estricta basada en Clean Architecture:
 * **Seguridad:** ASP.NET Core Identity, JWT (JSON Web Tokens)
 * **Validaciones:** FluentValidation
 * **Mapeo:** AutoMapper
-* **Procesamiento AsÌncrono:** Azure Storage Queues, Azure Functions (Isolated Worker)
-* **DocumentaciÛn:** Swagger (OpenAPI 3.0)
+* **Procesamiento As√≠ncrono:** Azure Storage Queues, Azure Functions (Isolated Worker)
+* **Documentaci√≥n:** Swagger (OpenAPI 3.0)
 * **Testing:** xUnit, Moq, FluentAssertions, FluentValidation.TestHelper
 
 ---
 
-## ?? Requisitos Previos
+## üìã Requisitos Previos
 
-Antes de ejecutar el proyecto, aseg˙rese de tener instalado:
+Antes de ejecutar el proyecto, aseg√∫rese de tener instalado:
 1. [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
-2. **PostgreSQL** (No requerido localmente si se usa la conexiÛn en la nube provista en el archivo de configuraciÛn).
-3. **Azurite** (Emulador local de Azure Storage). Requerido para el funcionamiento de las Azure Functions y el envÌo de correos. [InstalaciÛn vÌa npm](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite): 
-pm install -g azurite
-4. CLI de EF Core: dotnet tool install --global dotnet-ef
+2. **PostgreSQL** (No requerido localmente si se usa la conexi√≥n en la nube provista en el archivo de configuraci√≥n).
+3. **Azurite** (Emulador local de Azure Storage). Requerido para el funcionamiento de las Azure Functions y el env√≠o de correos. [Instalaci√≥n v√≠a npm](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite): 
+```bash
+npm install -g azurite
+```
+4. CLI de EF Core: 
+```bash
+dotnet tool install --global dotnet-ef
+```
 
 ---
 
-## ?? ConfiguraciÛn y Base de Datos
+## ‚öôÔ∏è Configuraci√≥n y Base de Datos
 
-Las configuraciones base y cadenas de conexiÛn residen en los archivos ppsettings.json en ABP.API y la Web App MVC.
-*Nota: Para facilitar la evaluaciÛn del proyecto por parte del profesor, las credenciales reales de Supabase, JWT y SMTP se han dejado configuradas directamente en los archivos .json correspondientes. Por favor no las mueva a User Secrets para la revisiÛn.*
+Las configuraciones base y cadenas de conexi√≥n residen en los archivos `appsettings.json` en ABP.API y la Web App MVC.
+*Nota: Para facilitar la evaluaci√≥n del proyecto por parte del profesor, las credenciales reales de Supabase, JWT y SMTP se han dejado configuradas directamente en los archivos .json correspondientes. Por favor no las mueva a User Secrets para la revisi√≥n.*
 
 ### Migraciones
-El sistema utiliza dos contextos separados. **Las migraciones no se aplican autom·ticamente** y deben ser ejecutadas la primera vez. Abra una terminal en la raÌz de la soluciÛn:
+El sistema utiliza dos contextos separados. **Las migraciones no se aplican autom√°ticamente** y deben ser ejecutadas la primera vez. Abra una terminal en la ra√≠z de la soluci√≥n:
 
-`ash
+```bash
 # Identidad
 dotnet ef database update --project Source/Infraestructure/ABP.Infraestructure.identity --startup-project Source/Presentation/Api/ABP.API -c IdentityContext
 
 # Banca
 dotnet ef database update --project Source/Infraestructure/ABP.Infraestructure.Persistence --startup-project Source/Presentation/Api/ABP.API -c ArtemisBankingDbContext
-`
+```
 
 ---
 
-## ?? EjecuciÛn del Sistema
+## üöÄ Ejecuci√≥n del Sistema
 
 El ecosistema completo requiere 3 procesos en marcha:
 
 1. **Azurite** (Emulador de colas):
-   Abra una terminal y ejecute zurite.
-2. **Azure Functions** (Procesador asÌncrono de correos):
-   `ash
-   dotnet run --project Source/Presentation/Functions/ABP.Functions/ABP.Functions.csproj
-   `
+   Abra una terminal y ejecute `azurite`.
+2. **Azure Functions** (Procesador as√≠ncrono de correos):
+```bash
+dotnet run --project Source/Presentation/Functions/ABP.Functions/ABP.Functions.csproj
+```
 3. **Web API y MVC:**
-   Configure Visual Studio para "M˙ltiples Proyectos de Inicio" (Multiple Startup Projects) arrancando simult·neamente ABP.API y ArtemisBankingPro.
+   Configure Visual Studio para "M√∫ltiples Proyectos de Inicio" (Multiple Startup Projects) arrancando simult√°neamente ABP.API y ArtemisBankingPro.
 
    Si usa la CLI:
-   `ash
-   dotnet run --project Source/Presentation/Api/ABP.API/ABP.API.csproj
-   dotnet run --project Source/Presentation/Web/ArtemisBankingPro/ArtemisBankingPro.csproj
-   `
+```bash
+dotnet run --project Source/Presentation/Api/ABP.API/ABP.API.csproj
+dotnet run --project Source/Presentation/Web/ArtemisBankingPro/ArtemisBankingPro.csproj
+```
 
-### ?? Usuarios Por Defecto
-Al iniciar por primera vez, el sistema ejecutar· un Seed y crear·:
-* **Admin:** dminUser / 123Pa! / dmin@artemisbanking.local
-* **Hermes Pay:** Un comercio por defecto se siembra de forma inactiva. Un admin debe activarlo desde la aplicaciÛn antes de recibir pagos.
+### üë§ Usuarios Por Defecto
+Al iniciar por primera vez, el sistema ejecutar√° un Seed y crear√°:
+* **Admin:** adminUser / 123Pa! / admin@artemisbanking.local
+* **Hermes Pay:** Un comercio por defecto se siembra de forma inactiva. Un admin debe activarlo desde la aplicaci√≥n antes de recibir pagos.
 
 ---
 
-## ?? Pruebas (Tests)
+## üß™ Pruebas (Tests)
 
-El sistema cuenta con una cobertura estricta de **224 pruebas (164 unitarias y 60 de integraciÛn)** asegurando la robustez de las validaciones, paginaciÛn, control de concurrencia y rechazos lÛgicos (Cuentas inactivas, lÌmites de crÈdito, etc).
+El sistema cuenta con una cobertura estricta de **225 pruebas (164 unitarias y 61 de integraci√≥n)** asegurando la robustez de las validaciones, paginaci√≥n, control de concurrencia y rechazos l√≥gicos (Cuentas inactivas, l√≠mites de cr√©dito, etc).
 
 Para ejecutarlas:
-`ash
+```bash
 dotnet test
-`
+```
 
 ---
 
-## ?? DocumentaciÛn de APIs (Swagger / Hermes Pay)
+## üìñ Documentaci√≥n de APIs (Swagger / Hermes Pay)
 
-La API cuenta con Swagger (OpenAPI 3.0) habilitado autom·ticamente en entornos de Desarrollo con lectura de comentarios XML completos y actualizados.
-URL: https://localhost:<puerto>/swagger
+La API cuenta con Swagger (OpenAPI 3.0) habilitado autom√°ticamente en entornos de Desarrollo con lectura de comentarios XML completos y actualizados.
+URL: `https://localhost:<puerto>/swagger`
 
-### IntegraciÛn Hermes Pay (Comercios)
-Los comercios pueden procesar pagos mediante el ecosistema Hermes Pay integr·ndose a los endpoints:
-* **POST /api/v1/pay/process-payment/{commerceId}**: Realiza el dÈbito a tarjetas. Requiere Idempotency Key, claim v·lido de tipo commerceId en el JWT, validaciÛn de estado activo del comercio y cuenta de destino.
-* **GET /api/v1/pay/get-transactions/{commerceId}**: Obtiene el histÛrico paginado (ej. ?page=1&pageSize=20). Soporta un m·ximo de 20 por p·gina (Arroja HTTP 400 en caso de lÌmites excedidos o par·metros inv·lidos).
+### Integraci√≥n Hermes Pay (Comercios)
+Los comercios pueden procesar pagos mediante el ecosistema Hermes Pay integr√°ndose a los endpoints:
+* **POST /api/v1/pay/process-payment/{commerceId}**: Realiza el d√©bito a tarjetas. Requiere Idempotency Key, claim v√°lido de tipo commerceId en el JWT, validaci√≥n de estado activo del comercio y cuenta de destino.
+* **GET /api/v1/pay/get-transactions/{commerceId}**: Obtiene el hist√≥rico paginado (ej. ?page=1&pageSize=20). Soporta un m√°ximo de 20 por p√°gina (Arroja HTTP 400 en caso de l√≠mites excedidos o par√°metros inv√°lidos).
 
-Para testear en Swagger, use el endpoint de /api/v1/Account/login para obtener el JWT e ingrÈselo en el botÛn *Authorize* con el prefijo Bearer .
+Para testear en Swagger, use el endpoint de `/api/v1/Account/login` para obtener el JWT e ingr√©selo en el bot√≥n *Authorize* con el prefijo `Bearer `.
 
 ---
 *Artemis Banking Pro - 2026*
