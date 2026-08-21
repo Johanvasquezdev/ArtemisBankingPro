@@ -13,18 +13,18 @@
     
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/abp-polish.css" asp-append-version="true" />
-
+</head>
+<body class="abp-shell abp-shell-cashier bg-ivory text-obsidian font-sans antialiased selection:bg-gold/20 selection:text-obsidian flex min-h-screen relative">
     <script>
         (function() {
             try {
                 var theme = localStorage.getItem('artemis-theme');
                 var isDark = theme === 'light' ? false : true;
                 document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+                document.body.dataset.theme = isDark ? 'dark' : 'light';
             } catch (e) {}
         })();
     </script>
-</head>
-<body class="abp-shell abp-shell-cashier bg-ivory text-obsidian font-sans antialiased selection:bg-gold/20 selection:text-obsidian flex min-h-screen relative">
     <div id="sidebar-overlay" class="fixed inset-0 bg-obsidian/50 z-20 hidden md:hidden" onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full'); this.classList.toggle('hidden');"></div>
     
     <!-- Sidebar -->
@@ -185,3 +185,4 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+

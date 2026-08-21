@@ -14,18 +14,18 @@
     <!-- Tailwind CSS -->
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/abp-polish.css" asp-append-version="true" />
-    
+</head>
+<body class="abp-shell abp-auth-shell bg-ivory text-obsidian font-sans antialiased min-h-screen">
     <script>
         (function() {
             try {
                 var theme = localStorage.getItem('artemis-theme');
                 var isDark = theme === 'light' ? false : true;
                 document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+                document.body.dataset.theme = isDark ? 'dark' : 'light';
             } catch (e) {}
         })();
     </script>
-</head>
-<body class="abp-shell abp-auth-shell bg-ivory text-obsidian font-sans antialiased min-h-screen">
 
     @if (!string.Equals(ViewContext.RouteData.Values["action"]?.ToString(), "AccessDenied", StringComparison.OrdinalIgnoreCase))
     {
@@ -61,3 +61,4 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+

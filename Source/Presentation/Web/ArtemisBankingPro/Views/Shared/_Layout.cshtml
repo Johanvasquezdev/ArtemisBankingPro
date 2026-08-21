@@ -16,18 +16,18 @@
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
     <link rel="stylesheet" href="~/css/abp-polish.css" asp-append-version="true" />
-
+</head>
+<body class="abp-shell abp-shell-client bg-ivory text-obsidian font-sans antialiased min-h-screen">
     <script>
         (function() {
             try {
                 var theme = localStorage.getItem('artemis-theme');
                 var isDark = theme === 'light' ? false : true;
                 document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+                document.body.dataset.theme = isDark ? 'dark' : 'light';
             } catch (e) {}
         })();
     </script>
-</head>
-<body class="abp-shell abp-shell-client bg-ivory text-obsidian font-sans antialiased min-h-screen">
     <!-- Sidebar desktop -->
     <aside class="abp-sidebar fixed inset-y-0 left-0 z-20 hidden h-screen w-64 flex-col bg-obsidian text-ivory shadow-xl lg:flex">
         <div class="flex h-20 items-center border-b border-white/10 px-4">
@@ -156,3 +156,4 @@
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
+
