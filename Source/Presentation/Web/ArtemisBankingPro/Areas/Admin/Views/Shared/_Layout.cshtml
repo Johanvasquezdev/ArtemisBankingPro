@@ -70,11 +70,11 @@
     </aside>
 
     <!-- ═══ MAIN CONTENT ═══ -->
-    <div class="flex-1 flex flex-col min-h-screen overflow-hidden md:ml-64">
+    <div id="main-content" class="flex-1 flex flex-col min-h-screen overflow-hidden md:ml-64 transition-all duration-300">
         
         <header class="abp-topbar bg-panel border-b border-obsidian/5 px-4 md:px-8 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
             <div class="flex items-center gap-3">
-                <button class="md:hidden p-2 -ml-2 text-obsidian/70 hover:text-obsidian hover:bg-obsidian/5 rounded-md transition-colors" onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full'); document.getElementById('sidebar-overlay').classList.toggle('hidden');">
+                <button class="p-2 -ml-2 text-obsidian/70 hover:text-obsidian hover:bg-obsidian/5 rounded-md transition-colors" onclick="toggleSidebar()">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
                 </button>
                 <div>
@@ -125,6 +125,21 @@
     <script src="~/lib/animejs/anime.min.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/spa.js" asp-append-version="true"></script>
+    <script>
+        function toggleSidebar() {
+            const sidebar = document.getElementById('sidebar');
+            const overlay = document.getElementById('sidebar-overlay');
+            const mainContent = document.getElementById('main-content');
+            
+            if (window.innerWidth < 768) {
+                sidebar.classList.toggle('-translate-x-full');
+                overlay.classList.toggle('hidden');
+            } else {
+                sidebar.classList.toggle('md:translate-x-0');
+                mainContent.classList.toggle('md:ml-64');
+            }
+        }
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
