@@ -381,6 +381,10 @@ internal sealed class ClientTransactionService : IClientTransactionService
 
         public async Task<CommandResult> CashAdvanceAsync(CashAdvanceDto dto)
         {
+            var user = await _userService.GetByIdAsync(dto.ClientId);
+            if (user == null || !user.IsActive)
+                throw new InvalidOperationException("Cliente inactivo.");
+
             if (dto.Amount <= 0)
                 throw new CashAdvanceAmountMustBePositiveException();
 

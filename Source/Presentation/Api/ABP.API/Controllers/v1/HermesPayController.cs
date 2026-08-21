@@ -37,6 +37,8 @@ namespace ABP.API.Controllers.v1
         [HttpGet("get-transactions/{commerceId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> GetTransactions([FromRoute] int commerceId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
@@ -62,6 +64,8 @@ namespace ABP.API.Controllers.v1
 
             return Ok(new
             {
+                commerceId = commerce.Id,
+                commerceName = commerce.Name,
                 page = transactions.Page,
                 pageSize = transactions.PageSize,
                 totalRecords = transactions.TotalCount,
@@ -81,9 +85,11 @@ namespace ABP.API.Controllers.v1
         /// <response code="400">Datos inválidos o comercio/tarjeta inactiva</response>
         /// <response code="401">Token ausente o inválido</response>
         [HttpPost("process-payment/{commerceId}")]
-        [ProducesResponseType(typeof(PaymentResultDto), StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status403Forbidden)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
         public async Task<IActionResult> ProcessPayment(
             [FromRoute] int commerceId,
             [FromBody] ProcessPaymentRequest request,
@@ -105,6 +111,12 @@ namespace ABP.API.Controllers.v1
                 actualCommerceId = parsedCommerceId;
             }
 
+            var commerce = await _commerceRepo.GetByIdAsync(actualCommerceId);
+            if (commerce == null || !commerce.IsActive)
+            {
+                return ApiProblem(StatusCodes.Status404NotFound, "Comercio no encontrado", "El comercio no existe o está inactivo.");
+            }
+
             var paymentDto = new ProcessPaymentDto
             {
                 CardNumber = request.CardNumber,
@@ -120,7 +132,7 @@ namespace ABP.API.Controllers.v1
             if (!result.Success)
                 return ApiProblem(400, "Pago rechazado", result.Message ?? "El pago no pudo procesarse.");
 
-            return Ok(result);
+            return NoContent();
         }
     }
 }

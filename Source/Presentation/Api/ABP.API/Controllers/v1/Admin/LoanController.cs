@@ -88,6 +88,10 @@ namespace ABP.API.Controllers.v1.Admin
 
                 return StatusCode(201, result.Loan);
             }
+            catch (KeyNotFoundException ex)
+            {
+                return ApiProblem(StatusCodes.Status404NotFound, "Cliente no encontrado", ex.Message);
+            }
             catch (InvalidOperationException ex)
             {
                 return ApiProblem(StatusCodes.Status400BadRequest, "No se pudo asignar el préstamo", ex.Message);

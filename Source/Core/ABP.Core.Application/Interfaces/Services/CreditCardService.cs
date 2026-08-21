@@ -75,6 +75,10 @@ namespace ABP.Core.Application.Interfaces.Services
 
         public async Task<IEnumerable<CreditCardDto>> GetActiveByClientIdAsync(string clientId)
         {
+            var user = await _userService.GetByIdAsync(clientId);
+            if (user == null) throw new KeyNotFoundException("Cliente no encontrado.");
+            if (!user.IsActive) throw new InvalidOperationException("Cliente inactivo.");
+
             var entities = await _repo.GetActiveCardsByClientIdAsync(clientId);
             return _mapper.Map<IEnumerable<CreditCardDto>>(entities);
         }
@@ -109,7 +113,9 @@ namespace ABP.Core.Application.Interfaces.Services
         public async Task<CreditCardDto> AssignAsync(AssignCreditCardDto dto)
         {
             var user = await _userService.GetByIdAsync(dto.ClientId);
-            if (user == null || !user.IsActive)
+            if (user == null)
+                throw new KeyNotFoundException("Cliente no encontrado.");
+            if (!user.IsActive)
                 throw new InvalidOperationException("Client must be active to assign a credit card.");
 
             string cardNumber;
@@ -221,6 +227,9 @@ namespace ABP.Core.Application.Interfaces.Services
 
         public async Task<bool> CashAdvanceAsync(CashAdvanceDto dto)
         {
+            var user = await _userService.GetByIdAsync(dto.ClientId);
+            if (user == null || !user.IsActive) return false;
+
             if (dto.Amount <= 0) return false;
 
             var card = await _repo.GetByIdAsync(dto.CreditCardId);
@@ -228,6 +237,8 @@ namespace ABP.Core.Application.Interfaces.Services
 
             var account = await _accountRepo.GetByIdAsync(dto.SavingsAccountId);
             if (account == null || account.Status != AccountStatus.Active) return false;
+
+            if (card.ClientId != account.UserId || card.ClientId != dto.ClientId) return false;
 
             var totalWithInterest = dto.Amount * 1.0625m;
             var availableCredit = card.CreditLimit - card.AmountOwed;
@@ -255,8 +266,6 @@ namespace ABP.Core.Application.Interfaces.Services
             await using var advanceTransaction = await _unitOfWork.BeginTransactionAsync();
             await _repo.UpdateWithoutSaveAsync(card);
             await _accountRepo.UpdateWithoutSaveAsync(account);
-
-            await _transactionRepo.AddWithoutSaveAsync(transaction);
 
             await _transactionRepo.AddWithoutSaveAsync(transaction);
             await _consumptionRepo.AddWithoutSaveAsync(new CreditCardConsumption

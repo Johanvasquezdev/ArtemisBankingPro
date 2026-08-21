@@ -54,6 +54,10 @@ namespace ABP.API.Controllers.v1.Admin
                 var created = await _mediator.Send(new AssignCreditCardCommand(request.ClientId, request.CreditLimit, adminId));
                 return StatusCode(201, created);
             }
+            catch (KeyNotFoundException ex)
+            {
+                return ApiProblem(StatusCodes.Status404NotFound, "Cliente no encontrado", ex.Message);
+            }
             catch (InvalidOperationException ex)
             {
                 return ApiProblem(StatusCodes.Status400BadRequest, "No se pudo asignar la tarjeta", ex.Message);

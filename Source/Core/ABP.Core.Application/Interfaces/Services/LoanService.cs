@@ -50,6 +50,10 @@ namespace ABP.Core.Application.Interfaces.Services
 
         public async Task<IEnumerable<LoanDto>> GetActiveByClientIdAsync(string clientId)
         {
+            var user = await _userService.GetByIdAsync(clientId);
+            if (user == null) throw new KeyNotFoundException("Cliente no encontrado.");
+            if (!user.IsActive) throw new InvalidOperationException("Cliente inactivo.");
+
             var entities = await _repo.GetActiveByClientIdAsync(clientId);
             var installmentsByLoan = (await _installmentRepo.GetByLoanIdsAsync(entities.Select(entity => entity.Id)))
                 .GroupBy(installment => installment.LoanId)
@@ -104,7 +108,9 @@ namespace ABP.Core.Application.Interfaces.Services
         public async Task<LoanDto> AssignAsync(AssignLoanDto dto)
         {
             var user = await _userService.GetByIdAsync(dto.ClientId);
-            if (user == null || !user.IsActive)
+            if (user == null)
+                throw new KeyNotFoundException("Cliente no encontrado.");
+            if (!user.IsActive)
                 throw new InvalidOperationException("Client must be active to assign a loan.");
 
             if (await _repo.ClientHasActiveLoanAsync(dto.ClientId))
