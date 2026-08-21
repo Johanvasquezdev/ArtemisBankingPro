@@ -19,7 +19,7 @@ namespace ABP.Unit.Tests.Api;
 public class HermesPayControllerTests
 {
     [Fact]
-    public async Task GetTransactions_MissingCommerceIdClaim_ShouldReturnForbidden()
+    public async Task GetTransactions_MissingCommerceIdClaim_ShouldReturnProblemDetailsForbidden()
     {
         var mediator = new Mock<IMediator>();
         var commerceRepo = new Mock<ICommerceRepository>();
@@ -29,7 +29,10 @@ public class HermesPayControllerTests
 
         var result = await controller.GetTransactions(1, 1, 20);
 
-        result.Should().BeOfType<ForbidResult>();
+        var problem = result.Should().BeOfType<ObjectResult>().Subject;
+        problem.StatusCode.Should().Be(StatusCodes.Status403Forbidden);
+        problem.Value.Should().BeOfType<ProblemDetails>()
+            .Which.Title.Should().Be("Acceso denegado");
     }
 
     [Fact]
@@ -47,7 +50,7 @@ public class HermesPayControllerTests
     }
 
     [Fact]
-    public async Task GetTransactions_InactiveCommerce_ShouldReturnBadRequestOrForbidden()
+    public async Task GetTransactions_InactiveCommerce_ShouldReturnProblemDetailsNotFound()
     {
         var mediator = new Mock<IMediator>();
         var commerceRepo = new Mock<ICommerceRepository>();
@@ -62,7 +65,9 @@ public class HermesPayControllerTests
 
         var result = await controller.GetTransactions(10, 1, 20);
         
-        var badRequestResult = result.Should().BeOfType<BadRequestObjectResult>().Subject;
-        badRequestResult.Value.Should().Be("El comercio no existe o está inactivo.");
+        var problem = result.Should().BeOfType<ObjectResult>().Subject;
+        problem.StatusCode.Should().Be(StatusCodes.Status404NotFound);
+        problem.Value.Should().BeOfType<ProblemDetails>()
+            .Which.Title.Should().Be("Comercio no encontrado");
     }
 }

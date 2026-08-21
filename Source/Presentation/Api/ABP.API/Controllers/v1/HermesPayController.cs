@@ -30,6 +30,8 @@ namespace ABP.API.Controllers.v1
         /// Si el usuario es de tipo Commerce, usa el ID del token. Si es Admin, usa el ID de la ruta.
         /// </summary>
         /// <param name="commerceId">ID del comercio (ignorado si el usuario es Commerce)</param>
+        /// <param name="page">Número de página, comenzando en 1.</param>
+        /// <param name="pageSize">Cantidad de registros por página, con un máximo de 20.</param>
         /// <response code="200">Listado retornado exitosamente</response>
         /// <response code="401">Token ausente o inválido</response>
         [HttpGet("get-transactions/{commerceId}")]
@@ -45,7 +47,7 @@ namespace ABP.API.Controllers.v1
                 var commerceIdClaim = User.FindFirst("commerceId")?.Value;
                 if (string.IsNullOrEmpty(commerceIdClaim) || !int.TryParse(commerceIdClaim, out var parsedCommerceId))
                 {
-                    return Forbid();
+                    return ApiProblem(StatusCodes.Status403Forbidden, "Acceso denegado", "El token no contiene un comercio válido.");
                 }
                 actualCommerceId = parsedCommerceId;
             }
@@ -53,7 +55,7 @@ namespace ABP.API.Controllers.v1
             var commerce = await _commerceRepo.GetByIdAsync(actualCommerceId);
             if (commerce == null || !commerce.IsActive)
             {
-                return BadRequest("El comercio no existe o está inactivo.");
+                return ApiProblem(StatusCodes.Status404NotFound, "Comercio no encontrado", "El comercio no existe o está inactivo.");
             }
 
             var transactions = await _mediator.Send(new GetCommerceTransactionsQuery(actualCommerceId, page, pageSize));
@@ -74,6 +76,7 @@ namespace ABP.API.Controllers.v1
         /// </summary>
         /// <param name="commerceId">ID del comercio (ignorado si el usuario es Commerce)</param>
         /// <param name="request">Datos del pago a procesar</param>
+        /// <param name="idempotencyKey">Clave única para evitar procesar dos veces la misma solicitud.</param>
         /// <response code="204">Pago procesado exitosamente</response>
         /// <response code="400">Datos inválidos o comercio/tarjeta inactiva</response>
         /// <response code="401">Token ausente o inválido</response>
@@ -97,7 +100,7 @@ namespace ABP.API.Controllers.v1
                 var commerceIdClaim = User.FindFirst("commerceId")?.Value;
                 if (string.IsNullOrEmpty(commerceIdClaim) || !int.TryParse(commerceIdClaim, out var parsedCommerceId))
                 {
-                    return Forbid();
+                    return ApiProblem(StatusCodes.Status403Forbidden, "Acceso denegado", "El token no contiene un comercio válido.");
                 }
                 actualCommerceId = parsedCommerceId;
             }

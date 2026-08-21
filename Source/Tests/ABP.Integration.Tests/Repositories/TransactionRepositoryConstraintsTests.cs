@@ -30,7 +30,7 @@ public sealed class TransactionRepositoryConstraintsTests : IDisposable
         {
             Amount = 100,
             Type = TransactionType.Credit,
-            PerformedByUserId = null
+            PerformedByUserId = null!
         };
 
         var act = async () => await _repo.AddAsync(tx);

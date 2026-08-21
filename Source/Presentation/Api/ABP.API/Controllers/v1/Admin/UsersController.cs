@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Http;
+using ABP.Core.Application.DTOs.Account;
 using ABP.API.DTOs.User;
 using ABP.Core.Application.Features.Admin.Commands;
 using ABP.Core.Application.Features.Admin.Queries;
@@ -88,7 +89,8 @@ namespace ABP.API.Controllers.v1.Admin
 
             var result = await _mediator.Send(new CreateUserCommand(
                 request.FirstName, request.LastName, request.Cedula, request.UserName,
-                request.Email, request.Password, request.Role, adminId, request.InitialAmount));
+                request.Email, request.Password, request.Role, adminId, request.InitialAmount,
+                AccountEmailChannel.Web));
 
             if (result.CedulaAlreadyExists)
                 return ApiProblem(StatusCodes.Status409Conflict, "Cédula duplicada", "Ya existe un usuario con esta Cédula.");

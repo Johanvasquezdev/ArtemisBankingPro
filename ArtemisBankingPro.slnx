@@ -1,28 +1,26 @@
 <Solution>
-  <Folder Name="/Source/">
-    <Folder Name="/Source/Core/">
-      <Project Path="Source/Core/ABP.Core.Application/ABP.Core.Application.csproj" />
-      <Project Path="Source/Core/ABP.Core.Domain/ABP.Core.Domain.csproj" />
-    </Folder>
-    <Folder Name="/Source/Infraestructure/">
-      <Project Path="Source/Infraestructure/ABP.Infraestructure.identity/ABP.Infraestructure.identity.csproj" />
-      <Project Path="Source/Infraestructure/ABP.Infraestructure.Persistence/ABP.Infraestructure.Persistence.csproj" />
-      <Project Path="Source/Infraestructure/ABP.Infraestructure.Shared/ABP.Infraestructure.Shared.csproj" />
-    </Folder>
-    <Folder Name="/Source/Presentation/">
-      <Folder Name="/Source/Presentation/Api/">
-        <Project Path="Source/Presentation/Api/ABP.API/ABP.API.csproj" />
-      </Folder>
-      <Folder Name="/Source/Presentation/Functions/">
-        <Project Path="Source/Presentation/Functions/ABP.Functions/ABP.Functions.csproj" />
-      </Folder>
-      <Folder Name="/Source/Presentation/Web/">
-        <Project Path="Source/Presentation/Web/ArtemisBankingPro/ArtemisBankingPro.csproj" />
-      </Folder>
-    </Folder>
-    <Folder Name="/Source/Tests/">
-      <Project Path="Source/Tests/ABP.Integration.Tests/ABP.Integration.Tests.csproj" />
-      <Project Path="Source/Tests/ABP.Unit.Tests/ABP.Unit.Tests.csproj" />
-    </Folder>
+  <Folder Name="/Source/" />
+  <Folder Name="/Source/Core/">
+    <Project Path="Source/Core/ABP.Core.Application/ABP.Core.Application.csproj" />
+    <Project Path="Source/Core/ABP.Core.Domain/ABP.Core.Domain.csproj" />
+  </Folder>
+  <Folder Name="/Source/Infraestructure/">
+    <Project Path="Source/Infraestructure/ABP.Infraestructure.identity/ABP.Infraestructure.identity.csproj" />
+    <Project Path="Source/Infraestructure/ABP.Infraestructure.Persistence/ABP.Infraestructure.Persistence.csproj" />
+    <Project Path="Source/Infraestructure/ABP.Infraestructure.Shared/ABP.Infraestructure.Shared.csproj" />
+  </Folder>
+  <Folder Name="/Source/Presentation/" />
+  <Folder Name="/Source/Presentation/Api/">
+    <Project Path="Source/Presentation/Api/ABP.API/ABP.API.csproj" />
+  </Folder>
+  <Folder Name="/Source/Presentation/Functions/">
+    <Project Path="Source/Presentation/Functions/ABP.Functions/ABP.Functions.csproj" />
+  </Folder>
+  <Folder Name="/Source/Presentation/Web/">
+    <Project Path="Source/Presentation/Web/ArtemisBankingPro/ArtemisBankingPro.csproj" />
+  </Folder>
+  <Folder Name="/Source/Tests/">
+    <Project Path="Source/Tests/ABP.Integration.Tests/ABP.Integration.Tests.csproj" />
+    <Project Path="Source/Tests/ABP.Unit.Tests/ABP.Unit.Tests.csproj" />
   </Folder>
 </Solution>
