@@ -24,10 +24,11 @@
         })();
     </script>
 </head>
-<body class="abp-shell abp-shell-cashier bg-ivory text-obsidian font-sans antialiased selection:bg-gold/20 selection:text-obsidian flex min-h-screen">
-
+<body class="abp-shell abp-shell-cashier bg-ivory text-obsidian font-sans antialiased selection:bg-gold/20 selection:text-obsidian flex min-h-screen relative overflow-x-hidden w-full">
+    <div id="sidebar-overlay" class="fixed inset-0 bg-obsidian/50 z-20 hidden md:hidden" onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full'); this.classList.toggle('hidden');"></div>
+    
     <!-- Sidebar -->
-    <aside class="abp-sidebar fixed inset-y-0 z-10 flex w-64 flex-col border-r border-white/10 bg-obsidian text-ivory shadow-xl">
+    <aside id="sidebar" class="abp-sidebar fixed inset-y-0 z-30 flex w-64 flex-col border-r border-white/10 bg-obsidian text-ivory shadow-xl transition-transform -translate-x-full md:translate-x-0">
         <div class="flex h-20 items-center border-b border-white/10 px-4">
             <div class="abp-brand-lockup w-56 shrink-0">
                 <partial name="_BrandLogo" model='"light"' />
@@ -106,12 +107,17 @@
     </aside>
 
     <!-- Main Content -->
-    <main class="flex-1 ml-64 min-h-screen">
-        <div class="max-w-7xl mx-auto px-8 py-8">
-            <header class="flex items-center justify-between mb-10">
-                <div>
-                    <div class="text-xs font-semibold tracking-wider text-gold uppercase mb-1">Portal del Cajero</div>
-                    <h1 class="text-3xl font-serif font-bold text-obsidian tracking-tight">Hola, @(User.Identity?.Name ?? "Cajero")</h1>
+    <main class="flex-1 md:ml-64 min-h-screen w-full">
+        <div class="max-w-7xl mx-auto px-4 md:px-8 py-4 md:py-8">
+            <header class="flex items-center justify-between mb-6 md:mb-10">
+                <div class="flex items-center gap-3">
+                    <button class="md:hidden p-2 -ml-2 text-obsidian/70 hover:text-obsidian hover:bg-obsidian/5 rounded-md transition-colors" onclick="document.getElementById('sidebar').classList.toggle('-translate-x-full'); document.getElementById('sidebar-overlay').classList.toggle('hidden');">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path></svg>
+                    </button>
+                    <div>
+                        <div class="text-[10px] md:text-xs font-semibold tracking-wider text-gold uppercase mb-0.5 md:mb-1">Portal del Cajero</div>
+                        <h1 class="text-xl md:text-3xl font-serif font-bold text-obsidian tracking-tight">Hola, @(User.Identity?.Name ?? "Cajero")</h1>
+                    </div>
                 </div>
                 <div class="flex items-center gap-3">
                     <partial name="_ThemeToggle" />
