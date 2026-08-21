@@ -1,5 +1,12 @@
 # Artemis Banking Pro
 
+![.NET](https://img.shields.io/badge/.NET-9.0-512BD4?logo=dotnet&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?logo=postgresql&logoColor=white)
+![Entity Framework Core](https://img.shields.io/badge/EF_Core-9.0-512BD4?logo=nuget&logoColor=white)
+![Swagger](https://img.shields.io/badge/Swagger-API-85EA2D?logo=swagger&logoColor=black)
+![Architecture](https://img.shields.io/badge/Architecture-Clean%2FOnion-brightgreen)
+![Testing](https://img.shields.io/badge/Tests-225_Passing-success)
+
 Artemis Banking Pro es una solución integral para servicios bancarios y transaccionales, diseñada con los más altos estándares de calidad y seguridad. La plataforma sirve a tres tipos principales de usuarios: administradores, cajeros y clientes, además de ofrecer una integración externa (Hermes Pay) para comercios electrónicos.
 
 El sistema está construido bajo los principios de **Arquitectura Limpia (Onion Architecture)**, utilizando **CQRS** con MediatR, **Entity Framework Core**, **Azure Functions** y **Identity** para la gestión de usuarios, garantizando escalabilidad, mantenibilidad y un acoplamiento débil entre sus capas.
