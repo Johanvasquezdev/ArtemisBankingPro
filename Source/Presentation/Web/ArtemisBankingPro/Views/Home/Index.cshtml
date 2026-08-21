@@ -1,0 +1,62 @@
+@{
+    ViewData["Title"] = "Bienvenido";
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
+}
+
+<div class="min-h-screen bg-ivory flex flex-col justify-center items-center py-20 relative overflow-hidden">
+    <div class="absolute -top-40 -right-40 w-96 h-96 bg-gold/10 rounded-full blur-3xl pointer-events-none"></div>
+    <div class="absolute -bottom-40 -left-40 w-96 h-96 bg-obsidian/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="abp-glass-card p-12 max-w-4xl w-full mx-4 text-center relative z-10 rounded-2xl shadow-xl border border-white/20">
+        <partial name="_BrandLogo" model='"dark"' />
+
+        <h1 class="font-serif text-5xl font-bold text-obsidian mt-8 mb-6 tracking-tight">El Futuro de la Banca Digital</h1>
+        <p class="text-lg text-obsidian/70 mb-10 max-w-2xl mx-auto leading-relaxed">
+            Artemis Banking Pro es una plataforma financiera integral disenada para ofrecer una experiencia premium.
+            Explora nuestro ecosistema compuesto por múltiples módulos interconectados.
+        </p>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 text-left mb-12">
+            <div class="bg-white/50 p-6 rounded-xl border border-obsidian/5">
+                <div class="text-gold mb-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z"></path></svg>
+                </div>
+                <h3 class="font-bold text-lg text-obsidian mb-2">Seguridad Avanzada</h3>
+                <p class="text-sm text-obsidian/70">Registro mediante validacion de documentos por OCR, autenticacion en dos pasos por SMS (Twilio) y biometria FaceID/Huella (WebAuthn).</p>
+            </div>
+            <div class="bg-white/50 p-6 rounded-xl border border-obsidian/5">
+                <div class="text-gold mb-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                </div>
+                <h3 class="font-bold text-lg text-obsidian mb-2">Hermes Pay & Comercios</h3>
+                <p class="text-sm text-obsidian/70">Una pasarela de pagos integrada que permite a comercios cobrar facturas y visualizar sus ingresos en un hub empresarial privado.</p>
+            </div>
+            <div class="bg-white/50 p-6 rounded-xl border border-obsidian/5">
+                <div class="text-gold mb-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z"></path></svg>
+                </div>
+                <h3 class="font-bold text-lg text-obsidian mb-2">Recargas por Stripe</h3>
+                <p class="text-sm text-obsidian/70">Deposita dinero instantaneamente a tus cuentas de ahorro locales usando tarjetas de credito o debito internacionales a traves de Stripe.</p>
+            </div>
+            <div class="bg-white/50 p-6 rounded-xl border border-obsidian/5">
+                <div class="text-gold mb-3">
+                    <svg class="w-8 h-8" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                </div>
+                <h3 class="font-bold text-lg text-obsidian mb-2">Multiroles</h3>
+                <p class="text-sm text-obsidian/70">Paneles dedicados y seguros para el Admin, el Cliente, el Cajero (Sucursal Fisica) y el Comercio. Todos en el mismo ecosistema.</p>
+            </div>
+        </div>
+
+        <div class="flex flex-wrap justify-center gap-4">
+            <a asp-controller="Login" asp-action="Index" class="bg-obsidian text-ivory font-medium px-8 py-3 rounded-lg hover:bg-obsidian/90 transition shadow-md">
+                Ingresar a mi cuenta
+            </a>
+            <a asp-controller="AdvancedRegistration" asp-action="Step1" class="bg-gold text-white font-medium px-8 py-3 rounded-lg hover:bg-gold-light transition shadow-md">
+                Abrir una cuenta
+            </a>
+            <a asp-controller="HermesPayPublic" asp-action="Index" class="bg-white/20 text-obsidian font-medium px-8 py-3 rounded-lg hover:bg-white/40 border border-obsidian/10 transition backdrop-blur-md">
+                Conocer Hermes Pay
+            </a>
+        </div>
+    </div>
+</div>

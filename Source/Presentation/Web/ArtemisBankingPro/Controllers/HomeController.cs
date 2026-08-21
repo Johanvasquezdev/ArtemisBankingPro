@@ -8,7 +8,7 @@ public sealed class HomeController : Controller
 {
     [AllowAnonymous]
     [HttpGet]
-    public IActionResult Index() => RedirectToAction("Index", "Login");
+    public IActionResult Index() => View();
 
     [AllowAnonymous]
     [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
