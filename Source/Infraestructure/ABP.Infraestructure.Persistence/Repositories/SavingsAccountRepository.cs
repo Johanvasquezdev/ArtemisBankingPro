@@ -4,13 +4,11 @@ using ABP.Core.Domain.Interfaces;
 using ABP.Infraestructure.Persistence.Context;
 using ABP.Infraestructure.Persistence.Repositories.Generic;
 using Microsoft.EntityFrameworkCore;
-using ABP.Infraestructure.identity.Context;
 
 namespace ABP.Infraestructure.Persistence.Repositories
 {
-    public class SavingsAccountRepository(ArtemisBankDbContext context, IdentityContext identityContext) : GenericRepository<SavingsAccount>(context), ISavingsAccountRepository
+    public class SavingsAccountRepository(ArtemisBankingDbContext context) : GenericRepository<SavingsAccount>(context), ISavingsAccountRepository
     {
-        private readonly IdentityContext _identityContext = identityContext;
         public async Task<bool> AccountOrLoanNumberExistsAsync(string number)
         {
             bool existsAsAccount = await _dbSet.AnyAsync(a => a.AccountNumber == number);
@@ -34,7 +32,7 @@ namespace ABP.Infraestructure.Persistence.Repositories
                 .ToListAsync();
         }
 
-        public async Task<IEnumerable<SavingsAccount>> GetAllPagedAsync(int page, int pageSize, AccountStatus? status = null, AccountType? type = null)
+        public async Task<IEnumerable<SavingsAccount>> GetAllPagedAsync(int page, int pageSize, AccountStatus? status = null, AccountType? type = null, string? userId = null)
         {
             var query = _dbSet.AsNoTracking();
 
@@ -46,6 +44,10 @@ namespace ABP.Infraestructure.Persistence.Repositories
             {
                 query = query.Where(a => a.Type == type.Value);
             }
+            if (!string.IsNullOrEmpty(userId))
+            {
+                query = query.Where(a => a.UserId == userId);
+            }
 
             return await query.OrderByDescending(q => q.CreatedAt).Skip((page - 1) * pageSize)
                 .Take(pageSize).ToListAsync();
@@ -56,36 +58,19 @@ namespace ABP.Infraestructure.Persistence.Repositories
             return await _dbSet.FirstOrDefaultAsync(a => a.AccountNumber == accountNumber);
         }
 
-        public async Task<IEnumerable<SavingsAccount>> GetByClientCedulaAsync(string cedula, AccountStatus? status = null, AccountType? type = null)
-        {
-            var clientId = await _identityContext.Users.Where(u => u.Cedula == cedula).Select(u => u.Id).FirstOrDefaultAsync();
-
-            if (clientId == null)
-            {
-                return [];
-            }
-
-            var query = _dbSet.AsNoTracking().Where(a => a.UserId == clientId);
-            if (status.HasValue) 
-            { 
-                query = query.Where(a => a.Status == status.Value);
-            }
-            if (type.HasValue)
-            {
-                query = query.Where(a => a.Type == type.Value);
-            }
-
-            return await query.OrderByDescending(a => a.CreatedAt).ThenByDescending(a => a.CreatedAt).ToListAsync();
-        }
-
         public async Task<SavingsAccount?> GetPrimaryAccountByClientIdAsync(string clientId)
         {
             return await _dbSet.FirstOrDefaultAsync(a => a.UserId == clientId && a.Type == AccountType.Primary && a.Status == AccountStatus.Active);
         }
 
-        public async Task<int> GetTotalActiveAccountsCountAsync()
+        public async Task<int> GetTotalActiveAccountsCountAsync(AccountStatus? status = null, AccountType? type = null, string? userId = null)
         {
-            return await _dbSet.CountAsync(a => a.Status == AccountStatus.Active);
+            var query = _dbSet.AsNoTracking();
+            if (status.HasValue) query = query.Where(a => a.Status == status.Value);
+            if (type.HasValue) query = query.Where(a => a.Type == type.Value);
+            if (!string.IsNullOrEmpty(userId)) query = query.Where(a => a.UserId == userId);
+
+            return await query.CountAsync();
         }
     }
 }

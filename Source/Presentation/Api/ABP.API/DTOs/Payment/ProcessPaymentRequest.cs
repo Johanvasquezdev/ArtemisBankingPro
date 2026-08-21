@@ -17,7 +17,7 @@ namespace ABP.API.DTOs.Payment
         public string YearExpirationCard { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "CVC is required.")]
-        [StringLength(3, MinimumLength = 3, ErrorMessage = "CVC must be 3 digits.")]
+        [RegularExpression(@"^\d{3}$", ErrorMessage = "CVC must be 3 digits.")]
         public string CVC { get; set; } = string.Empty;
 
         [Required(ErrorMessage = "Transaction amount is required.")]

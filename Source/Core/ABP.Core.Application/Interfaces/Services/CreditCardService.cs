@@ -5,19 +5,23 @@ using ABP.Core.Domain.Entities;
 using ABP.Core.Domain.Enums;
 using ABP.Core.Domain.Interfaces;
 using AutoMapper;
+using Microsoft.Extensions.Logging;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace ABP.Core.Application.Interfaces.Services
 {
-    public class CreditCardService(ICreditCardRepository repo, ICreditCardConsumptionRepository consumptionService,ISavingsAccountRepository accountRepo, IMapper mapper, IUserReadOnlyService user, IEmailServices email) : ICreditCardService
+    public class CreditCardService(ICreditCardRepository repo, ICreditCardConsumptionRepository consumptionService, ISavingsAccountRepository accountRepo, ITransactionRepository transactionRepo, IMapper mapper, IUserReadOnlyService user, IEmailServices email, ILogger<CreditCardService> logger, IUnitOfWork unitOfWork) : ICreditCardService
     {
         private readonly ICreditCardRepository _repo = repo;
         private readonly ICreditCardConsumptionRepository _consumptionRepo = consumptionService;
         private readonly ISavingsAccountRepository _accountRepo = accountRepo;
+        private readonly ITransactionRepository _transactionRepo = transactionRepo;
         private readonly IMapper _mapper = mapper;
         private readonly IUserReadOnlyService _userService = user;
         private readonly IEmailServices _emailService = email;
+        private readonly ILogger<CreditCardService> _logger = logger;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<CreditCardDto> GetByIdAsync(int id)
         {
@@ -31,6 +35,44 @@ namespace ABP.Core.Application.Interfaces.Services
             return entity is null ? null : _mapper.Map<CreditCardDto>(entity);
         }
 
+        public async Task<bool> VerifyCvcAsync(int cardId, string cvc)
+        {
+            if (string.IsNullOrWhiteSpace(cvc) || cvc.Length != 3 || !cvc.All(char.IsDigit))
+                return false;
+
+            var card = await _repo.GetByIdAsync(cardId);
+            if (card == null || string.IsNullOrWhiteSpace(card.CVCHash))
+                return false;
+
+            var actualHash = Convert.FromHexString(card.CVCHash);
+            var providedHash = SHA256.HashData(Encoding.UTF8.GetBytes(cvc));
+            return CryptographicOperations.FixedTimeEquals(actualHash, providedHash);
+        }
+
+        public async Task<bool> ChargeAsync(int cardId, decimal amount)
+        {
+            var charged = await ChargeWithoutSaveAsync(cardId, amount);
+            if (charged)
+                await _unitOfWork.SaveChangesAsync();
+            return charged;
+        }
+
+        public async Task<bool> ChargeWithoutSaveAsync(int cardId, decimal amount)
+        {
+            if (amount <= 0) return false;
+
+            var card = await _repo.GetByIdAsync(cardId);
+            if (card == null || card.Status != CardStatus.Active)
+                return false;
+
+            if (amount > card.CreditLimit - card.AmountOwed)
+                return false;
+
+            card.AmountOwed += amount;
+            await _repo.UpdateWithoutSaveAsync(card);
+            return true;
+        }
+
         public async Task<IEnumerable<CreditCardDto>> GetActiveByClientIdAsync(string clientId)
         {
             var entities = await _repo.GetActiveCardsByClientIdAsync(clientId);
@@ -39,16 +81,21 @@ namespace ABP.Core.Application.Interfaces.Services
 
         public async Task<PaginatedResult<CreditCardDto>> GetAllPagedAsync(int page, int pageSize = 20, CardStatus? status = null, string? cedula = null)
         {
-            var entities = await _repo.GetAllPagedAsync(page, pageSize, status, cedula);
+            var clientId = string.IsNullOrWhiteSpace(cedula)
+                ? null
+                : await _userService.GetUserIdByCedulaAsync(cedula);
+            var entities = await _repo.GetAllPagedAsync(page, pageSize, status, clientId);
             var items = _mapper.Map<IEnumerable<CreditCardDto>>(entities);
+            var usersById = (await _userService.GetByIdsAsync(items.Select(item => item.ClientId)))
+                .ToDictionary(user => user.Id);
 
             foreach (var item in items)
             {
-                var user = await _userService.GetByIdAsync(item.ClientId);
+                usersById.TryGetValue(item.ClientId, out var user);
                 if (user != null)
                     item.ClientFullName = $"{user.FirstName} {user.LastName}";
             }
-            var totalCount = await _repo.GetTotalActiveCardsCountAsync();
+            var totalCount = await _repo.GetFilteredCountAsync(status, clientId);
 
             return new PaginatedResult<CreditCardDto>
             {
@@ -61,6 +108,10 @@ namespace ABP.Core.Application.Interfaces.Services
 
         public async Task<CreditCardDto> AssignAsync(AssignCreditCardDto dto)
         {
+            var user = await _userService.GetByIdAsync(dto.ClientId);
+            if (user == null || !user.IsActive)
+                throw new InvalidOperationException("Client must be active to assign a credit card.");
+
             string cardNumber;
             do
             {
@@ -68,23 +119,46 @@ namespace ABP.Core.Application.Interfaces.Services
             }
             while (await _repo.CardNumberExistsAsync(cardNumber));
 
-            var cvc = Random.Shared.Next(100, 999).ToString();
+            var cvc = RandomNumberGenerator.GetInt32(100, 1000).ToString();
             var cvcHash = HashCvc(cvc);
 
             var card = new CreditCard
             {
                 CardNumber = cardNumber,
                 CreditLimit = dto.CreditLimit,
-                ExpirationDate = DateTime.UtcNow.AddYears(5).ToString("MM/yy"),
+                ExpirationDate = DateTime.UtcNow.AddYears(3).ToString("MM/yy"),
                 AmountOwed = 0,
                 CVCHash = cvcHash,
                 Status = CardStatus.Active,
                 CreatedAt = DateTime.UtcNow,
                 ClientId = dto.ClientId,
-                AssignedByAdminId = string.Empty
+                AssignedByAdminId = dto.AdminId
             };
 
-            await _repo.AddAsync(card);
+            await using var assignmentTransaction = await _unitOfWork.BeginTransactionAsync();
+            await _repo.AddWithoutSaveAsync(card);
+            await _unitOfWork.SaveChangesAsync();
+            await assignmentTransaction.CommitAsync();
+
+            if (user != null && !string.IsNullOrWhiteSpace(user.Email))
+            {
+                try
+                {
+                    await _emailService.SendAsync(
+                        user.Email,
+                        "Nueva Tarjeta de Crédito Asignada",
+                        $"Se le ha asignado una nueva tarjeta de crédito.<br>" +
+                        $"Número: **** **** **** {cardNumber[^4..]}<br>" +
+                        $"Fecha de Expiración: {card.ExpirationDate}<br><br>" +
+                        $"Por favor guarde esta información de forma segura."
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Credit card assigned to user {UserId}, but the email notification failed.", dto.ClientId);
+                }
+            }
+
             return _mapper.Map<CreditCardDto>(card);
         }
 
@@ -94,7 +168,8 @@ namespace ABP.Core.Application.Interfaces.Services
             if (entity == null) return false;
 
             entity.Status = status;
-            await _repo.UpdateAsync(entity);
+            await _repo.UpdateWithoutSaveAsync(entity);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
@@ -109,12 +184,38 @@ namespace ABP.Core.Application.Interfaces.Services
             var card = await _repo.GetByCardNumberAsync(cardNumber);
             if (card == null || card.Status != CardStatus.Active) return false;
 
+            var accountOwner = await _userService.GetByIdAsync(account.UserId);
+            if (accountOwner == null || !accountOwner.IsActive) return false;
+
+            var cardOwner = await _userService.GetByIdAsync(card.ClientId);
+            if (cardOwner == null || !cardOwner.IsActive) return false;
+
             var paymentAmount = Math.Min(amount, card.AmountOwed);
             account.Balance -= paymentAmount;
             card.AmountOwed -= paymentAmount;
 
-            await _accountRepo.UpdateAsync(account);
-            await _repo.UpdateAsync(card);
+            var transaction = new Transaction
+            {
+                Amount = paymentAmount,
+                Type = TransactionType.Payment,
+                TransactionDate = DateTime.UtcNow,
+                Origin = sourceAccountNumber,
+                Beneficiary = $"CARD-{card.CardNumber[^4..]}",
+                Status = TransactionStatus.Approved,
+                SavingAccountId = account.Id,
+                SourceAccountNumber = sourceAccountNumber,
+                DestinationAccountNumber = $"CARD-{card.CardNumber[^4..]}",
+                Description = "Pago de tarjeta de crédito",
+                CreatedAt = DateTime.UtcNow,
+                PerformedByUserId = account.UserId
+            };
+
+            await using var paymentTransaction = await _unitOfWork.BeginTransactionAsync();
+            await _accountRepo.UpdateWithoutSaveAsync(account);
+            await _repo.UpdateWithoutSaveAsync(card);
+            await _transactionRepo.AddWithoutSaveAsync(transaction);
+            await _unitOfWork.SaveChangesAsync();
+            await paymentTransaction.CommitAsync();
             return true;
         }
 
@@ -128,19 +229,37 @@ namespace ABP.Core.Application.Interfaces.Services
             var account = await _accountRepo.GetByIdAsync(dto.SavingsAccountId);
             if (account == null || account.Status != AccountStatus.Active) return false;
 
-            var availableCredit = card.CreditLimit - card.AmountOwed;
-            if (dto.Amount > availableCredit) return false;
-
-            // 6.25% interest on cash advances
             var totalWithInterest = dto.Amount * 1.0625m;
+            var availableCredit = card.CreditLimit - card.AmountOwed;
+            if (totalWithInterest > availableCredit) return false;
 
             card.AmountOwed += totalWithInterest;
             account.Balance += dto.Amount;
 
-            await _repo.UpdateAsync(card);
-            await _accountRepo.UpdateAsync(account);
+            var transaction = new Transaction
+            {
+                Amount = dto.Amount,
+                Type = TransactionType.Credit,
+                TransactionDate = DateTime.UtcNow,
+                Origin = $"CARD-{card.CardNumber[^4..]}",
+                Beneficiary = account.AccountNumber,
+                Status = TransactionStatus.Approved,
+                SavingAccountId = account.Id,
+                SourceAccountNumber = $"CARD-{card.CardNumber[^4..]}",
+                DestinationAccountNumber = account.AccountNumber,
+                Description = "Avance de efectivo de tarjeta de crédito",
+                CreatedAt = DateTime.UtcNow,
+                PerformedByUserId = account.UserId
+            };
 
-            await _consumptionRepo.AddAsync(new CreditCardConsumption
+            await using var advanceTransaction = await _unitOfWork.BeginTransactionAsync();
+            await _repo.UpdateWithoutSaveAsync(card);
+            await _accountRepo.UpdateWithoutSaveAsync(account);
+
+            await _transactionRepo.AddWithoutSaveAsync(transaction);
+
+            await _transactionRepo.AddWithoutSaveAsync(transaction);
+            await _consumptionRepo.AddWithoutSaveAsync(new CreditCardConsumption
             {
                 Amount = dto.Amount,
                 TransactionDate = DateTime.UtcNow,
@@ -150,6 +269,8 @@ namespace ABP.Core.Application.Interfaces.Services
                 CommerceId = null
             });
 
+            await _unitOfWork.SaveChangesAsync();
+            await advanceTransaction.CommitAsync();
             return true;
         }
 
@@ -165,8 +286,7 @@ namespace ABP.Core.Application.Interfaces.Services
 
         private static string GenerateCardNumber()
         {
-            var rng = Random.Shared;
-            return $"{rng.Next(1000, 9999)}{rng.Next(1000, 9999)}{rng.Next(1000, 9999)}{rng.Next(1000, 9999)}";
+            return $"{RandomNumberGenerator.GetInt32(1000, 10000)}{RandomNumberGenerator.GetInt32(1000, 10000)}{RandomNumberGenerator.GetInt32(1000, 10000)}{RandomNumberGenerator.GetInt32(1000, 10000)}";
         }
 
         private static string HashCvc(string cvc)
@@ -178,7 +298,10 @@ namespace ABP.Core.Application.Interfaces.Services
         public async Task UpdateLimitAsync(int cardId, decimal newCreditLimit)
         {
             var card = await _repo.GetByIdAsync(cardId);
-            if (card == null) throw new Exception("Tarjeta de credito no encontrada.");
+            if (card == null) throw new InvalidOperationException("Tarjeta de credito no encontrada.");
+
+            if (newCreditLimit <= 0)
+                throw new InvalidOperationException("El limite de credito debe ser mayor que cero.");
 
             if (newCreditLimit < card.AmountOwed)
             {
@@ -186,10 +309,27 @@ namespace ABP.Core.Application.Interfaces.Services
             }
 
             card.CreditLimit = newCreditLimit;
-            await _repo.UpdateAsync(card);
+            await _repo.UpdateWithoutSaveAsync(card);
+            await _unitOfWork.SaveChangesAsync();
 
             var user = await _userService.GetByIdAsync(card.ClientId);
-            await _emailService.SendAsync(user.Email, "Limite de credito actualizado", $"Su nuevo limite es {newCreditLimit:C2}");
+            if (user == null || string.IsNullOrWhiteSpace(user.Email))
+            {
+                _logger.LogWarning("Credit limit updated for card {CardId}, but no valid client email was found.", cardId);
+                return;
+            }
+
+            try
+            {
+                await _emailService.SendAsync(
+                    user.Email,
+                    "Limite de credito actualizado",
+                    $"Su nuevo limite es {newCreditLimit:C2}");
+            }
+            catch (Exception ex)
+            {
+                _logger.LogWarning(ex, "Credit limit updated for card {CardId}, but the email notification failed.", cardId);
+            }
         }
 
         public async Task CancelAsync(int cardId)
@@ -205,7 +345,8 @@ namespace ABP.Core.Application.Interfaces.Services
             card.Status = CardStatus.Cancelled;
             card.CreditLimit = 0;
 
-            await _repo.UpdateAsync(card);
+            await _repo.UpdateWithoutSaveAsync(card);
+            await _unitOfWork.SaveChangesAsync();
 
             var user = await _userService.GetByIdAsync(card.ClientId);
             if (user != null && !string.IsNullOrEmpty(user.Email))
@@ -222,3 +363,5 @@ namespace ABP.Core.Application.Interfaces.Services
         }
     }
 }
+
+

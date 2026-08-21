@@ -1,0 +1,656 @@
+@import "tailwindcss";
+
+/* Native cross-document transitions keep navigation feeling continuous in
+   browsers that support the View Transition API. Older browsers simply use
+   the lightweight page-enter animation below. */
+@view-transition {
+  navigation: auto;
+}
+
+::view-transition-old(root) {
+  animation: abp-page-out 160ms ease both;
+}
+
+::view-transition-new(root) {
+  animation: abp-page-in 240ms cubic-bezier(.22, 1, .36, 1) both;
+}
+
+@keyframes abp-page-in {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes abp-page-out {
+  from { opacity: 1; }
+  to { opacity: 0; }
+}
+
+@keyframes abp-loading-spin {
+  to { transform: rotate(360deg); }
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  body.page-motion-ready:not(.anime-motion-ready) main {
+    animation: abp-page-in 280ms cubic-bezier(.22, 1, .36, 1) both;
+  }
+
+  body.page-motion-ready:not(.anime-motion-ready) .abp-panel,
+  body.page-motion-ready:not(.anime-motion-ready) .abp-kpi-card,
+  body.page-motion-ready:not(.anime-motion-ready) .abp-quick-action,
+  body.page-motion-ready:not(.anime-motion-ready) .access-denied-card {
+    animation: abp-page-in 320ms cubic-bezier(.22, 1, .36, 1) both;
+  }
+
+  body.page-motion-leaving:not(.anime-motion-ready) main {
+    animation: abp-page-out 140ms ease both;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 1ms !important;
+    animation-iteration-count: 1 !important;
+    scroll-behavior: auto !important;
+    transition-duration: 1ms !important;
+  }
+}
+
+@theme {
+  --color-ivory: #FAF9F6;
+  --color-ivory-dark: #F0EFEA;
+  --color-panel: #FFFFFF;
+  --color-obsidian: #141414;
+  --color-obsidian-light: #1C1C1C;
+  --color-gold: #C5A059;
+  --color-gold-light: #DFC48C;
+  --color-gold-dark: #9C7B3E;
+  
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-serif: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+/* Compatibility tokens used by the legacy cashier templates. Keeping them
+   mapped to the same design tokens prevents inline styles from falling back
+   to an invalid or invisible color. */
+:root {
+  --abp-gold: var(--color-gold);
+  --abp-gold-bg: rgba(197, 160, 89, .12);
+  --abp-success: #15803d;
+  --abp-danger: #dc2626;
+  --abp-text-main: var(--color-obsidian);
+  --abp-bg-base: var(--color-ivory);
+  --abp-border-subtle: rgba(20, 20, 20, .12);
+}
+
+@layer base {
+  html {
+    @apply text-obsidian bg-ivory font-sans antialiased;
+  }
+  
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-serif;
+  }
+}
+
+/* Custom utilities for the design system */
+@layer utilities {
+  .text-shadow-sm {
+    text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+  }
+}
+
+/* Tailwind component layer used by the remaining feature views. */
+@layer components {
+  .access-denied-page {
+    background: var(--color-ivory);
+    color: var(--color-obsidian);
+    transition: background-color 240ms ease, color 240ms ease;
+  }
+
+  .access-denied-page[data-theme="dark"] {
+    background: var(--color-obsidian);
+    color: var(--color-ivory);
+  }
+
+  .access-denied-card {
+    border-color: color-mix(in srgb, var(--color-gold) 22%, transparent);
+    background: var(--color-panel);
+    color: var(--color-obsidian);
+    transition: background-color 240ms ease, border-color 240ms ease, color 240ms ease, box-shadow 240ms ease;
+  }
+
+  .access-denied-page[data-theme="dark"] .access-denied-card {
+    border-color: color-mix(in srgb, var(--color-gold) 20%, transparent);
+    background: var(--color-obsidian-light);
+    color: var(--color-ivory);
+  }
+
+  .access-denied-logo-light { display: none; }
+  .access-denied-page[data-theme="dark"] .access-denied-logo-dark { display: none; }
+  .access-denied-page[data-theme="dark"] .access-denied-logo-light { display: block; }
+
+  .access-denied-copy { color: color-mix(in srgb, var(--color-obsidian) 66%, transparent); }
+  .access-denied-page[data-theme="dark"] .access-denied-copy { color: color-mix(in srgb, var(--color-ivory) 66%, transparent); }
+
+  .access-denied-toggle {
+    border: 1px solid color-mix(in srgb, var(--color-obsidian) 12%, transparent);
+    background: color-mix(in srgb, var(--color-obsidian) 4%, transparent);
+    color: color-mix(in srgb, var(--color-obsidian) 70%, transparent);
+  }
+
+  .access-denied-toggle:hover,
+  .access-denied-toggle:focus-visible {
+    border-color: color-mix(in srgb, var(--color-gold) 50%, transparent);
+    background: color-mix(in srgb, var(--color-gold) 10%, transparent);
+    color: var(--color-gold-dark);
+  }
+
+  .access-denied-page[data-theme="dark"] .access-denied-toggle {
+    border-color: color-mix(in srgb, var(--color-ivory) 15%, transparent);
+    background: color-mix(in srgb, var(--color-ivory) 6%, transparent);
+    color: color-mix(in srgb, var(--color-ivory) 75%, transparent);
+  }
+
+  .access-denied-page[data-theme="dark"] .access-denied-toggle:hover,
+  .access-denied-page[data-theme="dark"] .access-denied-toggle:focus-visible {
+    border-color: color-mix(in srgb, var(--color-gold) 55%, transparent);
+    background: color-mix(in srgb, var(--color-gold) 14%, transparent);
+    color: var(--color-gold-light);
+  }
+
+  .theme-toggle {
+    border: 1px solid color-mix(in srgb, var(--color-obsidian) 12%, transparent);
+    background: color-mix(in srgb, var(--color-obsidian) 4%, transparent);
+    color: color-mix(in srgb, var(--color-obsidian) 70%, transparent);
+  }
+
+  .theme-toggle:hover,
+  .theme-toggle:focus-visible {
+    border-color: color-mix(in srgb, var(--color-gold) 50%, transparent);
+    background: color-mix(in srgb, var(--color-gold) 10%, transparent);
+    color: var(--color-gold-dark);
+  }
+
+  body[data-theme="dark"] {
+    background-color: var(--color-obsidian) !important;
+    color: var(--color-ivory) !important;
+  }
+
+  body[data-theme="dark"] [class~="bg-ivory"] { background-color: var(--color-obsidian) !important; }
+  body[data-theme="dark"] [class~="bg-panel"] { background-color: var(--color-obsidian-light) !important; }
+  body[data-theme="dark"] [class~="bg-ivory/50"] { background-color: rgba(250, 249, 246, .05) !important; }
+  body[data-theme="dark"] [class~="bg-ivory/70"] { background-color: rgba(250, 249, 246, .07) !important; }
+  body[data-theme="dark"] [class~="bg-obsidian/5"] { background-color: rgba(250, 249, 246, .06) !important; }
+  body[data-theme="dark"] [class~="bg-obsidian/10"] { background-color: rgba(250, 249, 246, .10) !important; }
+
+  body[data-theme="dark"] [class~="text-obsidian"] { color: var(--color-ivory) !important; }
+  body[data-theme="dark"] [class~="text-obsidian/30"] { color: rgba(250, 249, 246, .45) !important; }
+  body[data-theme="dark"] [class~="text-obsidian/40"] { color: rgba(250, 249, 246, .40) !important; }
+  body[data-theme="dark"] [class~="text-obsidian/50"] { color: rgba(250, 249, 246, .50) !important; }
+  body[data-theme="dark"] [class~="text-obsidian/60"] { color: rgba(250, 249, 246, .60) !important; }
+  body[data-theme="dark"] [class~="text-obsidian/70"] { color: rgba(250, 249, 246, .70) !important; }
+  body[data-theme="dark"] [class~="text-obsidian/80"] { color: rgba(250, 249, 246, .80) !important; }
+  body[data-theme="dark"] [class~="text-obsidian/55"] { color: rgba(250, 249, 246, .65) !important; }
+
+  body[data-theme="dark"] [class~="border-obsidian/5"] { border-color: rgba(250, 249, 246, .08) !important; }
+  body[data-theme="dark"] [class~="border-obsidian/10"] { border-color: rgba(250, 249, 246, .12) !important; }
+  body[data-theme="dark"] [class~="border-obsidian/15"] { border-color: rgba(250, 249, 246, .16) !important; }
+  body[data-theme="dark"] [class~="border-obsidian/20"] { border-color: rgba(250, 249, 246, .20) !important; }
+
+  body[data-theme="dark"] .theme-toggle {
+    border-color: rgba(250, 249, 246, .15);
+    background: rgba(250, 249, 246, .06);
+    color: rgba(250, 249, 246, .75);
+  }
+
+  body[data-theme="dark"] .theme-toggle:hover,
+  body[data-theme="dark"] .theme-toggle:focus-visible {
+    border-color: rgba(197, 160, 89, .55);
+    background: rgba(197, 160, 89, .14);
+    color: var(--color-gold-light);
+  }
+
+  .abp-content-header { @apply flex items-center justify-between gap-4 mb-8; }
+  .abp-operation-page { @apply mx-auto w-full max-w-2xl; }
+  .abp-operation-page .abp-content-header { @apply justify-center text-center; }
+  .abp-operation-panel { @apply w-full max-w-none; }
+  .client-mobile-logo-light { display: none; }
+  body[data-theme="dark"] .client-mobile-logo-dark { display: none; }
+  body[data-theme="dark"] .client-mobile-logo-light { display: block; }
+  .abp-flex { @apply flex; }
+  .abp-items-center { @apply items-center; }
+  .abp-justify-between { @apply justify-between; }
+  .abp-gap-sm { @apply gap-2; }
+  .abp-gap-md { @apply gap-4; }
+  .abp-font-serif { @apply font-serif; }
+  .abp-font-mono { @apply font-mono tabular-nums; }
+  .abp-eyebrow { @apply text-xs font-semibold uppercase tracking-widest; }
+
+  .abp-heading-xl { @apply text-3xl font-semibold tracking-tight text-obsidian; }
+  .abp-heading-lg { @apply text-2xl font-semibold tracking-tight text-obsidian; }
+  .abp-heading-md { @apply text-lg font-semibold text-obsidian; }
+
+  .abp-panel { @apply rounded-xl border border-obsidian/10 bg-panel p-6 shadow-sm; }
+  .abp-panel-header { @apply mb-6 border-b border-obsidian/10 pb-4; }
+  .abp-panel-highlight { @apply border-gold/30 bg-gold/5; }
+  .abp-form { @apply space-y-5; }
+
+  .abp-label { @apply mb-2 block text-sm font-medium text-obsidian; }
+  .abp-input,
+  .abp-select { @apply block w-full rounded-lg border border-obsidian/15 bg-panel px-3 py-2.5 text-sm text-obsidian shadow-sm outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20; }
+  .abp-input-lg { @apply py-3 text-base; }
+  .abp-input-prefix { @apply relative; }
+  .abp-input-prefix > .prefix-symbol { @apply absolute left-4 top-1/2 z-10 -translate-y-1/2 text-obsidian/40; }
+  .abp-input-prefix > .abp-input { @apply pl-10; }
+
+  .abp-btn { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold no-underline transition focus:outline-none focus:ring-2 focus:ring-gold/40 disabled:cursor-not-allowed disabled:opacity-50; }
+  .abp-btn-sm { @apply min-h-9 px-3 py-1.5 text-xs; }
+  .abp-btn-gold,
+  .abp-btn-primary,
+  .abp-btn-outline,
+  .abp-btn-danger { @apply inline-flex min-h-11 items-center justify-center gap-2 rounded-lg px-4 py-2.5 text-sm font-semibold no-underline transition focus:outline-none focus:ring-2 focus:ring-gold/40 disabled:cursor-not-allowed disabled:opacity-50; }
+  .abp-btn-gold { @apply bg-gold text-white hover:bg-gold-dark; }
+  .abp-btn-primary { @apply bg-obsidian text-white hover:bg-obsidian-light; }
+  .abp-btn-outline { @apply border border-gold/50 bg-transparent text-gold hover:bg-gold/10; }
+  .abp-btn-danger { @apply bg-red-600 text-white hover:bg-red-700; }
+  .abp-w-full { @apply w-full; }
+
+  .abp-alert,
+  .abp-alert-danger,
+  .abp-alert-warning { @apply flex items-center gap-3 rounded-lg border p-4 text-sm; }
+  .abp-alert-danger { @apply border-red-200 bg-red-50 text-red-800; }
+  .abp-alert-warning { @apply border-gold/30 bg-gold/10 text-obsidian; }
+  .abp-alert-close { @apply ml-auto text-current opacity-60 transition hover:opacity-100; }
+
+  .abp-loading-status {
+    @apply hidden items-center gap-2 text-sm text-obsidian/60;
+  }
+
+  [data-loading-form].is-loading .abp-loading-status {
+    @apply flex;
+  }
+
+  .abp-loading-spinner {
+    width: 1rem;
+    height: 1rem;
+    border: 2px solid color-mix(in srgb, var(--color-gold) 25%, transparent);
+    border-top-color: var(--color-gold);
+    border-radius: 999px;
+    animation: abp-loading-spin 700ms linear infinite;
+  }
+
+  button.is-loading {
+    cursor: wait;
+  }
+
+  button.is-loading::after {
+    content: "";
+    width: .9rem;
+    height: .9rem;
+    margin-left: .25rem;
+    border: 2px solid currentColor;
+    border-right-color: transparent;
+    border-radius: 999px;
+    animation: abp-loading-spin 700ms linear infinite;
+  }
+  .abp-text-danger { @apply text-red-600; }
+  .abp-text-gold { @apply text-gold; }
+  .abp-text-main { @apply text-obsidian; }
+  .abp-text-muted { @apply text-obsidian/60; }
+  .abp-text-subtle { @apply text-ivory/60; }
+  .abp-text-success { @apply text-emerald-700; }
+  .abp-danger { @apply text-red-600; }
+  .abp-gold { @apply text-gold; }
+  .abp-gold-bg { @apply bg-gold; }
+  .abp-obsidian { @apply text-obsidian; }
+  .abp-bg-base { @apply bg-ivory; }
+  .abp-success { @apply text-emerald-700; }
+
+  .abp-badge-success { @apply inline-flex rounded-full bg-emerald-50 px-2.5 py-1 text-xs font-medium text-emerald-700; }
+  .abp-badge-warning { @apply inline-flex rounded-full bg-gold/15 px-2.5 py-1 text-xs font-medium text-gold-dark; }
+  .abp-badge-danger { @apply inline-flex rounded-full bg-red-50 px-2.5 py-1 text-xs font-medium text-red-700; }
+  .abp-badge-neutral { @apply inline-flex rounded-full bg-obsidian/5 px-2.5 py-1 text-xs font-medium text-obsidian/70; }
+
+  .abp-grid-2 { @apply grid grid-cols-1 gap-6 lg:grid-cols-2; }
+  .abp-grid-2-1 { @apply grid grid-cols-1 gap-6 lg:grid-cols-[2fr_1fr]; }
+  .abp-grid-3 { @apply grid grid-cols-1 gap-6 md:grid-cols-3; }
+  .abp-grid-4 { @apply grid grid-cols-1 gap-4 sm:grid-cols-2 xl:grid-cols-4; }
+
+  .abp-kpi-card { @apply rounded-xl border border-obsidian/10 bg-panel p-5 shadow-sm; }
+  .abp-kpi-icon { @apply mb-4 flex h-10 w-10 items-center justify-center rounded-lg bg-gold/10 text-gold; }
+  .abp-kpi-label { @apply text-xs font-medium uppercase tracking-wider text-obsidian/55; }
+  .abp-kpi-value { @apply mt-2 text-2xl font-semibold tracking-tight text-obsidian; }
+  .abp-quick-action { @apply transition hover:-translate-y-0.5 hover:border-gold/40 hover:shadow-md; }
+
+  .abp-table { @apply w-full border-collapse text-left text-sm; }
+  .abp-table thead { @apply bg-ivory/70 text-xs uppercase tracking-wider text-obsidian/55; }
+  .abp-table th { @apply px-4 py-3 font-semibold; }
+  .abp-table td { @apply border-t border-obsidian/10 px-4 py-3 text-obsidian/80; }
+  .abp-txn-list { @apply divide-y divide-obsidian/10; }
+  .abp-txn-item { @apply flex items-center justify-between gap-4 py-4; }
+
+  .abp-auth-card { @apply rounded-2xl border border-gold/20 bg-panel p-8 shadow-xl; }
+  .abp-auth-title { @apply font-serif text-3xl font-semibold tracking-tight text-obsidian; }
+  .abp-icon { @apply h-5 w-5 shrink-0; }
+  .abp-btn-gold .abp-icon,
+  .abp-btn-primary .abp-icon,
+  .abp-btn-outline .abp-icon,
+  .abp-btn-danger .abp-icon { @apply h-5 w-5 shrink-0; }
+
+  .abp-mb-0 { @apply mb-0; }
+  .abp-mb-xs { @apply mb-1; }
+  .abp-mb-sm { @apply mb-2; }
+  .abp-mb-md { @apply mb-4; }
+  .abp-mb-lg { @apply mb-6; }
+  .abp-mb-xl { @apply mb-10; }
+  .abp-mt-sm { @apply mt-2; }
+  .abp-mt-md { @apply mt-4; }
+  .abp-mt-lg { @apply mt-6; }
+  .abp-mt-xl { @apply mt-10; }
+
+  .table-responsive { @apply overflow-x-auto; }
+  .text-muted { @apply text-obsidian/60; }
+  .small { @apply text-sm; }
+  .form-label { @apply mb-2 block text-sm font-medium text-obsidian; }
+  .form-control { @apply block w-full rounded-lg border border-obsidian/15 bg-panel px-3 py-2.5 text-sm text-obsidian shadow-sm outline-none transition focus:border-gold focus:ring-2 focus:ring-gold/20; }
+  .form-group { @apply mb-4; }
+  .row { @apply grid grid-cols-1 gap-4 md:grid-cols-2; }
+  .col-md-6 { @apply min-w-0; }
+  .w-100 { @apply w-full; }
+  .text-primary { @apply text-gold; }
+  .text-decoration-none { @apply no-underline; }
+  .fw-medium { @apply font-medium; }
+  .text-danger { @apply text-red-600; }
+  .text-white-50 { @apply text-white/60; }
+
+  /* Dark theme overrides for component classes. The Tailwind utilities used
+     by these classes are compiled into CSS, so they cannot be remapped by
+     selectors that only inspect the HTML class attribute. */
+  body[data-theme="dark"] .abp-panel,
+  body[data-theme="dark"] .abp-kpi-card,
+  body[data-theme="dark"] .abp-auth-card {
+    background-color: var(--color-obsidian-light) !important;
+    border-color: rgba(250, 249, 246, .12) !important;
+    color: var(--color-ivory) !important;
+  }
+
+  body[data-theme="dark"] .abp-panel-header {
+    border-color: rgba(250, 249, 246, .12) !important;
+  }
+
+  body[data-theme="dark"] .abp-panel-highlight {
+    background-color: rgba(197, 160, 89, .12) !important;
+    border-color: rgba(223, 196, 140, .38) !important;
+    color: rgba(250, 249, 246, .9) !important;
+  }
+
+  body[data-theme="dark"] .abp-alert-warning {
+    background-color: rgba(197, 160, 89, .12) !important;
+    border-color: rgba(223, 196, 140, .38) !important;
+    color: rgba(250, 249, 246, .9) !important;
+  }
+
+  body[data-theme="dark"] .abp-badge-warning {
+    background-color: rgba(197, 160, 89, .18) !important;
+    color: var(--color-gold-light) !important;
+  }
+
+  body[data-theme="dark"] .abp-badge-neutral {
+    background-color: rgba(250, 249, 246, .08) !important;
+    color: rgba(250, 249, 246, .82) !important;
+  }
+
+  body[data-theme="dark"] .abp-alert-danger {
+    background-color: rgba(239, 68, 68, .14) !important;
+    border-color: rgba(252, 165, 165, .34) !important;
+    color: #fecaca !important;
+  }
+
+  body[data-theme="dark"] .abp-badge-danger {
+    background-color: rgba(239, 68, 68, .16) !important;
+    color: #fca5a5 !important;
+  }
+
+  body[data-theme="dark"] .abp-auth-title {
+    color: var(--color-ivory) !important;
+  }
+
+  body[data-theme="dark"] .abp-btn-primary {
+    background-color: #2a2a2a !important;
+    color: var(--color-ivory) !important;
+  }
+
+  body[data-theme="dark"] [class~="placeholder-obsidian/30"]::placeholder {
+    color: rgba(250, 249, 246, .52) !important;
+  }
+
+  body[data-theme="dark"] .abp-heading-xl,
+  body[data-theme="dark"] .abp-heading-lg,
+  body[data-theme="dark"] .abp-heading-md,
+  body[data-theme="dark"] .abp-kpi-value,
+  body[data-theme="dark"] .abp-label,
+  body[data-theme="dark"] .abp-text-main,
+  body[data-theme="dark"] .form-label {
+    color: var(--color-ivory) !important;
+  }
+
+  body[data-theme="dark"] .abp-kpi-label,
+  body[data-theme="dark"] .abp-text-muted,
+  body[data-theme="dark"] .abp-table td,
+  body[data-theme="dark"] .text-muted {
+    color: rgba(250, 249, 246, .72) !important;
+  }
+
+  body[data-theme="dark"] .abp-input,
+  body[data-theme="dark"] .abp-select,
+  body[data-theme="dark"] .form-control {
+    background-color: #181818 !important;
+    border-color: rgba(250, 249, 246, .18) !important;
+    color: var(--color-ivory) !important;
+    color-scheme: dark;
+  }
+
+  body[data-theme="dark"] .abp-input::placeholder,
+  body[data-theme="dark"] .form-control::placeholder {
+    color: rgba(250, 249, 246, .5) !important;
+  }
+
+  body[data-theme="dark"] .abp-input:focus,
+  body[data-theme="dark"] .abp-select:focus,
+  body[data-theme="dark"] .form-control:focus {
+    border-color: var(--color-gold-light) !important;
+  }
+
+  body[data-theme="dark"] .abp-table thead {
+    background-color: rgba(250, 249, 246, .07) !important;
+    color: rgba(250, 249, 246, .72) !important;
+  }
+
+  body[data-theme="dark"] .abp-table td {
+    border-color: rgba(250, 249, 246, .12) !important;
+  }
+
+  body[data-theme="dark"] .abp-btn-outline {
+    border-color: rgba(223, 196, 140, .58) !important;
+    color: var(--color-gold-light) !important;
+  }
+
+  body[data-theme="dark"] .abp-btn-outline:hover {
+    background-color: rgba(197, 160, 89, .16) !important;
+  }
+
+  body[data-theme="dark"] .abp-badge-success {
+    background-color: rgba(16, 185, 129, .16) !important;
+    color: #86efac !important;
+  }
+
+  /* Shared dark mapping for Tailwind utilities still present in feature
+     views. This keeps Cliente, Cajero and Admin visually consistent without
+     requiring every view to duplicate theme-specific markup. */
+  body[data-theme="dark"] {
+    --abp-gold: var(--color-gold-light);
+    --abp-gold-bg: rgba(197, 160, 89, .16);
+    --abp-success: #86efac;
+    --abp-danger: #fca5a5;
+    --abp-text-main: var(--color-ivory);
+    --abp-bg-base: var(--color-obsidian);
+    --abp-border-subtle: rgba(250, 249, 246, .14);
+  }
+
+  body[data-theme="dark"] [class~="bg-white"],
+  body[data-theme="dark"] [class~="bg-gray-50"],
+  body[data-theme="dark"] [class~="bg-gray-100"] {
+    background-color: var(--color-obsidian-light) !important;
+  }
+
+  body[data-theme="dark"] [class~="bg-ivory/30"] {
+    background-color: rgba(250, 249, 246, .04) !important;
+  }
+
+  body[data-theme="dark"] [class~="bg-green-50"],
+  body[data-theme="dark"] [class~="bg-green-100"],
+  body[data-theme="dark"] [class~="bg-emerald-50"],
+  body[data-theme="dark"] [class~="bg-emerald-100"] {
+    background-color: rgba(16, 185, 129, .14) !important;
+  }
+
+  body[data-theme="dark"] [class~="bg-red-50"],
+  body[data-theme="dark"] [class~="bg-red-100"] {
+    background-color: rgba(239, 68, 68, .14) !important;
+  }
+
+  body[data-theme="dark"] [class~="bg-blue-100"] {
+    background-color: rgba(59, 130, 246, .16) !important;
+  }
+
+  body[data-theme="dark"] [class~="text-gray-600"],
+  body[data-theme="dark"] [class~="text-gray-700"],
+  body[data-theme="dark"] [class~="text-gray-800"],
+  body[data-theme="dark"] [class~="text-black"] {
+    color: rgba(250, 249, 246, .78) !important;
+  }
+
+  body[data-theme="dark"] [class~="text-green-500"],
+  body[data-theme="dark"] [class~="text-green-600"],
+  body[data-theme="dark"] [class~="text-green-700"],
+  body[data-theme="dark"] [class~="text-green-800"],
+  body[data-theme="dark"] [class~="text-emerald-700"] {
+    color: #86efac !important;
+  }
+
+  body[data-theme="dark"] [class~="text-red-500"],
+  body[data-theme="dark"] [class~="text-red-600"],
+  body[data-theme="dark"] [class~="text-red-700"],
+  body[data-theme="dark"] [class~="text-red-800"] {
+    color: #fca5a5 !important;
+  }
+
+  body[data-theme="dark"] [class~="text-blue-700"] {
+    color: #93c5fd !important;
+  }
+
+  body[data-theme="dark"] [class~="border-gray-200"],
+  body[data-theme="dark"] [class~="border-gray-300"],
+  body[data-theme="dark"] [class~="border-green-200"],
+  body[data-theme="dark"] [class~="border-red-100"],
+  body[data-theme="dark"] [class~="border-red-200"] {
+    border-color: rgba(250, 249, 246, .18) !important;
+  }
+
+  body[data-theme="dark"] .abp-text-success,
+  body[data-theme="dark"] .abp-success {
+    color: #86efac !important;
+  }
+
+  body[data-theme="dark"] .abp-text-danger,
+  body[data-theme="dark"] .abp-danger,
+  body[data-theme="dark"] .text-danger {
+    color: #fca5a5 !important;
+  }
+
+  /* Login-specific dark theme: keep the form readable and distinct from the
+     generic dashboard utility remaps. */
+  body[data-theme="dark"] .auth-login-page {
+    background-color: var(--color-obsidian) !important;
+    color: var(--color-ivory) !important;
+  }
+
+  body[data-theme="dark"] .auth-login-page [class~="text-obsidian"] {
+    color: var(--color-ivory) !important;
+  }
+
+  body[data-theme="dark"] .auth-login-page [class~="text-obsidian/40"] {
+    color: rgba(250, 249, 246, .68) !important;
+  }
+
+  body[data-theme="dark"] .auth-login-page [class~="text-obsidian/60"] {
+    color: rgba(250, 249, 246, .78) !important;
+  }
+
+  body[data-theme="dark"] .auth-login-page [class~="text-obsidian/80"] {
+    color: rgba(250, 249, 246, .9) !important;
+  }
+
+  body[data-theme="dark"] .auth-login-page [class~="border-obsidian/20"] {
+    border-color: rgba(250, 249, 246, .24) !important;
+  }
+
+  body[data-theme="dark"] .auth-login-page .auth-login-field {
+    background-color: #1c1c1c !important;
+    border-color: rgba(250, 249, 246, .24) !important;
+    color: var(--color-ivory) !important;
+    caret-color: var(--color-gold-light);
+    color-scheme: dark;
+  }
+
+  body[data-theme="dark"] .auth-login-page .auth-login-field:focus {
+    border-color: var(--color-gold-light) !important;
+    box-shadow: 0 2px 0 0 var(--color-gold-light);
+  }
+
+  body[data-theme="dark"] .auth-login-page .auth-login-field:-webkit-autofill,
+  body[data-theme="dark"] .auth-login-page .auth-login-field:-webkit-autofill:hover,
+  body[data-theme="dark"] .auth-login-page .auth-login-field:-webkit-autofill:focus {
+    -webkit-text-fill-color: var(--color-ivory) !important;
+    -webkit-box-shadow: 0 0 0 1000px #1c1c1c inset !important;
+    box-shadow: 0 0 0 1000px #1c1c1c inset !important;
+    caret-color: var(--color-gold-light);
+  }
+
+  body[data-theme="dark"] .auth-login-page .auth-login-submit {
+    background-color: var(--color-gold) !important;
+    color: var(--color-obsidian) !important;
+    box-shadow: 0 8px 24px rgba(0, 0, 0, .24);
+  }
+
+  body[data-theme="dark"] .auth-login-page .auth-login-submit:hover,
+  body[data-theme="dark"] .auth-login-page .auth-login-submit:focus-visible {
+    background-color: var(--color-gold-light) !important;
+  }
+
+  body[data-theme="dark"] .auth-login-page .auth-login-note {
+    background-color: rgba(197, 160, 89, .12) !important;
+    border-color: rgba(223, 196, 140, .36) !important;
+    color: rgba(250, 249, 246, .88) !important;
+  }
+
+  body[data-theme="dark"] .auth-login-page .auth-login-note [class~="text-obsidian/80"] {
+    color: rgba(250, 249, 246, .88) !important;
+  }
+
+  body[data-theme="dark"] .auth-login-page .auth-login-note strong {
+    color: var(--color-ivory) !important;
+  }
+
+  body[data-theme="dark"] .auth-login-page .auth-login-logo-dark {
+    display: none;
+  }
+
+  body[data-theme="dark"] .auth-login-page .auth-login-logo-light {
+    display: block;
+  }
+
+  body[data-theme="dark"] .abp-loading-status {
+    color: rgba(250, 249, 246, .66);
+  }
+}

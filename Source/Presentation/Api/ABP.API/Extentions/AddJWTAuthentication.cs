@@ -1,6 +1,8 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json;
 
 namespace ABP.API.Extentions
 {
@@ -28,21 +30,49 @@ namespace ABP.API.Extentions
 
                 options.Events = new JwtBearerEvents
                 {
+                    OnAuthenticationFailed = context =>
+                    {
+                        Console.WriteLine($"[JWT DEBUG] OnAuthenticationFailed: {context.Exception.GetType().Name} - {context.Exception.Message}");
+                        return Task.CompletedTask;
+                    },
+                    OnTokenValidated = context =>
+                    {
+                        Console.WriteLine($"[JWT DEBUG] Token validado OK para: {context.Principal?.Identity?.Name}");
+                        return Task.CompletedTask;
+                    },
                     OnChallenge = context =>
                     {
+                        Console.WriteLine($"[JWT DEBUG] OnChallenge disparado. AuthenticateFailure: {context.AuthenticateFailure?.Message ?? "ninguna (falta el header por completo)"}");
                         context.HandleResponse();
-                        context.Response.StatusCode = 401;
-                        context.Response.ContentType = "application/json";
-                        return context.Response.WriteAsync("{\"message\":\"You do not have authorization.\"}");
+                        return WriteProblemDetailsAsync(context.HttpContext, StatusCodes.Status401Unauthorized, "Autenticación requerida", "Debes autenticarte para acceder a este recurso.");
                     },
                     OnForbidden = context =>
                     {
-                        context.Response.StatusCode = 403;
-                        context.Response.ContentType = "application/json";
-                        return context.Response.WriteAsync("{\"message\":\"Access Denied.\"}");
+                        return WriteProblemDetailsAsync(context.HttpContext, StatusCodes.Status403Forbidden, "Acceso denegado", "No tienes permisos para acceder a este recurso.");
                     }
                 };
             });
+        }
+
+        private static Task WriteProblemDetailsAsync(
+            HttpContext httpContext,
+            int statusCode,
+            string title,
+            string detail)
+        {
+            var problem = new ProblemDetails
+            {
+                Status = statusCode,
+                Title = title,
+                Detail = detail,
+                Instance = httpContext.Request.Path
+            };
+            problem.Extensions["traceId"] = httpContext.TraceIdentifier;
+
+            httpContext.Response.StatusCode = statusCode;
+            httpContext.Response.ContentType = "application/problem+json; charset=utf-8";
+
+            return JsonSerializer.SerializeAsync(httpContext.Response.Body, problem);
         }
 
         #endregion

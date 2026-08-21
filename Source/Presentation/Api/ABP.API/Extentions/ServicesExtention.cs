@@ -15,12 +15,12 @@ namespace ABP.API.Extentions
                 options.SwaggerDoc("v1", new OpenApiInfo
                 {
                     Version = "v1",
-                    Title = "Artemis Bank API",
-                    Description = "An ASP.NET Core Web API for Artemis Bank",
+                    Title = "ArtemisPro Bank API",
+                    Description = "An ASP.NET Core Web API for ArtemisPro Bank",
                     Contact = new OpenApiContact
                     {
-                        Name = "Ana Z, Santana, Joan and Gregori",
-                        Email = "20242153@itla.edu.do ",
+                        Name = "Ana, Joan and Gregori",
+                        Email = "20242153@itla.edu.do, 20251235@itla.edu.do, 20251232@itla.edu.do",
                         Url = new Uri("https://www.itla.edu.do")
                     }
                 });
@@ -36,7 +36,10 @@ namespace ABP.API.Extentions
                 };
 
                 options.AddSecurityDefinition("Bearer", bearerScheme);
-
+                options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
+                {
+                    [new OpenApiSecuritySchemeReference("Bearer", document, null)] = new List<string>()
+                });
                 options.DescribeAllParametersInCamelCase();
             });
         }

@@ -12,16 +12,16 @@ namespace ABP.Integration.Tests.Repositories
 {
     public class TransactionRepositoryTests : IDisposable
     {
-        private readonly ArtemisBankDbContext _dbContext;
+        private readonly ArtemisBankingDbContext _dbContext;
         private readonly TransactionRepository _repository;
 
         public TransactionRepositoryTests()
         {
-            var options = new DbContextOptionsBuilder<ArtemisBankDbContext>()
+            var options = new DbContextOptionsBuilder<ArtemisBankingDbContext>()
                 .UseInMemoryDatabase(databaseName: Guid.NewGuid().ToString())
                 .Options;
 
-            _dbContext = new ArtemisBankDbContext(options);
+            _dbContext = new ArtemisBankingDbContext(options);
             _dbContext.Database.EnsureCreated();
 
             _repository = new TransactionRepository(_dbContext);
@@ -42,11 +42,12 @@ namespace ABP.Integration.Tests.Repositories
                 SavingAccountId = savings.Id,
                 Origin = "Deposit",
                 TransactionDate = DateTime.UtcNow,
-                Description = "Test Deposit"
+                Description = "Test Deposit", PerformedByUserId = "user"
             };
 
             // Act
             await _repository.AddAsync(transaction);
+            await _dbContext.SaveChangesAsync();
 
             // Assert
             transaction.Id.Should().BeGreaterThan(0);
@@ -71,10 +72,10 @@ namespace ABP.Integration.Tests.Repositories
 
             var transactions = new[]
             {
-                new Transaction { Amount = 100, Type = TransactionType.Credit, SavingAccountId = acc1.Id, TransactionDate = DateTime.UtcNow },
-                new Transaction { Amount = 200, Type = TransactionType.Debit, SavingAccountId = acc1.Id, TransactionDate = DateTime.UtcNow },
-                new Transaction { Amount = 300, Type = TransactionType.Credit, SavingAccountId = acc2.Id, TransactionDate = DateTime.UtcNow },
-                new Transaction { Amount = 400, Type = TransactionType.Credit, SavingAccountId = acc1.Id, TransactionDate = DateTime.UtcNow.AddDays(-1) }
+                new Transaction { Amount = 100, Type = TransactionType.Credit, SavingAccountId = acc1.Id, PerformedByUserId = cashierId, TransactionDate = DateTime.UtcNow },
+                new Transaction { Amount = 200, Type = TransactionType.Debit, SavingAccountId = acc1.Id, PerformedByUserId = cashierId, TransactionDate = DateTime.UtcNow },
+                new Transaction { Amount = 300, Type = TransactionType.Credit, SavingAccountId = acc2.Id, PerformedByUserId = otherId, TransactionDate = DateTime.UtcNow },
+                new Transaction { Amount = 400, Type = TransactionType.Credit, SavingAccountId = acc1.Id, PerformedByUserId = cashierId, TransactionDate = DateTime.UtcNow.AddDays(-1) }
             };
 
             await _dbContext.Transactions.AddRangeAsync(transactions);

@@ -13,7 +13,7 @@ namespace ABP.Core.Application.Features.Client.Queries
         ICreditCardService creditCardService,
         ILoanService loanService,
         ILoanInstallmentService installmentService,
-        ITransactionService transactionService)
+        ITransactionQueryService transactionService)
         : IRequestHandler<GetClientHomeQuery, ClientHomeViewModel>
     {
         public async Task<ClientHomeViewModel> Handle(GetClientHomeQuery request, CancellationToken cancellationToken)
@@ -27,12 +27,17 @@ namespace ABP.Core.Application.Features.Client.Queries
             var cards = (await creditCardService.GetActiveByClientIdAsync(request.ClientId)).ToList();
             var loans = (await loanService.GetActiveByClientIdAsync(request.ClientId)).ToList();
 
+            var loanIds = loans.Select(loan => loan.Id).ToArray();
+            var installmentsByLoan = (await installmentService.GetByLoanIdsAsync(loanIds))
+                .GroupBy(installment => installment.LoanId)
+                .ToDictionary(group => group.Key, group => group.ToList());
+
             var loanItems = new List<ClientLoanItemViewModel>();
             var overdueCount = 0;
 
             foreach (var loan in loans)
             {
-                var installments = (await installmentService.GetByLoanIdAsync(loan.Id)).ToList();
+                var installments = installmentsByLoan.GetValueOrDefault(loan.Id, []);
                 var pendingInstallments = installments.Where(i => i.Status != ABP.Core.Domain.Enums.InstallmentStatus.Paid).ToList();
 
                 var item = new ClientLoanItemViewModel
@@ -55,16 +60,11 @@ namespace ABP.Core.Application.Features.Client.Queries
                 overdueCount += installments.Count(i => i.IsOverdue);
             }
 
-            var recentTransactions = new List<TransactionDto>();
-            foreach (var account in accounts)
-            {
-                recentTransactions.AddRange(await transactionService.GetByAccountIdAsync(account.Id));
-            }
+            var recentTransactions = await transactionService.GetByAccountIdsAsync(accounts.Select(account => account.Id));
 
             return new ClientHomeViewModel
             {
                 ClientFullName = user is null ? string.Empty : $"{user.FirstName} {user.LastName}".Trim(),
-                TotalBalance = accounts.Sum(a => a.Balance),
                 TotalAccounts = accounts.Count,
                 TotalCreditCards = cards.Count,
                 TotalLoans = loans.Count,
@@ -73,11 +73,12 @@ namespace ABP.Core.Application.Features.Client.Queries
                 Loans = loanItems,
                 RecentTransactions = recentTransactions
                     .OrderByDescending(t => t.TransactionDate)
-                    .Take(10)
+                    .Take(3)
                     .ToList(),
                 OverdueInstallmentsCount = overdueCount,
                 HasDelinquentLoans = loanItems.Any(l => !l.IsOnTime)
             };
         }
     }
+
 }

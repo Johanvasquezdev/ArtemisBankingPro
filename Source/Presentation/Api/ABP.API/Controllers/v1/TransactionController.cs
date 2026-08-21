@@ -1,24 +1,32 @@
 using ABP.Core.Application.DTOs.Account;
 using ABP.Core.Application.DTOs.Cashier;
-using ABP.Core.Application.Interfaces.IServices;
+using ABP.Core.Application.Features.Cashier.Commands;
+using ABP.Core.Application.Features.Cashier.Queries;
 using Asp.Versioning;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Security.Claims;
 
 namespace ABP.API.Controllers.v1
 {
     [ApiVersion("1.0")]
-    [Authorize(Roles = "Cashier")]
+    [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme, Roles = "Cashier")]
     public class TransactionController : BaseApiController
     {
-        private readonly ITransactionService _transactionService;
-        private readonly IDashboardService _dashboardService;
+        private readonly IMediator _mediator;
 
-        public TransactionController(ITransactionService transactionService, IDashboardService dashboardService)
+        public TransactionController(IMediator mediator)
         {
-            _transactionService = transactionService;
-            _dashboardService = dashboardService;
+            _mediator = mediator;
         }
+
+        private string CurrentUserId => User?.FindFirstValue("uid")
+            ?? User?.FindFirstValue(ClaimTypes.NameIdentifier)
+            ?? string.Empty;
+
+        private string IdempotencyKey => HttpContext?.Request.Headers["Idempotency-Key"].FirstOrDefault()
+            ?? Guid.NewGuid().ToString("N");
 
         /// <summary>
         /// Obtiene el dashboard (indicadores diarios) para el Cajero.
@@ -32,10 +40,10 @@ namespace ABP.API.Controllers.v1
             var userId = User.Claims.FirstOrDefault(c => c.Type == "uid")?.Value;
             if (string.IsNullOrEmpty(userId))
             {
-                return Unauthorized(new { message = "User not found in token." });
+                return ApiProblem(401, "Token inválido", "No se encontró el usuario en el token.");
             }
 
-            var result = await _dashboardService.GetCashierDashboardAsync(userId);
+            var result = await _mediator.Send(new GetCashierDashboardQuery(userId));
             return Ok(result);
         }
 
@@ -48,16 +56,19 @@ namespace ABP.API.Controllers.v1
         public async Task<IActionResult> Deposit([FromBody] CashierDepositDto request)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return ValidationProblem();
+
+            request.PerformedByUserId = CurrentUserId;
+            request.IdempotencyKey = IdempotencyKey;
 
             try
             {
-                await _transactionService.DepositAsync(request);
+                await _mediator.Send(new DepositCashierCommand(request));
                 return Ok(new { message = "Depósito completado exitosamente." });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return BadRequest(new { message = ex.Message });
+                return ApiProblem(400, "Operación rechazada", "No fue posible completar el depósito.");
             }
         }
 
@@ -70,16 +81,19 @@ namespace ABP.API.Controllers.v1
         public async Task<IActionResult> Withdraw([FromBody] CashierWithdrawalDto request)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return ValidationProblem();
+
+            request.PerformedByUserId = CurrentUserId;
+            request.IdempotencyKey = IdempotencyKey;
 
             try
             {
-                await _transactionService.WithdrawAsync(request);
+                await _mediator.Send(new WithdrawCashierCommand(request));
                 return Ok(new { message = "Retiro completado exitosamente." });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return BadRequest(new { message = ex.Message });
+                return ApiProblem(400, "Operación rechazada", "No fue posible completar el retiro.");
             }
         }
 
@@ -92,16 +106,19 @@ namespace ABP.API.Controllers.v1
         public async Task<IActionResult> PayCreditCard([FromBody] CashierPayCreditCardDto request)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return ValidationProblem();
+
+            request.PerformedByUserId = CurrentUserId;
+            request.IdempotencyKey = IdempotencyKey;
 
             try
             {
-                await _transactionService.CashierPayCreditCardAsync(request);
+                await _mediator.Send(new PayCashierCreditCardCommand(request));
                 return Ok(new { message = "Pago de tarjeta de crédito completado exitosamente." });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return BadRequest(new { message = ex.Message });
+                return ApiProblem(400, "Operación rechazada", "No fue posible completar el pago de tarjeta.");
             }
         }
 
@@ -114,16 +131,19 @@ namespace ABP.API.Controllers.v1
         public async Task<IActionResult> PayLoan([FromBody] CashierPayLoanDto request)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return ValidationProblem();
+
+            request.PerformedByUserId = CurrentUserId;
+            request.IdempotencyKey = IdempotencyKey;
 
             try
             {
-                await _transactionService.CashierPayLoanAsync(request);
+                await _mediator.Send(new PayCashierLoanCommand(request));
                 return Ok(new { message = "Pago de préstamo completado exitosamente." });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return BadRequest(new { message = ex.Message });
+                return ApiProblem(400, "Operación rechazada", "No fue posible completar el pago de préstamo.");
             }
         }
 
@@ -136,16 +156,19 @@ namespace ABP.API.Controllers.v1
         public async Task<IActionResult> Transfer([FromBody] CashierTransferDto request)
         {
             if (!ModelState.IsValid)
-                return BadRequest(ModelState);
+                return ValidationProblem();
+
+            request.PerformedByUserId = CurrentUserId;
+            request.IdempotencyKey = IdempotencyKey;
 
             try
             {
-                await _transactionService.CashierTransferAsync(request);
+                await _mediator.Send(new TransferCashierCommand(request));
                 return Ok(new { message = "Transferencia completada exitosamente." });
             }
-            catch (Exception ex)
+            catch (Exception)
             {
-                return BadRequest(new { message = ex.Message });
+                return ApiProblem(400, "Operación rechazada", "No fue posible completar la transferencia.");
             }
         }
     }

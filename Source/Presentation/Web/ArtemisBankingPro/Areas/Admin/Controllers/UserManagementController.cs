@@ -1,7 +1,9 @@
 ﻿using ABP.Core.Application.DTOs.User;
-using ABP.Core.Application.Interfaces.IServices;
+using ABP.Core.Application.Features.Admin.Commands;
+using ABP.Core.Application.Features.Admin.Queries;
 using ABP.Core.Application.ViewModels.User;
 using ABP.Core.Domain.Enums;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
@@ -11,16 +13,15 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
     [Area("Admin")]
     [Authorize(Roles = "Admin")]
     [Route("Admin/[controller]")]
-    public class UserManagementController(IUserService userService, IUserReadOnlyService userReadOnlyService) : Controller
+    public class UserManagementController(IMediator mediator) : Controller
     {
-        private readonly IUserService _userService = userService;
-        private readonly IUserReadOnlyService _userReadOnlyService = userReadOnlyService;
+        private readonly IMediator _mediator = mediator;
 
         [HttpGet("")]
         [HttpGet("Index")]
         public async Task<IActionResult> Index(int page = 1, UserRole? role = null)
         {
-            var result = await _userReadOnlyService.GetAllAsync(page, 20, role);
+            var result = await _mediator.Send(new GetAdminUsersQuery(page, 20, role));
             ViewBag.CurrentRole = role;
             return View(result);
         }
@@ -37,7 +38,7 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
         {
             if (!ModelState.IsValid) return View(model);
 
-            if (await _userReadOnlyService.ExistsByCedulaAsync(model.Cedula))
+            if (await _mediator.Send(new CheckUserCedulaQuery(model.Cedula)))
             {
                 model.HasError = true;
                 model.Error = "Ya existe un usuario registrado con esta cédula.";
@@ -46,11 +47,12 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
 
             var adminId = User.FindFirstValue("uid") ?? User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
 
-            var created = await _userService.RegisterAsync(
+            var created = await _mediator.Send(new CreateUserCommand(
                 model.FirstName, model.LastName, model.Cedula, model.Username,
-                model.Email, model.Password, model.Role.ToString(), adminId, model.InitialAmount ?? 0);
+                model.Email, model.Password, model.Role.ToString(), adminId, model.InitialAmount ?? 0,
+                ABP.Core.Application.DTOs.Account.AccountEmailChannel.Web));
 
-            if (!created)
+            if (created.CedulaAlreadyExists || created.UsernameOrEmailAlreadyExists)
             {
                 model.HasError = true;
                 model.Error = "Ya existe un usuario registrado con este nombre de usuario o correo electrónico.";
@@ -71,7 +73,7 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var user = await _userReadOnlyService.GetByIdAsync(id);
+            var user = await _mediator.Send(new GetAdminUserQuery(id));
             if (user == null) return NotFound();
 
             var vm = new EditUserViewModel
@@ -95,24 +97,24 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
             if (id != model.Id) return BadRequest();
             if (!ModelState.IsValid) return View(model);
 
-            var dto = new UpdateUserDto
+            bool updated;
+            try
             {
-                Id = model.Id,
-                FirstName = model.FirstName,
-                LastName = model.LastName,
-                Cedula = model.Cedula,
-                Email = model.Email,
-                Username = model.Username,
-                Password = model.Password,
-                ConfirmPassword = model.ConfirmPassword,
-                AdditionalAmount = model.AdditionalAmount
-            };
+                updated = await _mediator.Send(new UpdateUserCommand(
+                    model.Id, model.FirstName, model.LastName, model.Cedula, model.Email, model.Username,
+                    model.Password, model.ConfirmPassword, model.AdditionalAmount));
+            }
+            catch (InvalidOperationException exception)
+            {
+                model.HasError = true;
+                model.Error = exception.Message;
+                return View(model);
+            }
 
-            var updated = await _userService.UpdateAsync(dto);
             if (!updated)
             {
                 model.HasError = true;
-                model.Error = "No fue posible actualizar el usuario. Verifique que los datos no estén duplicados.";
+                model.Error = "No fue posible actualizar el usuario. Verifique que los datos no estén duplicados y vuelva a intentarlo.";
                 return View(model);
             }
 
@@ -132,9 +134,9 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
                 return RedirectToAction(nameof(Index));
             }
 
-            var changed = await _userService.ChangeStatusAsync(adminId, id, isActive);
-            TempData[changed ? "SuccessMessage" : "ErrorMessage"] =
-                changed ? "Estado del usuario actualizado correctamente." : "No fue posible actualizar el estado del usuario.";
+            var changed = await _mediator.Send(new ChangeUserStatusCommand(adminId, id, isActive));
+            TempData[changed.Success ? "SuccessMessage" : "ErrorMessage"] =
+                changed.Success ? "Estado del usuario actualizado correctamente." : "No fue posible actualizar el estado del usuario.";
 
             return RedirectToAction(nameof(Index));
         }

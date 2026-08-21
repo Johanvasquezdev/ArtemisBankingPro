@@ -7,5 +7,6 @@ namespace ABP.Core.Application.DTOs.Payment
         public string YearExpirationCard { get; set; } = string.Empty;
         public string CVC { get; set; } = string.Empty;
         public decimal TransactionAmount { get; set; }
+        public string IdempotencyKey { get; set; } = string.Empty;
     }
 }

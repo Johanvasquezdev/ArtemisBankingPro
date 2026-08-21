@@ -10,8 +10,10 @@
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.3" />
     <PackageReference Include="coverlet.collector" Version="6.0.0" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.InMemory" Version="9.0.19" />
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" Version="9.0.19" />
     <PackageReference Include="FluentAssertions" Version="6.12.0" />
-    <PackageReference Include="xunit.v3" Version="3.2.2" />
+    <PackageReference Include="Moq" Version="4.20.69" />
+    <PackageReference Include="xunit" Version="2.9.2" />
   </ItemGroup>
 
   <ItemGroup>
@@ -19,5 +21,7 @@
     <ProjectReference Include="..\..\Core\ABP.Core.Domain\ABP.Core.Domain.csproj" />
     <ProjectReference Include="..\..\Infraestructure\ABP.Infraestructure.Persistence\ABP.Infraestructure.Persistence.csproj" />
     <ProjectReference Include="..\..\Infraestructure\ABP.Infraestructure.identity\ABP.Infraestructure.identity.csproj" />
+    <ProjectReference Include="..\..\Presentation\Api\ABP.API\ABP.API.csproj" />
+    <ProjectReference Include="..\..\Presentation\Functions\ABP.Functions\ABP.Functions.csproj" />
   </ItemGroup>
 </Project>

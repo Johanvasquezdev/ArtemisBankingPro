@@ -62,6 +62,8 @@ namespace ABP.Unit.Tests.Services
             _dateTimeProvider.Setup(x => x.UtcNow).Returns(new DateTime(2026, 8, 9, 12, 0, 0));
             _unitOfWork.Setup(x => x.BeginTransactionAsync(It.IsAny<CancellationToken>()))
                 .ReturnsAsync(_transaction.Object);
+            _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>()))
+                .ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { Id = "test", IsActive = true });
 
             _transactionRecorder.Setup(x => x.RecordAsync(It.IsAny<TransactionEntry>()))
                 .Callback<TransactionEntry>(entry =>
@@ -111,7 +113,8 @@ namespace ABP.Unit.Tests.Services
 
             Func<Task> act = async () => await _service.DepositAsync(request);
 
-            await act.Should().ThrowAsync<Exception>().WithMessage("The destination account does not exist.");
+            await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage("*La cuenta de destino no existe.*");
         }
 
         [Fact]
@@ -121,26 +124,27 @@ namespace ABP.Unit.Tests.Services
             var account = new SavingsAccount { Id = 1, AccountNumber = "ACC-1", Balance = 500, Status = AccountStatus.Active };
 
             _accountRepo.Setup(x => x.GetByAccountNumberAsync(request.AccountNumber)).ReturnsAsync(account);
-            _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>())).ReturnsAsync((ABP.Core.Application.DTOs.User.UserDto?)null);
+            _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>())).ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { Id = "test", IsActive = true });
 
             await _service.DepositAsync(request);
 
             account.Balance.Should().Be(600);
-            _accountRepo.Verify(x => x.UpdateAsync(account), Times.Once);
-            _transactionRepo.Verify(x => x.AddAsync(It.IsAny<Transaction>()), Times.Once);
+            _accountRepo.Verify(x => x.UpdateWithoutSaveAsync(account), Times.Once);
+            _transactionRepo.Verify(x => x.AddWithoutSaveAsync(It.IsAny<Transaction>()), Times.Once);
         }
 
         [Fact]
         public async Task WithdrawAsync_ShouldThrowException_WhenInsufficientFunds()
         {
             var request = new CashierWithdrawalDto { AccountNumber = "ACC-1", Amount = 1000 };
-            var account = new SavingsAccount { Id = 1, AccountNumber = "ACC-1", Balance = 500, Status = AccountStatus.Active };
+            var senderAccount = new SavingsAccount { Id = 1, AccountNumber = "ACC-1", Balance = 500, Status = AccountStatus.Active };
 
-            _accountRepo.Setup(x => x.GetByAccountNumberAsync(request.AccountNumber)).ReturnsAsync(account);
+            _accountRepo.Setup(x => x.GetByAccountNumberAsync(request.AccountNumber)).ReturnsAsync(senderAccount);
 
             Func<Task> act = async () => await _service.WithdrawAsync(request);
 
-            await act.Should().ThrowAsync<InvalidOperationException>().WithMessage("Insufficient funds. Current balance: $500.00");
+            await act.Should().ThrowAsync<InvalidOperationException>()
+            .WithMessage($"*Fondos insuficientes. Balance actual: {senderAccount.Balance:C}*");
         }
 
         #endregion
@@ -180,7 +184,7 @@ namespace ABP.Unit.Tests.Services
             _accountRepo.Setup(x => x.GetByAccountNumberAsync(source.AccountNumber)).ReturnsAsync(source);
             _accountRepo.Setup(x => x.GetByAccountNumberAsync(destination.AccountNumber)).ReturnsAsync(destination);
             _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>()))
-                .ReturnsAsync((string id) => new ABP.Core.Application.DTOs.User.UserDto { Id = id, Email = $"{id}@test.com" });
+                .ReturnsAsync((string id) => new ABP.Core.Application.DTOs.User.UserDto { IsActive = true, Id = id, Email = $"{id}@test.com" });
 
             var dto = new MakeExpressTransactionDto
             {
@@ -195,7 +199,7 @@ namespace ABP.Unit.Tests.Services
             result.Succeeded.Should().BeTrue();
             source.Balance.Should().Be(800m);
             destination.Balance.Should().Be(700m);
-            _transactionRecorder.Verify(x => x.RecordDoubleEntryAsync(
+            _transactionRecorder.Verify(x => x.RecordDoubleEntryWithoutSaveAsync(
                 It.Is<TransactionEntry>(e => e.Type == TransactionType.Debit && e.Amount == 200m),
                 It.Is<TransactionEntry>(e => e.Type == TransactionType.Credit && e.Amount == 200m)), Times.Once);
             _transaction.Verify(x => x.CommitAsync(It.IsAny<CancellationToken>()), Times.Once);
@@ -230,13 +234,13 @@ namespace ABP.Unit.Tests.Services
             var source = Account("CLIENT-1", "000000001", 1000m);
             var card = Card("CLIENT-1", "1111222233334444", 0m, CardStatus.Active);
             _accountRepo.Setup(x => x.GetByAccountNumberAsync(source.AccountNumber)).ReturnsAsync(source);
-            _creditCardRepo.Setup(x => x.GetByCardNumberAsync(card.CardNumber)).ReturnsAsync(card);
+            _creditCardRepo.Setup(x => x.GetByIdAsync(It.IsAny<int>())).ReturnsAsync(card);
 
             var dto = new PayCreditCardDto
             {
                 ClientId = "CLIENT-1",
                 SourceAccountNumber = source.AccountNumber,
-                CreditCardNumber = card.CardNumber,
+                CreditCardId = card.Id,
                 Amount = 100m
             };
 
@@ -252,15 +256,15 @@ namespace ABP.Unit.Tests.Services
             var source = Account("CLIENT-1", "000000001", 1000m);
             var card = Card("CLIENT-1", "1111222233334444", 100m, CardStatus.Active);
             _accountRepo.Setup(x => x.GetByAccountNumberAsync(source.AccountNumber)).ReturnsAsync(source);
-            _creditCardRepo.Setup(x => x.GetByCardNumberAsync(card.CardNumber)).ReturnsAsync(card);
+            _creditCardRepo.Setup(x => x.GetByIdAsync(It.IsAny<int>())).ReturnsAsync(card);
             _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>()))
-                .ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { Id = "CLIENT-1", Email = "c@test.com" });
+                .ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { IsActive = true, Id = "CLIENT-1", Email = "c@test.com" });
 
             var dto = new PayCreditCardDto
             {
                 ClientId = "CLIENT-1",
                 SourceAccountNumber = source.AccountNumber,
-                CreditCardNumber = card.CardNumber,
+                CreditCardId = card.Id,
                 Amount = 500m
             };
 
@@ -268,7 +272,7 @@ namespace ABP.Unit.Tests.Services
 
             source.Balance.Should().Be(900m);
             card.AmountOwed.Should().Be(0m);
-            _transactionRecorder.Verify(x => x.RecordAsync(It.Is<TransactionEntry>(e => e.Amount == 100m && e.Status == TransactionStatus.Approved)), Times.Once);
+            _transactionRecorder.Verify(x => x.RecordWithoutSaveAsync(It.Is<TransactionEntry>(e => e.Amount == 100m && e.Status == TransactionStatus.Approved)), Times.Once);
         }
 
         #endregion
@@ -282,7 +286,7 @@ namespace ABP.Unit.Tests.Services
             card.CreditLimit = 1000m;
             card.ExpirationDate = "12/30";
             var account = Account("CLIENT-1", "000000001", 500m);
-            _creditCardRepo.Setup(x => x.GetByIdAsync(card.Id)).ReturnsAsync(card);
+            _creditCardRepo.Setup(x => x.GetByIdAsync(It.IsAny<int>())).ReturnsAsync(card);
             _accountRepo.Setup(x => x.GetByIdAsync(account.Id)).ReturnsAsync(account);
 
             var dto = new CashAdvanceDto
@@ -297,9 +301,9 @@ namespace ABP.Unit.Tests.Services
 
             account.Balance.Should().Be(600m);
             card.AmountOwed.Should().Be(106.25m);
-            _consumptionRepo.Verify(x => x.AddAsync(It.Is<CreditCardConsumption>(c =>
+            _consumptionRepo.Verify(x => x.AddWithoutSaveAsync(It.Is<CreditCardConsumption>(c =>
                 c.Amount == 106.25m && c.CommerceName == "AVANCE")), Times.Once);
-            _transactionRecorder.Verify(x => x.RecordAsync(It.Is<TransactionEntry>(e =>
+            _transactionRecorder.Verify(x => x.RecordWithoutSaveAsync(It.Is<TransactionEntry>(e =>
                 e.Type == TransactionType.Credit && e.Amount == 100m && e.Status == TransactionStatus.Approved)), Times.Once);
         }
 
@@ -310,7 +314,7 @@ namespace ABP.Unit.Tests.Services
             card.CreditLimit = 50m;
             card.ExpirationDate = "12/30";
             var account = Account("CLIENT-1", "000000001", 500m);
-            _creditCardRepo.Setup(x => x.GetByIdAsync(card.Id)).ReturnsAsync(card);
+            _creditCardRepo.Setup(x => x.GetByIdAsync(It.IsAny<int>())).ReturnsAsync(card);
             _accountRepo.Setup(x => x.GetByIdAsync(account.Id)).ReturnsAsync(account);
 
             var dto = new CashAdvanceDto
@@ -332,7 +336,7 @@ namespace ABP.Unit.Tests.Services
             var card = Card("OTHER-CLIENT", "1111222233334444", 0m, CardStatus.Active);
             card.ExpirationDate = "12/30";
             var account = Account("CLIENT-1", "000000001", 500m);
-            _creditCardRepo.Setup(x => x.GetByIdAsync(card.Id)).ReturnsAsync(card);
+            _creditCardRepo.Setup(x => x.GetByIdAsync(It.IsAny<int>())).ReturnsAsync(card);
             _accountRepo.Setup(x => x.GetByIdAsync(account.Id)).ReturnsAsync(account);
 
             var dto = new CashAdvanceDto
@@ -364,7 +368,7 @@ namespace ABP.Unit.Tests.Services
             _loanRepo.Setup(x => x.GetByLoanNumberAsync(loan.LoanNumber)).ReturnsAsync(loan);
             _installmentRepo.Setup(x => x.GetByLoanIdAsync(loan.Id)).ReturnsAsync(new[] { installment1, installment2 });
             _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>()))
-                .ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { Id = "CLIENT-1", Email = "c@test.com" });
+                .ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { IsActive = true, Id = "CLIENT-1", Email = "c@test.com" });
 
             var dto = new PayLoanDto
             {
@@ -394,7 +398,7 @@ namespace ABP.Unit.Tests.Services
             _loanRepo.Setup(x => x.GetByLoanNumberAsync(loan.LoanNumber)).ReturnsAsync(loan);
             _installmentRepo.Setup(x => x.GetByLoanIdAsync(loan.Id)).ReturnsAsync(new[] { installment1 });
             _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>()))
-                .ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { Id = "CLIENT-1", Email = "c@test.com" });
+                .ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { IsActive = true, Id = "CLIENT-1", Email = "c@test.com" });
 
             var dto = new PayLoanDto
             {
@@ -408,7 +412,7 @@ namespace ABP.Unit.Tests.Services
 
             installment1.Status.Should().Be(InstallmentStatus.Paid);
             loan.Status.Should().Be(LoanStatus.Completed);
-            _loanRepo.Verify(x => x.UpdateAsync(loan), Times.Once);
+            _loanRepo.Verify(x => x.UpdateWithoutSaveAsync(loan), Times.Once);
         }
 
         [Fact]
@@ -449,7 +453,7 @@ namespace ABP.Unit.Tests.Services
             _accountRepo.Setup(x => x.GetByAccountNumberAsync(destination.AccountNumber)).ReturnsAsync(destination);
             _beneficiaryRepo.Setup(x => x.GetByIdAsync(1)).ReturnsAsync(beneficiary);
             _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>()))
-                .ReturnsAsync((string id) => new ABP.Core.Application.DTOs.User.UserDto { Id = id, Email = $"{id}@test.com" });
+                .ReturnsAsync((string id) => new ABP.Core.Application.DTOs.User.UserDto { IsActive = true, Id = id, Email = $"{id}@test.com" });
 
             var dto = new PayBeneficiaryDto
             {
@@ -463,7 +467,7 @@ namespace ABP.Unit.Tests.Services
 
             source.Balance.Should().Be(750m);
             destination.Balance.Should().Be(350m);
-            _transactionRecorder.Verify(x => x.RecordDoubleEntryAsync(It.IsAny<TransactionEntry>(), It.IsAny<TransactionEntry>()), Times.Once);
+            _transactionRecorder.Verify(x => x.RecordDoubleEntryWithoutSaveAsync(It.IsAny<TransactionEntry>(), It.IsAny<TransactionEntry>()), Times.Once);
         }
 
         [Fact]
@@ -517,7 +521,7 @@ namespace ABP.Unit.Tests.Services
             var destination = Account("CLIENT-1", "000000002", 100m);
             _accountRepo.Setup(x => x.GetActiveAccountsByClientIdAsync("CLIENT-1")).ReturnsAsync(new[] { source, destination });
             _userService.Setup(x => x.GetByIdAsync(It.IsAny<string>()))
-                .ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { Id = "CLIENT-1", Email = "c@test.com" });
+                .ReturnsAsync(new ABP.Core.Application.DTOs.User.UserDto { IsActive = true, Id = "CLIENT-1", Email = "c@test.com" });
 
             var dto = new TransferOwnAccountsDto
             {
@@ -531,7 +535,7 @@ namespace ABP.Unit.Tests.Services
 
             source.Balance.Should().Be(700m);
             destination.Balance.Should().Be(400m);
-            _transactionRecorder.Verify(x => x.RecordDoubleEntryAsync(It.IsAny<TransactionEntry>(), It.IsAny<TransactionEntry>()), Times.Once);
+            _transactionRecorder.Verify(x => x.RecordDoubleEntryWithoutSaveAsync(It.IsAny<TransactionEntry>(), It.IsAny<TransactionEntry>()), Times.Once);
         }
 
         #endregion

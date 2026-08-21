@@ -21,5 +21,9 @@ namespace ABP.Core.Domain.Entities
         public string DestinationAccountNumber { get; set; } = string.Empty;
         public DateTime CreatedAt { get; set; }
         public string Description { get; set; } = string.Empty;
+        /// <summary>
+        /// Identity user that physically performed the operation.
+        /// </summary>
+        public string PerformedByUserId { get; set; } = string.Empty;
     }
 }

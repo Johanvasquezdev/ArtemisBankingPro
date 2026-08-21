@@ -1,0 +1,63 @@
+@model ABP.Core.Application.ViewModels.Client.BeneficiariesViewModel
+@{
+    ViewData["Title"] = "Beneficiarios";
+}
+
+<div class="mx-auto w-full max-w-5xl">
+    <div class="abp-content-header abp-flex abp-justify-between abp-items-center abp-mb-xl">
+        <h1 class="abp-heading-xl abp-font-serif">Beneficiarios</h1>
+    </div>
+
+    <div class="abp-grid-2 abp-mb-xl">
+        <section class="abp-panel">
+            <h2 class="abp-heading-md abp-font-serif abp-mb-md">Agregar beneficiario</h2>
+            <p class="abp-text-muted abp-mb-md">Registra una cuenta para tenerla disponible al realizar pagos.</p>
+            <form asp-controller="Beneficiaries" asp-action="Create" method="post">
+                <div class="abp-mb-md">
+                    <label asp-for="Add.AccountNumber" class="abp-label">Número de cuenta</label>
+                    <input asp-for="Add.AccountNumber" class="abp-input" placeholder="000000000" inputmode="numeric" />
+                    <span asp-validation-for="Add.AccountNumber" class="abp-text-danger"></span>
+                </div>
+                <button type="submit" class="abp-btn-gold">Agregar beneficiario</button>
+            </form>
+        </section>
+
+        <section class="abp-panel">
+            <h2 class="abp-heading-md abp-font-serif abp-mb-md">Mis beneficiarios</h2>
+            @if (Model.Beneficiaries.Count == 0)
+            {
+                <p class="abp-text-muted abp-mb-0">Aún no ha registrado beneficiarios.</p>
+            }
+            else
+            {
+                <div class="overflow-x-auto">
+                    <table class="abp-table">
+                        <thead>
+                            <tr>
+                                <th>Nombre</th>
+                                <th>Cuenta</th>
+                                <th class="text-right">Acciones</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var beneficiary in Model.Beneficiaries)
+                            {
+                                <tr>
+                                    <td>@beneficiary.FullName</td>
+                                    <td class="abp-font-mono">@beneficiary.AccountNumber</td>
+                                    <td class="text-right">
+                                        <form asp-controller="Beneficiaries" asp-action="Delete" method="post" class="inline-block"
+                                              onsubmit="return confirm('¿Está seguro de eliminar este beneficiario?');">
+                                            <input type="hidden" name="id" value="@beneficiary.Id" />
+                                            <button type="submit" class="abp-btn-danger abp-btn-sm">Eliminar</button>
+                                        </form>
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            }
+        </section>
+    </div>
+</div>

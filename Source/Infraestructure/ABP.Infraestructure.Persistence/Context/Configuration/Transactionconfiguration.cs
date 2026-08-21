@@ -22,6 +22,7 @@ namespace ABP.Infraestructure.Persistence.Context.Configuration
             builder.Property(t => t.DestinationAccountNumber).IsRequired().HasMaxLength(9);
             builder.Property(t => t.Status).IsRequired().HasConversion<string>().HasMaxLength(20);
             builder.Property(t => t.SavingAccountId).IsRequired();
+            builder.Property(t => t.PerformedByUserId).IsRequired().HasMaxLength(450);
             #endregion
 
             #region relationships

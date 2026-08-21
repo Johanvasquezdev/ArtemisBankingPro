@@ -22,7 +22,7 @@ namespace ABP.Core.Application.Features.Client.Commands
         }
     }
 
-    public class CashAdvanceCommandHandler(ITransactionService transactionService)
+    public class CashAdvanceCommandHandler(IClientTransactionService transactionService)
         : IRequestHandler<CashAdvanceCommand, CommandResult>
     {
         public Task<CommandResult> Handle(CashAdvanceCommand request, CancellationToken cancellationToken)

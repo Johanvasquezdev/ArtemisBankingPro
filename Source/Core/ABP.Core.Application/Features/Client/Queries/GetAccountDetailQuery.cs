@@ -15,7 +15,7 @@ namespace ABP.Core.Application.Features.Client.Queries
 
     public class GetAccountDetailQueryHandler(
         ISavingsAccountService accountService,
-        ITransactionService transactionService,
+        ITransactionQueryService transactionService,
         IUserReadOnlyService userService)
         : IRequestHandler<GetAccountDetailQuery, AccountDetailViewModel>
     {

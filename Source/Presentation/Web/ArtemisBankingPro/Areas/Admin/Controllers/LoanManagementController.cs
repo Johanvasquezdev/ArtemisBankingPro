@@ -1,10 +1,13 @@
-﻿using ABP.Core.Application.DTOs.Loan;
-using ABP.Core.Application.Interfaces.IServices;
+using ABP.Core.Application.DTOs.Loan;
+using ABP.Core.Application.Features.Admin.Commands;
+using ABP.Core.Application.Features.Admin.Queries;
 using ABP.Core.Application.ViewModels.Client;
 using ABP.Core.Application.ViewModels.Loan;
 using ABP.Core.Domain.Enums;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging.Abstractions;
 using System.Security.Claims;
 
 namespace ArtemisBankingPro.Areas.Admin.Controllers
@@ -12,17 +15,18 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
     [Area("Admin")]
     [Authorize(Roles = "Admin")]
     [Route("Admin/[controller]")]
-    public class LoanManagementController(ILoanService loanService, ILoanInstallmentService installmentService) : Controller
+    public class LoanManagementController(
+        IMediator mediator,
+        ILogger<LoanManagementController>? logger = null) : Controller
     {
-        private static readonly int[] AllowedTerms = [6, 12, 18, 24, 30, 36, 42, 48, 54, 60];
-        private readonly ILoanService _loanService = loanService;
-        private readonly ILoanInstallmentService _installmentService = installmentService;
+        private readonly IMediator _mediator = mediator;
+        private readonly ILogger<LoanManagementController> _logger = logger ?? NullLogger<LoanManagementController>.Instance;
 
         [HttpGet("")]
         [HttpGet("Index")]
         public async Task<IActionResult> Index(int page = 1, LoanStatus? status = LoanStatus.Active, string? cedula = null)
         {
-            var result = await _loanService.GetAllPagedAsync(page, 20, status, cedula);
+            var result = await _mediator.Send(new GetAdminLoansQuery(page, 20, status, cedula));
             ViewBag.CurrentStatus = status;
             ViewBag.CurrentCedula = cedula;
             return View(result);
@@ -31,11 +35,11 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
         [HttpGet("SelectClient")]
         public async Task<IActionResult> SelectClient(string? cedula = null)
         {
-            var clients = await _loanService.GetActiveClientsWithoutLoanAsync(cedula);
+            var options = await _mediator.Send(new GetAdminLoanAssignmentOptionsQuery(cedula));
             var vm = new SelectClientViewModel
             {
-                Clients = clients,
-                AverageDebt = await _loanService.GetAverageDebtAsync(),
+                Clients = options.Clients,
+                AverageDebt = options.AverageDebt,
                 CurrentCedula = cedula
             };
             return View(vm);
@@ -47,50 +51,35 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
             return View(new AssignLoanViewModel { ClientId = clientId });
         }
 
-        [HttpPost("Assign")]
+        [HttpPost("Assign/{clientId?}")]
         [ValidateAntiForgeryToken]
         public async Task<IActionResult> Assign(AssignLoanViewModel model)
         {
-            if (!AllowedTerms.Contains(model.TermInMonths))
-                ModelState.AddModelError(nameof(model.TermInMonths), "El plazo seleccionado no es válido.");
-
             if (!ModelState.IsValid) return View(model);
-
-            if (await _loanService.ClientHasActiveLoanAsync(model.ClientId))
-            {
-                model.HasError = true;
-                model.Error = "Este cliente ya tiene un préstamo activo asignado.";
-                return View(model);
-            }
-
-            var (isHighRisk, averageDebt, currentDebt) = await _loanService.EvaluateRiskAsync(
-                model.ClientId, model.Amount, model.AnnualInterestRate, model.TermInMonths);
-
-            if (isHighRisk && !model.RiskConfirmed)
-            {
-                model.IsHighRisk = true;
-                model.AverageDebt = averageDebt;
-                model.CurrentDebt = currentDebt;
-                model.RiskMessage = currentDebt > averageDebt
-                    ? "Este cliente se considera de alto riesgo, ya que su deuda actual supera el promedio del sistema."
-                    : "Asignar este préstamo convertirá al cliente en un cliente de alto riesgo, ya que su deuda superará el umbral promedio del sistema.";
-                return View(model);
-            }
-
-            var adminId = User.FindFirstValue("uid") ?? User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
-
-            var dto = new AssignLoanDto
-            {
-                ClientId = model.ClientId,
-                Amount = model.Amount,
-                AnnualInterestRate = model.AnnualInterestRate,
-                TermInMonths = model.TermInMonths,
-                AdminId = adminId
-            };
 
             try
             {
-                await _loanService.AssignAsync(dto);
+                var adminId = User.FindFirstValue("uid") ?? User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
+                var result = await _mediator.Send(new AssignLoanCommand(
+                    model.ClientId, model.Amount, model.AnnualInterestRate, model.TermInMonths,
+                    adminId, model.RiskConfirmed));
+
+                if (result.HasActiveLoan)
+                {
+                    model.HasError = true;
+                    model.Error = result.Message ?? "Este cliente ya tiene un préstamo activo asignado.";
+                    return View(model);
+                }
+
+                if (result.IsHighRiskUnconfirmed)
+                {
+                    model.IsHighRisk = true;
+                    model.AverageDebt = result.AverageDebt;
+                    model.CurrentDebt = result.CurrentDebt;
+                    model.RiskMessage = result.RiskMessage;
+                    return View(model);
+                }
+
                 TempData["SuccessMessage"] = "Préstamo asignado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
@@ -100,20 +89,26 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
                 model.Error = ex.Message;
                 return View(model);
             }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Error al asignar préstamo para el cliente {ClientId}", model.ClientId);
+                model.HasError = true;
+                model.Error = "No se pudo completar la asignación del préstamo. Verifica que el cliente tenga una cuenta principal activa y vuelve a intentarlo.";
+                return View(model);
+            }
         }
 
         [HttpGet("Details/{id:int}")]
         public async Task<IActionResult> Details(int id)
         {
-            var loan = await _loanService.GetByIdAsync(id);
-            if (loan == null) return NotFound();
-
-            var installments = await _installmentService.GetByLoanIdAsync(id);
+            var details = await _mediator.Send(new GetAdminLoanDetailsQuery(id));
+            if (details == null) return NotFound();
+            var loan = details.Loan;
 
             var vm = new LoanDetailViewModel
             {
                 Loan = loan,
-                Installments = installments,
+                Installments = details.Installments,
                 TotalPendingAmount = loan.PendingAmount,
                 PaidInstallments = loan.PaidInstallments,
                 TotalInstallments = loan.TotalInstallments
@@ -125,7 +120,7 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
         [HttpGet("EditRate/{id:int}")]
         public async Task<IActionResult> EditRate(int id)
         {
-            var loan = await _loanService.GetByIdAsync(id);
+            var loan = await _mediator.Send(new GetAdminLoanQuery(id));
             if (loan == null) return NotFound();
 
             var vm = new EditLoanRateViewModel
@@ -148,7 +143,7 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
 
             try
             {
-                await _loanService.UpdateInterestRateAsync(id, model.NewAnnualInterestRate);
+                await _mediator.Send(new UpdateLoanRateCommand(id, model.NewAnnualInterestRate));
                 TempData["SuccessMessage"] = "Tasa de interés actualizada correctamente.";
                 return RedirectToAction(nameof(Index));
             }

@@ -5,13 +5,15 @@ using ABP.Core.Application.DTOs.Loan;
 using ABP.Core.Application.DTOs.SavingsAccount;
 using ABP.Core.Application.Interfaces.IServices;
 using ABP.Core.Domain.Interfaces;
+using Microsoft.Extensions.Caching.Memory;
 
 namespace ABP.Core.Application.Interfaces.Services
 {
     public class DashboardService( ITransactionRepository transactionRepo, ISavingsAccountRepository accountRepo, ICreditCardRepository cardRepo,
         ILoanRepository loanRepo,
         IUserReadOnlyService userService,
-        IMapper mapper) : IDashboardService
+        IMapper mapper,
+        IMemoryCache cache) : IDashboardService
     {
         private readonly ITransactionRepository _transactionRepo = transactionRepo;
         private readonly ISavingsAccountRepository _accountRepo = accountRepo;
@@ -19,8 +21,21 @@ namespace ABP.Core.Application.Interfaces.Services
         private readonly ILoanRepository _loanRepo = loanRepo;
         private readonly IUserReadOnlyService _userService = userService;
         private readonly IMapper _mapper = mapper;
+        private readonly IMemoryCache _cache = cache;
+        private const string AdminDashboardCacheKey = "dashboard:admin";
 
         public async Task<DashboardAdminDto> GetAdminDashboardAsync()
+        {
+            var dashboard = await _cache.GetOrCreateAsync(AdminDashboardCacheKey, entry =>
+            {
+                entry.AbsoluteExpirationRelativeToNow = TimeSpan.FromSeconds(15);
+                return BuildAdminDashboardAsync();
+            });
+
+            return dashboard!;
+        }
+
+        private async Task<DashboardAdminDto> BuildAdminDashboardAsync()
         {
             var activeAccounts = await _accountRepo.GetTotalActiveAccountsCountAsync();
             var activeCards = await _cardRepo.GetTotalActiveCardsCountAsync();
@@ -62,12 +77,14 @@ namespace ABP.Core.Application.Interfaces.Services
 
         public async Task<DashboardCashierDto> GetCashierDashboardAsync(string cashierId)
         {
+            var recentTransactions = await _transactionRepo.GetRecentByPerformerIdAsync(cashierId, 3);
             return new DashboardCashierDto
             {
                 TodayTransactions = await _transactionRepo.GetTodayTransactionsByUserIdCountAsync(cashierId),
                 TodayPayments = await _transactionRepo.GetTodayPaymentsByUserIdCountAsync(cashierId),
-                TodayDeposits = await _transactionRepo.GetTodayDepositsByUserIdCountAsync(cashierId),
-                TodayWithdrawals = await _transactionRepo.GetTodayWithdrawalsByUserIdCountAsync(cashierId)
+                TodayDeposits = await _transactionRepo.GetTodayDepositsAmountByUserIdAsync(cashierId),
+                TodayWithdrawals = await _transactionRepo.GetTodayWithdrawalsAmountByUserIdAsync(cashierId),
+                RecentTransactions = _mapper.Map<IReadOnlyList<ABP.Core.Application.DTOs.Transaction.TransactionDto>>(recentTransactions)
             };
         }
     }

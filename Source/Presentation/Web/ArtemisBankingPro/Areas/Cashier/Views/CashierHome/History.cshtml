@@ -1,0 +1,81 @@
+@model IEnumerable<TransactionDto>
+@using System.Globalization
+
+@{
+    ViewData["Title"] = "Historial de Operaciones";
+    var culture = CultureInfo.GetCultureInfo("es-DO");
+}
+
+<div class="abp-panel">
+    <div class="abp-flex abp-items-center abp-gap-md abp-mb-xl">
+        <div class="abp-kpi-icon">
+            <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" width="28" height="28" aria-hidden="true">
+                <circle cx="12" cy="12" r="10"></circle>
+                <polyline points="12 6 12 12 16 14"></polyline>
+            </svg>
+        </div>
+        <div>
+            <h2 class="abp-heading-lg" style="margin: 0;">Historial de Operaciones</h2>
+            <p class="abp-text-muted abp-mt-sm">Movimientos registrados en el sistema.</p>
+        </div>
+    </div>
+
+    @if (!Model.Any())
+    {
+        <div class="abp-panel-highlight rounded-lg border p-6 text-center abp-text-muted">
+            No hay operaciones registradas todavía.
+        </div>
+    }
+    else
+    {
+        <div class="table-responsive">
+            <table class="abp-table">
+                <thead>
+                    <tr>
+                        <th>Ref</th>
+                        <th>Tipo</th>
+                        <th>Cuenta</th>
+                        <th class="text-right">Monto</th>
+                        <th>Fecha</th>
+                        <th class="text-center">Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var transaction in Model)
+                    {
+                        var isDebit = transaction.Type == TransactionType.Debit;
+                        var operation = string.IsNullOrWhiteSpace(transaction.Description)
+                            ? transaction.Type.ToString()
+                            : transaction.Description;
+                        var accountNumber = !string.IsNullOrWhiteSpace(transaction.SourceAccountNumber)
+                            ? transaction.SourceAccountNumber
+                            : transaction.DestinationAccountNumber;
+                        var transactionDate = transaction.TransactionDate == default
+                            ? transaction.CreatedAt
+                            : transaction.TransactionDate;
+
+                        <tr>
+                            <td class="abp-font-mono">#@transaction.Id.ToString("D5")</td>
+                            <td>@operation</td>
+                            <td class="abp-font-mono">@accountNumber</td>
+                            <td class="abp-font-mono text-right @(isDebit ? "abp-text-danger" : "abp-text-success")">
+                                @(isDebit ? "- " : "+ ")@transaction.Amount.ToString("C2", culture)
+                            </td>
+                            <td>@transactionDate.ToLocalTime().ToString("dd/MM/yyyy HH:mm", culture)</td>
+                            <td class="text-center">
+                                @if (transaction.Status == TransactionStatus.Approved)
+                                {
+                                    <span class="abp-badge-success">Completado</span>
+                                }
+                                else
+                                {
+                                    <span class="abp-badge-danger">Rechazado</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

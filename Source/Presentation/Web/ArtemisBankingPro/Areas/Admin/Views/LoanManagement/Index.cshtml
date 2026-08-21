@@ -1,0 +1,90 @@
+@model PaginatedResult<LoanDto>
+@{
+    ViewData["Title"] = "Gestión de préstamos";
+}
+
+<div class="flex items-center justify-between mb-8">
+    <h1 class="text-2xl font-serif font-semibold text-obsidian tracking-tight">Gestión de préstamos</h1>
+    <a asp-action="SelectClient" class="inline-flex items-center gap-2 px-4 py-2 bg-gold text-white text-sm font-medium rounded-md hover:bg-gold/90 transition-colors shadow-sm">
+        <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Asignar préstamo
+    </a>
+</div>
+
+<div class="bg-panel border border-obsidian/5 rounded-lg shadow-sm mb-8">
+    <div class="p-6 border-b border-obsidian/5 bg-ivory/30">
+        <form method="get">
+            <div class="max-w-md">
+                <label class="block text-sm font-semibold tracking-wide text-obsidian/80 mb-2">Buscar por cédula</label>
+                <div class="flex gap-3">
+                    <input type="text" name="cedula" class="block w-full px-4 py-2 border border-obsidian/20 rounded-md bg-ivory/50 text-obsidian placeholder-obsidian/30 focus:outline-none focus:ring-1 focus:ring-gold focus:border-gold transition-colors font-mono" placeholder="Cédula del cliente" value="@ViewBag.CurrentCedula" />
+                    <button type="submit" class="inline-flex items-center justify-center px-4 py-2 border border-obsidian/20 rounded-md text-sm font-medium text-obsidian/70 hover:text-obsidian hover:bg-ivory/50 transition-colors whitespace-nowrap">Buscar</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="overflow-x-auto">
+        <table class="w-full text-left border-collapse">
+            <thead>
+                <tr class="bg-ivory/50 border-b border-obsidian/10">
+                    <th class="py-4 px-6 text-xs font-semibold tracking-wider text-obsidian/60 uppercase">Número</th>
+                    <th class="py-4 px-6 text-xs font-semibold tracking-wider text-obsidian/60 uppercase">Cliente</th>
+                    <th class="py-4 px-6 text-xs font-semibold tracking-wider text-obsidian/60 uppercase">Capital</th>
+                    <th class="py-4 px-6 text-xs font-semibold tracking-wider text-obsidian/60 uppercase">Cuotas</th>
+                    <th class="py-4 px-6 text-xs font-semibold tracking-wider text-obsidian/60 uppercase">Pendiente</th>
+                    <th class="py-4 px-6 text-xs font-semibold tracking-wider text-obsidian/60 uppercase">Tasa</th>
+                    <th class="py-4 px-6 text-xs font-semibold tracking-wider text-obsidian/60 uppercase">Estado</th>
+                    <th class="py-4 px-6 text-xs font-semibold tracking-wider text-obsidian/60 uppercase">Al día</th>
+                    <th class="py-4 px-6 text-xs font-semibold tracking-wider text-obsidian/60 uppercase text-right">Acciones</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-obsidian/5">
+                @foreach (var loan in Model.Items)
+                {
+                    <tr class="hover:bg-ivory/30 transition-colors group">
+                        <td class="py-4 px-6 text-sm font-mono text-obsidian/70">@loan.LoanNumber</td>
+                        <td class="py-4 px-6 text-sm font-medium text-obsidian">@loan.ClientFullName</td>
+                        <td class="py-4 px-6 text-sm font-mono text-obsidian">@loan.Amount.ToString("C2", new System.Globalization.CultureInfo("es-DO"))</td>
+                        <td class="py-4 px-6 text-sm text-obsidian/70">@loan.PaidInstallments / @loan.TotalInstallments</td>
+                        <td class="py-4 px-6 text-sm font-mono text-obsidian">@loan.PendingAmount.ToString("C2", new System.Globalization.CultureInfo("es-DO"))</td>
+                        <td class="py-4 px-6 text-sm font-mono text-obsidian">@loan.AnnualInterestRate%</td>
+                        <td class="py-4 px-6">
+                            @if(loan.Status == LoanStatus.Active) { 
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">Activo</span> 
+                            }
+                            else { 
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-obsidian/5 text-obsidian/70 border border-obsidian/10">@loan.Status</span> 
+                            }
+                        </td>
+                        <td class="py-4 px-6">
+                            @if(loan.IsOnTime) { 
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-green-50 text-green-700 border border-green-200">Al día</span> 
+                            }
+                            else { 
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-red-50 text-red-700 border border-red-200">En mora</span> 
+                            }
+                        </td>
+                        <td class="py-4 px-6 text-right space-x-2">
+                            <a asp-action="Details" asp-route-id="@loan.Id" class="inline-flex items-center justify-center px-3 py-1.5 border border-obsidian/20 rounded-md text-xs font-medium text-obsidian/70 hover:text-obsidian hover:bg-ivory/50 transition-colors">Ver detalles</a>
+                            <a asp-action="EditRate" asp-route-id="@loan.Id" class="inline-flex items-center justify-center px-3 py-1.5 border border-obsidian/20 rounded-md text-xs font-medium text-obsidian/70 hover:text-obsidian hover:bg-ivory/50 transition-colors">Editar tasa</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    @if (Model.TotalPages > 1)
+    {
+        <div class="p-6 border-t border-obsidian/5 flex items-center justify-between">
+            <span class="text-sm text-obsidian/60">Página @Model.Page de @Model.TotalPages</span>
+            <div class="flex gap-2">
+                @for (int i = 1; i <= Model.TotalPages; i++)
+                {
+                    <a asp-action="Index" asp-route-page="@i" class="inline-flex items-center justify-center px-3 py-1.5 border border-obsidian/20 rounded-md text-sm font-medium transition-colors @(i == Model.Page ? "bg-obsidian text-white border-obsidian" : "text-obsidian/70 hover:text-obsidian hover:bg-ivory/50")">@i</a>
+                }
+            </div>
+        </div>
+    }
+</div>

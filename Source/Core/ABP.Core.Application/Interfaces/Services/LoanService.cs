@@ -6,11 +6,12 @@ using ABP.Core.Domain.Entities;
 using ABP.Core.Domain.Enums;
 using ABP.Core.Domain.Interfaces;
 using AutoMapper;
+using Microsoft.Extensions.Logging;
 
 namespace ABP.Core.Application.Interfaces.Services
 {
     public class LoanService(ILoanRepository repo, ILoanInstallmentRepository installmentRepo, ITransactionRepository transactionrepo, 
-        ISavingsAccountRepository accountRepo, IUserReadOnlyService user, IMapper mapper) : ILoanService
+        ISavingsAccountRepository accountRepo, IUserReadOnlyService user, IMapper mapper, IEmailServices emailService, ILogger<LoanService> logger, IUnitOfWork? unitOfWork = null) : ILoanService
     {
         private readonly ILoanRepository _repo = repo;
         private readonly ILoanInstallmentRepository _installmentRepo = installmentRepo;
@@ -18,13 +19,17 @@ namespace ABP.Core.Application.Interfaces.Services
         private readonly ISavingsAccountRepository _accountRepo = accountRepo;
         private readonly IUserReadOnlyService _userService = user;
         private readonly IMapper _mapper = mapper;
+        private readonly IEmailServices _emailService = emailService;
+        private readonly ILogger<LoanService> _logger = logger;
+        private readonly IUnitOfWork? _unitOfWork = unitOfWork;
 
         public async Task<LoanDto> GetByIdAsync(int id)
         {
             var entity = await _repo.GetByIdAsync(id);
+            if (entity == null) return null!;
             var dto = _mapper.Map<LoanDto>(entity);
             // Actualizar cuotas y pendiente
-            var installments = await _installmentRepo.GetByLoanIdAsync(entity!.Id);
+            var installments = await _installmentRepo.GetByLoanIdAsync(entity.Id);
             dto.TotalInstallments = installments.Count();
             dto.PaidInstallments = installments.Count(i => i.Status == InstallmentStatus.Paid);
             dto.PendingAmount = installments.Where(i => i.Status != InstallmentStatus.Paid).Sum(i => i.InstallmentAmount - i.AmountPaid);
@@ -46,11 +51,14 @@ namespace ABP.Core.Application.Interfaces.Services
         public async Task<IEnumerable<LoanDto>> GetActiveByClientIdAsync(string clientId)
         {
             var entities = await _repo.GetActiveByClientIdAsync(clientId);
+            var installmentsByLoan = (await _installmentRepo.GetByLoanIdsAsync(entities.Select(entity => entity.Id)))
+                .GroupBy(installment => installment.LoanId)
+                .ToDictionary(group => group.Key, group => group.ToList());
             var dtos = new List<LoanDto>();
             foreach (var entity in entities)
             {
                 var dto = _mapper.Map<LoanDto>(entity);
-                var installments = await _installmentRepo.GetByLoanIdAsync(entity.Id);
+                var installments = installmentsByLoan.GetValueOrDefault(entity.Id, []);
                 dto.TotalInstallments = installments.Count();
                 dto.PaidInstallments = installments.Count(i => i.Status == InstallmentStatus.Paid);
                 dto.PendingAmount = installments.Where(i => i.Status != InstallmentStatus.Paid).Sum(i => i.InstallmentAmount - i.AmountPaid);
@@ -61,16 +69,21 @@ namespace ABP.Core.Application.Interfaces.Services
 
         public async Task<PaginatedResult<LoanDto>> GetAllPagedAsync(int page, int pageSize = 20, LoanStatus? status = null, string? cedula = null)
         {
-            var entities = await _repo.GetAllPagedAsync(page, pageSize, status, cedula);
+            var clientId = string.IsNullOrWhiteSpace(cedula)
+                ? null
+                : await _userService.GetUserIdByCedulaAsync(cedula);
+            var entities = await _repo.GetAllPagedAsync(page, pageSize, status, clientId);
             var items = _mapper.Map<IEnumerable<LoanDto>>(entities);
+            var usersById = (await _userService.GetByIdsAsync(items.Select(item => item.ClientId)))
+                .ToDictionary(user => user.Id);
 
             foreach (var item in items)
             {
-                var user = await _userService.GetByIdAsync(item.ClientId);
+                usersById.TryGetValue(item.ClientId, out var user);
                 if (user != null)
                     item.ClientFullName = $"{user.FirstName} {user.LastName}";
             }
-            var totalCount = await _repo.GetTotalActiveLoansCountAsync();
+            var totalCount = await _repo.GetFilteredCountAsync(status, clientId);
 
             return new PaginatedResult<LoanDto>
             {
@@ -85,19 +98,15 @@ namespace ABP.Core.Application.Interfaces.Services
             var allActiveClients = await _userService.GetActiveClientsAsync(cedula);
 
             // 2. Filtrar usando la lógica de préstamos que ya conoce este servicio
-            var filteredClients = new List<UserDto>();
-            foreach (var client in allActiveClients)
-            {
-                var hasActiveLoan = await _repo.ClientHasActiveLoanAsync(client.Id);
-                if (!hasActiveLoan)
-                {
-                    filteredClients.Add(client);
-                }
-            }
-            return filteredClients;
+            var clientsWithActiveLoans = (await _repo.GetActiveLoanClientIdsAsync()).ToHashSet();
+            return allActiveClients.Where(client => !clientsWithActiveLoans.Contains(client.Id));
         }
         public async Task<LoanDto> AssignAsync(AssignLoanDto dto)
         {
+            var user = await _userService.GetByIdAsync(dto.ClientId);
+            if (user == null || !user.IsActive)
+                throw new InvalidOperationException("Client must be active to assign a loan.");
+
             if (await _repo.ClientHasActiveLoanAsync(dto.ClientId))
                 throw new InvalidOperationException("Client already has an active loan.");
 
@@ -106,7 +115,7 @@ namespace ABP.Core.Application.Interfaces.Services
             {
                 loanNumber = Random.Shared.Next(100000000, 999999999).ToString();
             }
-            while (await _repo.GetByLoanNumberAsync(loanNumber) != null);
+            while (await _accountRepo.AccountOrLoanNumberExistsAsync(loanNumber));
 
             var loan = new Loan
             {
@@ -120,17 +129,46 @@ namespace ABP.Core.Application.Interfaces.Services
                 AssignedByAdminId = dto.AdminId
             };
 
-            await _repo.AddAsync(loan);
+            var primaryAccount = await _accountRepo.GetPrimaryAccountByClientIdAsync(dto.ClientId)
+                ?? throw new InvalidOperationException("El cliente debe tener una cuenta principal activa para desembolsar el préstamo.");
 
-            // Recupera el préstamo para obtener el ID real
-            var createdLoan = await _repo.GetByLoanNumberAsync(loan.LoanNumber);
+            if (_unitOfWork is null)
+                throw new InvalidOperationException("La unidad de trabajo no está disponible.");
+
+            await using var loanTransaction = await _unitOfWork.BeginTransactionAsync();
+            await _repo.AddWithoutSaveAsync(loan);
+            // The first flush obtains the database-generated key while the global
+            // transaction remains open. Installments and disbursement still commit atomically.
+            await _unitOfWork.SaveChangesAsync();
+            var createdLoan = loan;
 
             // French amortization: fixed monthly payment
-            var totalDebt = CalculateTotalLoanDebt(dto.Amount, dto.AnnualInterestRate, dto.TermInMonths);
-            var fixedPayment = totalDebt / dto.TermInMonths;
+            double monthlyRate = (double)dto.AnnualInterestRate / 100 / 12;
+            decimal fixedPayment;
+            if (monthlyRate == 0)
+            {
+                fixedPayment = dto.Amount / dto.TermInMonths;
+            }
+            else
+            {
+                double factor = Math.Pow(1 + monthlyRate, dto.TermInMonths);
+                fixedPayment = (decimal)((double)dto.Amount * (monthlyRate * factor) / (factor - 1));
+            }
+
+            decimal remainingPrincipal = dto.Amount;
 
             for (int i = 1; i <= dto.TermInMonths; i++)
             {
+                decimal interestPortion = Math.Round(remainingPrincipal * (decimal)monthlyRate, 2);
+                decimal principalPortion = Math.Round(fixedPayment - interestPortion, 2);
+                
+                // Adjust last payment to avoid rounding issues
+                if (i == dto.TermInMonths)
+                {
+                    principalPortion = remainingPrincipal;
+                    fixedPayment = principalPortion + interestPortion;
+                }
+
                 var installment = new LoanInstallment
                 {
                     DueDate = DateTime.UtcNow.AddMonths(i),
@@ -139,20 +177,24 @@ namespace ABP.Core.Application.Interfaces.Services
                     Status = InstallmentStatus.Pending,
                     IsOverdue = false,
                     InstallmentNumber = i,
-                    LoanId = createdLoan!.Id // Usa el ID correcto
+                    LoanId = loan.Id,
+                    PrincipalPortion = principalPortion,
+                    InterestPortion = interestPortion,
+                    Loan = loan
                 };
 
-                await _installmentRepo.AddAsync(installment);
+                remainingPrincipal -= principalPortion;
+                await _installmentRepo.AddWithoutSaveAsync(installment);
             }
 
             // Deposit loan amount into client's primary account
-            var primaryAccount = await _accountRepo.GetPrimaryAccountByClientIdAsync(dto.ClientId);
+            // The primary account was validated before opening the transaction.
             if (primaryAccount != null)
             {
                 primaryAccount.Balance += dto.Amount;
-                await _accountRepo.UpdateAsync(primaryAccount);
+                await _accountRepo.UpdateWithoutSaveAsync(primaryAccount);
 
-                await _transactionRepo.AddAsync(new Transaction
+                await _transactionRepo.AddWithoutSaveAsync(new Transaction
                 {
                     Amount = dto.Amount,
                     TransactionDate = DateTime.UtcNow,
@@ -161,11 +203,36 @@ namespace ABP.Core.Application.Interfaces.Services
                     Beneficiary = primaryAccount.AccountNumber,
                     SourceAccountNumber = loan.LoanNumber,
                     DestinationAccountNumber = primaryAccount.AccountNumber,
-                    Description = $"Loan disbursement {loan.LoanNumber}",
+                    Description = $"Desembolso de préstamo {loan.LoanNumber}",
                     Status = TransactionStatus.Approved,
                     SavingAccountId = primaryAccount.Id,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    PerformedByUserId = dto.AdminId
                 });
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+            await loanTransaction.CommitAsync();
+
+            if (user != null && !string.IsNullOrWhiteSpace(user.Email))
+            {
+                try
+                {
+                    await _emailService.SendAsync(
+                        user.Email,
+                        "Nuevo Préstamo Asignado",
+                        $"Se ha desembolsado un nuevo préstamo en su cuenta principal.<br>" +
+                        $"Número de Préstamo: {loan.LoanNumber}<br>" +
+                        $"Monto Aprobado: {dto.Amount:C}<br>" +
+                        $"Tasa Anual: {dto.AnnualInterestRate}%<br>" +
+                        $"Plazo: {dto.TermInMonths} meses<br><br>" +
+                        $"Los fondos ya están disponibles en su cuenta."
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Loan assigned to user {UserId}, but the email notification failed.", dto.ClientId);
+                }
             }
 
             return _mapper.Map<LoanDto>(createdLoan);
@@ -182,11 +249,22 @@ namespace ABP.Core.Application.Interfaces.Services
             var loan = await _repo.GetByLoanNumberAsync(loanNumber);
             if (loan == null || loan.Status != LoanStatus.Active) return false;
 
+            var accountOwner = await _userService.GetByIdAsync(account.UserId);
+            if (accountOwner == null || !accountOwner.IsActive) return false;
+
+            var loanOwner = await _userService.GetByIdAsync(loan.ClientId);
+            if (loanOwner == null || !loanOwner.IsActive) return false;
+
             var installments = (await _installmentRepo.GetByLoanIdAsync(loan.Id))
                 .Where(i => i.Status != InstallmentStatus.Paid)
                 .OrderBy(i => i.InstallmentNumber)
                 .ToList();
             if (!installments.Any()) return false;
+
+            if (_unitOfWork is null)
+                throw new InvalidOperationException("La unidad de trabajo no está disponible.");
+
+            await using var loanPaymentTransaction = await _unitOfWork.BeginTransactionAsync();
 
             decimal remainingAmount = amount;
             foreach (var installment in installments)
@@ -200,21 +278,24 @@ namespace ABP.Core.Application.Interfaces.Services
                     installment.Status = InstallmentStatus.Paid;
                 }
                 remainingAmount -= payment;
-                await _installmentRepo.UpdateAsync(installment);
+                 await _installmentRepo.UpdateWithoutSaveAsync(installment);
             }
 
             var totalPaid = amount - remainingAmount;
             account.Balance -= totalPaid;
-            await _accountRepo.UpdateAsync(account);
+            await _accountRepo.UpdateWithoutSaveAsync(account);
 
             // Check if all installments are paid
-            var pendingAmount = await _installmentRepo.GetPendingAmountByLoanIdAsync(loan.Id);
+            var pendingAmount = installments
+                .Where(installment => installment.Status != InstallmentStatus.Paid)
+                .Sum(installment => installment.InstallmentAmount - installment.AmountPaid);
             if (pendingAmount <= 0)
             {
                 loan.Status = LoanStatus.Completed;
-                await _repo.UpdateAsync(loan);
+                await _repo.UpdateWithoutSaveAsync(loan);
             }
-
+            await _unitOfWork.SaveChangesAsync();
+            await loanPaymentTransaction.CommitAsync();
             return true;
         }
 
@@ -272,14 +353,28 @@ namespace ABP.Core.Application.Interfaces.Services
             var loan = await _repo.GetByIdAsync(loanId);
             if (loan == null) throw new Exception("Loan not found");
 
-            loan.AnualInterestRate = newAnnualInterestRate;
-            await _repo.UpdateAsync(loan);
-
             var pendingInstallments = (await _installmentRepo.GetByLoanIdAsync(loanId))
-                .Where(i => i.Status != InstallmentStatus.Paid).OrderBy(i => i.InstallmentNumber).ToList();
-            if (!pendingInstallments.Any()) return;
+                .Where(i => i.Status != InstallmentStatus.Paid && i.AmountPaid == 0 && i.DueDate > DateTime.UtcNow)
+                .OrderBy(i => i.InstallmentNumber).ToList();
+            if (_unitOfWork is null)
+                throw new InvalidOperationException("La unidad de trabajo no está disponible.");
 
-            decimal remainingBalance = pendingInstallments.Sum(i => i.InstallmentAmount - i.AmountPaid);
+            await using var rateTransaction = await _unitOfWork.BeginTransactionAsync();
+            loan.AnualInterestRate = newAnnualInterestRate;
+            await _repo.UpdateWithoutSaveAsync(loan);
+            if (!pendingInstallments.Any())
+            {
+                throw new InvalidOperationException("No pending installments to update.");
+            }
+
+            // Calculate remaining principal. Assuming AmountPaid pays interest first, then principal.
+            decimal remainingPrincipal = 0;
+            foreach (var inst in pendingInstallments)
+            {
+                decimal principalPaid = Math.Max(0, inst.AmountPaid - inst.InterestPortion);
+                remainingPrincipal += (inst.PrincipalPortion - principalPaid);
+            }
+
             int remainingMonths = pendingInstallments.Count;
 
             double monthlyRate = (double)newAnnualInterestRate / 100 / 12;
@@ -287,23 +382,64 @@ namespace ABP.Core.Application.Interfaces.Services
 
             if (monthlyRate == 0)
             {
-                newFixedPayment = remainingBalance / remainingMonths;
+                newFixedPayment = remainingPrincipal / remainingMonths;
             }
             else
             {
                 double factor = Math.Pow(1 + monthlyRate, remainingMonths);
-                double monthlyPayment = (double)remainingBalance * (monthlyRate * factor) / (factor - 1);
+                double monthlyPayment = (double)remainingPrincipal * (monthlyRate * factor) / (factor - 1);
                 newFixedPayment = (decimal)monthlyPayment;
             }
 
-            foreach (var installment in pendingInstallments)
+            for (int i = 0; i < remainingMonths; i++)
             {
-                installment.InstallmentAmount = Math.Round(newFixedPayment, 2);
-                await _installmentRepo.UpdateAsync(installment);
-            }
+                var installment = pendingInstallments[i];
+                
+                // If it's partially paid, subtract what's already paid from the new fixed payment
+                // But conceptually, the new schedule starts from the current remaining principal.
+                // We will treat each remaining month as a standard French amortization step.
+                decimal interestPortion = Math.Round(remainingPrincipal * (decimal)monthlyRate, 2);
+                decimal principalPortion = Math.Round(newFixedPayment - interestPortion, 2);
 
-            loan.AnualInterestRate = newAnnualInterestRate;
-            await _repo.UpdateAsync(loan);
+                if (i == remainingMonths - 1)
+                {
+                    principalPortion = remainingPrincipal;
+                    newFixedPayment = principalPortion + interestPortion;
+                }
+
+                // If this specific installment was partially paid, we adjust the new amounts
+                // by adding back what was paid so the Total Installment Amount is correct
+                // relative to AmountPaid. However, it's easier to just overwrite them.
+                installment.InstallmentAmount = Math.Round(newFixedPayment, 2);
+                installment.PrincipalPortion = principalPortion;
+                installment.InterestPortion = interestPortion;
+
+                remainingPrincipal -= principalPortion;
+                await _installmentRepo.UpdateWithoutSaveAsync(installment);
+            }
+            await _unitOfWork.SaveChangesAsync();
+            await rateTransaction.CommitAsync();
+
+            var user = await _userService.GetByIdAsync(loan.ClientId);
+            if (user != null && !string.IsNullOrWhiteSpace(user.Email))
+            {
+                try
+                {
+                    await _emailService.SendAsync(
+                        user.Email,
+                        "Actualización de Tasa de Préstamo",
+                        $"Se ha actualizado la tasa de interés de su préstamo.<br>" +
+                        $"Número de Préstamo: {loan.LoanNumber}<br>" +
+                        $"Nueva Tasa Anual: {newAnnualInterestRate}%<br>" +
+                        $"El nuevo monto de sus cuotas pendientes ha sido recalculado.<br><br>" +
+                        $"Puede verificar el nuevo cronograma de pagos en su portal."
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Loan interest updated, but email notification failed for user {UserId}.", loan.ClientId);
+                }
+            }
         }
 
         #endregion

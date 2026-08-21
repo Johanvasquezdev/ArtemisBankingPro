@@ -10,12 +10,13 @@ using AutoMapper;
 
 namespace ABP.Core.Application.Interfaces.Services
 {
-    public class SavingsAccountService(ISavingsAccountRepository repo, IMapper mapper, IUserReadOnlyService user, ITransactionRepository transrepo) : ISavingsAccountService
+    public class SavingsAccountService(ISavingsAccountRepository repo, IMapper mapper, IUserReadOnlyService user, ITransactionRepository transrepo, IUnitOfWork unitOfWork) : ISavingsAccountService
     {
         private readonly ISavingsAccountRepository _repo = repo;
         private readonly IMapper _mapper = mapper;
         private readonly IUserReadOnlyService _userService = user;
         private readonly ITransactionRepository _transrepo = transrepo;
+        private readonly IUnitOfWork _unitOfWork = unitOfWork;
 
         public async Task<SavingsAccountDto> GetByIdAsync(int id)
         {
@@ -43,17 +44,35 @@ namespace ABP.Core.Application.Interfaces.Services
 
         public async Task<PaginatedResult<SavingsAccountDto>> GetAllPagedAsync(int page, int pageSize = 20, AccountStatus? status = null, AccountType? type = null, string? cedula = null)
         {
-            var entities = await _repo.GetAllPagedAsync(page, pageSize, status, type);
+            string? clientId = null;
+            if (!string.IsNullOrWhiteSpace(cedula))
+            {
+                clientId = await _userService.GetUserIdByCedulaAsync(cedula);
+                if (clientId is null)
+                {
+                    return new PaginatedResult<SavingsAccountDto>
+                    {
+                        Items = [],
+                        TotalCount = 0,
+                        Page = page,
+                        PageSize = pageSize
+                    };
+                }
+            }
+
+            var entities = await _repo.GetAllPagedAsync(page, pageSize, status, type, clientId);
             var items = _mapper.Map<IEnumerable<SavingsAccountDto>>(entities);
+            var usersById = (await _userService.GetByIdsAsync(items.Select(item => item.UserId)))
+                .ToDictionary(user => user.Id);
 
             foreach (var item in items)
             {
-                var user = await _userService.GetByIdAsync(item.UserId);
+                usersById.TryGetValue(item.UserId, out var user);
                 if (user != null)
                     item.OwnerFullName = $"{user.FirstName} {user.LastName}";
             }
 
-            var totalCount = await _repo.GetTotalActiveAccountsCountAsync();
+            var totalCount = await _repo.GetTotalActiveAccountsCountAsync(status, type, clientId);
 
             return new PaginatedResult<SavingsAccountDto>
             {
@@ -66,6 +85,10 @@ namespace ABP.Core.Application.Interfaces.Services
 
         public async Task<SavingsAccountDto> CreateAccountAsync(string clientId, string adminId, decimal initialAmount, AccountType type = AccountType.Primary)
         {
+            var user = await _userService.GetByIdAsync(clientId);
+            if (user == null)
+                throw new InvalidOperationException("El usuario debe existir para crear cuentas.");
+
             string accountNumber;
             do
             {
@@ -84,7 +107,34 @@ namespace ABP.Core.Application.Interfaces.Services
                 CreatedByAdminId = adminId
             };
 
-            await _repo.AddAsync(account);
+            await using var assignmentTransaction = await _unitOfWork.BeginTransactionAsync();
+            await _repo.AddWithoutSaveAsync(account);
+
+            if (initialAmount > 0)
+            {
+                var transaction = new Transaction
+                {
+                    Amount = initialAmount,
+                    Type = TransactionType.Credit,
+                    TransactionDate = DateTime.UtcNow,
+                    Origin = "SYSTEM",
+                    Beneficiary = accountNumber,
+                    Status = TransactionStatus.Approved,
+                    SavingAccountId = account.Id,
+                    SavingsAccount = account,
+                    SourceAccountNumber = "SYSTEM",
+                    DestinationAccountNumber = accountNumber,
+                    Description = "Depósito inicial - apertura de cuenta",
+                    PerformedByUserId = adminId,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _transrepo.AddWithoutSaveAsync(transaction);
+            }
+
+            await _unitOfWork.SaveChangesAsync();
+            await assignmentTransaction.CommitAsync();
+
             return _mapper.Map<SavingsAccountDto>(account);
         }
 
@@ -94,7 +144,17 @@ namespace ABP.Core.Application.Interfaces.Services
             if (entity == null) return;
 
             _mapper.Map(dto, entity);
-            await _repo.UpdateAsync(entity);
+            await _repo.UpdateWithoutSaveAsync(entity);
+            await _unitOfWork.SaveChangesAsync();
+        }
+
+        public async Task UpdateWithoutSaveAsync(SavingsAccountDto dto)
+        {
+            var entity = await _repo.GetByIdAsync(dto.Id);
+            if (entity == null) return;
+
+            _mapper.Map(dto, entity);
+            await _repo.UpdateWithoutSaveAsync(entity);
         }
 
         public async Task<bool> ChangeStatusAsync(int accountId, AccountStatus status)
@@ -103,7 +163,8 @@ namespace ABP.Core.Application.Interfaces.Services
             if (entity == null) return false;
 
             entity.Status = status;
-            await _repo.UpdateAsync(entity);
+            await _repo.UpdateWithoutSaveAsync(entity);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
@@ -114,8 +175,33 @@ namespace ABP.Core.Application.Interfaces.Services
             var account = await _repo.GetByAccountNumberAsync(accountNumber);
             if (account == null || account.Status != AccountStatus.Active) return false;
 
+            await using var depositTransaction = await _unitOfWork.BeginTransactionAsync();
+
             account.Balance += amount;
-            await _repo.UpdateAsync(account);
+            await _repo.UpdateWithoutSaveAsync(account);
+
+            var transaction = new Transaction
+            {
+                Amount = amount,
+                Type = TransactionType.Credit,
+                TransactionDate = DateTime.UtcNow,
+                Origin = "SYSTEM",
+                Beneficiary = accountNumber,
+                Status = TransactionStatus.Approved,
+                SavingAccountId = account.Id,
+                SavingsAccount = account,
+                SourceAccountNumber = "SYSTEM",
+                DestinationAccountNumber = accountNumber,
+                Description = "Depósito de saldo adicional",
+                CreatedAt = DateTime.UtcNow,
+                PerformedByUserId = account.UserId
+            };
+
+            await _transrepo.AddWithoutSaveAsync(transaction);
+
+            await _unitOfWork.SaveChangesAsync();
+            await depositTransaction.CommitAsync();
+
             return true;
         }
 
@@ -128,28 +214,37 @@ namespace ABP.Core.Application.Interfaces.Services
             if (account.Balance < amount) return false;
 
             account.Balance -= amount;
-            await _repo.UpdateAsync(account);
+            await _repo.UpdateWithoutSaveAsync(account);
+            await _unitOfWork.SaveChangesAsync();
             return true;
         }
 
         public async Task<bool> TransferAsync(string sourceAccountNumber, string destinationAccountNumber, decimal amount)
         {
-            if (amount <= 0 || sourceAccountNumber == destinationAccountNumber) return false;
+            if (amount <= 0) return false;
 
             var source = await _repo.GetByAccountNumberAsync(sourceAccountNumber);
-            var destination = await _repo.GetByAccountNumberAsync(destinationAccountNumber);
-
-            if (source == null || destination == null) return false;
-            if (source.Status != AccountStatus.Active || destination.Status != AccountStatus.Active) return false;
+            if (source == null || source.Status != AccountStatus.Active) return false;
             if (source.Balance < amount) return false;
+
+            var destination = await _repo.GetByAccountNumberAsync(destinationAccountNumber);
+            if (destination == null || destination.Status != AccountStatus.Active) return false;
+
+            await using var transaction = await _unitOfWork.BeginTransactionAsync();
 
             source.Balance -= amount;
             destination.Balance += amount;
 
-            await _repo.UpdateAsync(source);
-            await _repo.UpdateAsync(destination);
+            await _repo.UpdateWithoutSaveAsync(source);
+            await _repo.UpdateWithoutSaveAsync(destination);
+
+            await _unitOfWork.SaveChangesAsync();
+            await transaction.CommitAsync();
+
             return true;
         }
+
+
 
         public async Task<bool> AccountNumberExistsAsync(string accountNumber)
         {
@@ -174,10 +269,9 @@ namespace ABP.Core.Application.Interfaces.Services
 
         public async Task<IEnumerable<TransactionDto>> GetTransactionsAsync(string accountNumber)
         {
-            var transactions = await _transrepo.GetAllAsync();
+            var transactions = await _transrepo.GetByAccountNumberAsync(accountNumber);
 
             var accountTransactions = transactions
-                .Where(t => t.SourceAccountNumber == accountNumber || t.DestinationAccountNumber == accountNumber)
                 .OrderByDescending(t => t.CreatedAt)
                 .Select(t =>
                 {
@@ -187,12 +281,13 @@ namespace ABP.Core.Application.Interfaces.Services
                     {
                         Id = t.Id,
                         Amount = t.Amount,
-                        TransactionDate = t.TransactionDate,
+                        TransactionDate = t.TransactionDate == default ? t.CreatedAt : t.TransactionDate,
                         Type = isOutgoing ? TransactionType.Debit : TransactionType.Credit,
                         Beneficiary = isOutgoing ? t.DestinationAccountNumber : t.SourceAccountNumber,
                         Origin = isOutgoing ? t.SourceAccountNumber : t.DestinationAccountNumber,
                         Status = t.Status,
                         SavingAccountId = t.SavingAccountId,
+                        CreatedAt = t.CreatedAt,
                         Description = t.Description
                     };
                 })
@@ -203,6 +298,10 @@ namespace ABP.Core.Application.Interfaces.Services
 
         public async Task AssignSecondaryAsync(AssignSavingsAccountDto dto)
         {
+            var user = await _userService.GetByIdAsync(dto.ClientId);
+            if (user == null)
+                throw new InvalidOperationException("El usuario debe existir para asignar cuentas.");
+
             string accountNumber;
             do
             {
@@ -220,7 +319,9 @@ namespace ABP.Core.Application.Interfaces.Services
                 Status = AccountStatus.Active,
                 CreatedAt = DateTime.UtcNow
             };
-            await _repo.AddAsync(account);
+
+            await using var assignmentTransaction = await _unitOfWork.BeginTransactionAsync();
+            await _repo.AddWithoutSaveAsync(account);
 
             if (dto.InitialBalance > 0)
             {
@@ -233,14 +334,19 @@ namespace ABP.Core.Application.Interfaces.Services
                     Beneficiary = accountNumber,
                     Status = TransactionStatus.Approved,
                     SavingAccountId = account.Id,
+                    SavingsAccount = account,
                     SourceAccountNumber = "SYSTEM",
                     DestinationAccountNumber = accountNumber,
-                    Description = "Initial deposit for secondary account opening",
+                    Description = "Depósito inicial - apertura de cuenta secundaria",
+                    PerformedByUserId = dto.AdminId,
                     CreatedAt = DateTime.UtcNow
                 };
 
-                await _transrepo.AddAsync(transaction);
+                await _transrepo.AddWithoutSaveAsync(transaction);
             }
+
+            await _unitOfWork.SaveChangesAsync();
+            await assignmentTransaction.CommitAsync();
         }
 
         public async Task CancelAsync(string accountNumber)
@@ -254,6 +360,8 @@ namespace ABP.Core.Application.Interfaces.Services
             if (primaryAccount == null)
                 throw new Exception("Destination primary account not found.");
 
+            await using var cancellationTransaction = await _unitOfWork.BeginTransactionAsync();
+
             if (secondaryAccount.Balance > 0)
             {
                 decimal balanceToTransfer = secondaryAccount.Balance;
@@ -261,22 +369,48 @@ namespace ABP.Core.Application.Interfaces.Services
                 primaryAccount.Balance += balanceToTransfer;
                 secondaryAccount.Balance = 0;
 
-                var transfer = new Transaction
+                var transferDebit = new Transaction
                 {
                     Amount = balanceToTransfer,
                     Type = TransactionType.Debit,
+                    TransactionDate = DateTime.UtcNow,
                     SourceAccountNumber = secondaryAccount.AccountNumber,
                     DestinationAccountNumber = primaryAccount.AccountNumber,
-                    Description = "Closure of secondary account - Balance transferred to primary",
+                    Origin = secondaryAccount.AccountNumber,
+                    Beneficiary = primaryAccount.AccountNumber,
+                    Status = TransactionStatus.Approved,
+                    SavingAccountId = secondaryAccount.Id,
+                    Description = "Cierre de cuenta secundaria - saldo transferido a la principal",
+                    PerformedByUserId = secondaryAccount.UserId,
                     CreatedAt = DateTime.UtcNow
                 };
 
-                await _transrepo.AddAsync(transfer);
-                await _repo.UpdateAsync(primaryAccount);
+                var transferCredit = new Transaction
+                {
+                    Amount = balanceToTransfer,
+                    Type = TransactionType.Credit,
+                    TransactionDate = DateTime.UtcNow,
+                    SourceAccountNumber = secondaryAccount.AccountNumber,
+                    DestinationAccountNumber = primaryAccount.AccountNumber,
+                    Origin = secondaryAccount.AccountNumber,
+                    Beneficiary = primaryAccount.AccountNumber,
+                    Status = TransactionStatus.Approved,
+                    SavingAccountId = primaryAccount.Id,
+                    Description = "Recepción de fondos por cierre de cuenta secundaria",
+                    PerformedByUserId = secondaryAccount.UserId,
+                    CreatedAt = DateTime.UtcNow
+                };
+
+                await _transrepo.AddWithoutSaveAsync(transferDebit);
+                await _transrepo.AddWithoutSaveAsync(transferCredit);
+                await _repo.UpdateWithoutSaveAsync(primaryAccount);
             }
             secondaryAccount.Status = AccountStatus.Closed;
-            await _repo.UpdateAsync(secondaryAccount);
+            await _repo.UpdateWithoutSaveAsync(secondaryAccount);
+            await _unitOfWork.SaveChangesAsync();
+            await cancellationTransaction.CommitAsync();
         }
 
     }
 }
+

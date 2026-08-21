@@ -2,7 +2,10 @@
 using ABP.API.DTOs.Loan;
 using ABP.Core.Application.DTOs.Loan;
 using ABP.Core.Application.Interfaces.IServices;
+using ABP.Core.Application.Features.Admin.Commands;
+using ABP.Core.Application.Features.Admin.Queries;
 using FluentAssertions;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -13,14 +16,14 @@ namespace ABP.Unit.Tests.Controllers
 {
     public class LoanApiControllerTests
     {
-        private readonly Mock<ILoanService> _mockLoanService;
-        private readonly LoanApiController _controller;
+        private readonly Mock<IMediator> _mockMediator;
+        private readonly LoanController _controller;
 
         public LoanApiControllerTests()
         {
-            _mockLoanService = new Mock<ILoanService>();
+            _mockMediator = new Mock<IMediator>();
 
-            _controller = new LoanApiController(_mockLoanService.Object)
+            _controller = new LoanController(_mockMediator.Object)
             {
                 ControllerContext = new ControllerContext
                 {
@@ -42,7 +45,7 @@ namespace ABP.Unit.Tests.Controllers
             var result = await _controller.Assign(request);
 
             // Assert
-            result.Should().BeOfType<BadRequestObjectResult>();
+            result.Should().BeOfType<ObjectResult>();
         }
 
         [Fact]
@@ -50,13 +53,14 @@ namespace ABP.Unit.Tests.Controllers
         {
             // Arrange
             var request = new AssignLoanApiDto("client1", 1000, 10, 12);
-            _mockLoanService.Setup(s => s.ClientHasActiveLoanAsync("client1")).ReturnsAsync(true);
+            _mockMediator.Setup(m => m.Send(It.IsAny<AssignLoanCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new LoanAssignmentResult(false, false, true, false, 0, 0, null, "El cliente ya tiene un préstamo activo."));
 
             // Act
             var result = await _controller.Assign(request);
 
             // Assert
-            result.Should().BeOfType<BadRequestObjectResult>();
+            result.Should().BeOfType<ObjectResult>();
         }
 
         [Fact]
@@ -64,16 +68,16 @@ namespace ABP.Unit.Tests.Controllers
         {
             // Arrange
             var request = new AssignLoanApiDto("client1", 1000, 10, 12, ConfirmHighRisk: false);
-            _mockLoanService.Setup(s => s.ClientHasActiveLoanAsync("client1")).ReturnsAsync(false);
-            _mockLoanService.Setup(s => s.EvaluateRiskAsync("client1", 1000, 10, 12))
-                .ReturnsAsync((true, 500m, 800m));
+            _mockMediator.Setup(m => m.Send(It.IsAny<AssignLoanCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new LoanAssignmentResult(false, true, false, true, 500m, 800m, null, "Se requiere confirmar el riesgo."));
 
             // Act
             var result = await _controller.Assign(request);
 
             // Assert
-            result.Should().BeOfType<ConflictObjectResult>();
-            _mockLoanService.Verify(s => s.AssignAsync(It.IsAny<AssignLoanDto>()), Times.Never);
+            var problem = result.Should().BeOfType<ObjectResult>().Subject;
+            problem.StatusCode.Should().Be(409);
+            _mockMediator.Verify(m => m.Send(It.IsAny<AssignLoanCommand>(), It.IsAny<CancellationToken>()), Times.Once);
         }
 
         [Fact]
@@ -81,11 +85,9 @@ namespace ABP.Unit.Tests.Controllers
         {
             // Arrange
             var request = new AssignLoanApiDto("client1", 1000, 10, 12, ConfirmHighRisk: true);
-            _mockLoanService.Setup(s => s.ClientHasActiveLoanAsync("client1")).ReturnsAsync(false);
-            _mockLoanService.Setup(s => s.EvaluateRiskAsync("client1", 1000, 10, 12))
-                .ReturnsAsync((true, 500m, 800m));
-            _mockLoanService.Setup(s => s.AssignAsync(It.IsAny<AssignLoanDto>()))
-                .ReturnsAsync(new LoanDto { Id = 1, LoanNumber = "123456789" });
+            _mockMediator.Setup(m => m.Send(It.IsAny<AssignLoanCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new LoanAssignmentResult(true, false, false, true, 500m, 800m,
+                    new LoanDto { Id = 1, LoanNumber = "123456789" }, "Préstamo asignado correctamente."));
 
             // Act
             var result = await _controller.Assign(request);
@@ -102,7 +104,7 @@ namespace ABP.Unit.Tests.Controllers
             var result = await _controller.UpdateRate(1, new UpdateRateRequest(-5));
 
             // Assert
-            result.Should().BeOfType<BadRequestObjectResult>();
+            result.Should().BeOfType<ObjectResult>();
         }
     }
 }

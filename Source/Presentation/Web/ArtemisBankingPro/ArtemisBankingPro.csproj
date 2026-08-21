@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <ItemGroup>
     <ProjectReference Include="..\..\..\Core\ABP.Core.Application\ABP.Core.Application.csproj" />
@@ -9,6 +9,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation" Version="9.0.2" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="9.0.2">
+      <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
     <PackageReference Include="Serilog.AspNetCore" Version="8.0.3" />
   </ItemGroup>
 
@@ -16,6 +21,11 @@
     <TargetFramework>net9.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
+    <UserSecretsId>artemis-banking-pro-web</UserSecretsId>
   </PropertyGroup>
+
+  <Target Name="BuildTailwind" BeforeTargets="Build">
+    <!--<Exec Command="npm run build:css" />-->
+  </Target>
 
 </Project>

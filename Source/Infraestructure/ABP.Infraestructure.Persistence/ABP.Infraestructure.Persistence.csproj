@@ -3,7 +3,6 @@
   <ItemGroup>
     <ProjectReference Include="..\..\Core\ABP.Core.Application\ABP.Core.Application.csproj" />
     <ProjectReference Include="..\..\Core\ABP.Core.Domain\ABP.Core.Domain.csproj" />
-    <ProjectReference Include="..\ABP.Infraestructure.identity\ABP.Infraestructure.identity.csproj" />
   </ItemGroup>
 
   <ItemGroup>
@@ -18,6 +17,8 @@
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
     </PackageReference>
     <PackageReference Include="Npgsql.DependencyInjection" Version="9.0.5" />
+    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="9.0.4" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Binder" Version="9.0.19" />
   </ItemGroup>
 
   <PropertyGroup>

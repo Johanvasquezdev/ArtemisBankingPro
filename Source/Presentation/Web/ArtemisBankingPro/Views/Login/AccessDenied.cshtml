@@ -1,0 +1,38 @@
+﻿@{
+    ViewData["Title"] = "Acceso Denegado";
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
+}
+
+<main id="accessDeniedPage" data-access-denied class="access-denied-page flex min-h-screen items-center justify-center px-6 py-12" data-theme="light">
+    <div class="access-denied-card relative w-full max-w-lg rounded-2xl border p-10 text-center shadow-xl">
+        <button id="accessDeniedThemeToggle"
+                type="button"
+                class="access-denied-toggle absolute right-5 top-5 inline-flex h-10 w-10 items-center justify-center rounded-full transition focus:outline-none focus-visible:ring-2 focus-visible:ring-gold/50"
+                data-theme-toggle
+                aria-label="Activar modo oscuro"
+                aria-pressed="false">
+            <svg class="h-4 w-4" data-theme-icon="light" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M4.93 19.07l1.41-1.41M17.66 6.34l1.41-1.41"/>
+            </svg>
+            <svg class="hidden h-4 w-4" data-theme-icon="dark" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M21 12.8A8.5 8.5 0 1 1 11.2 3 6.7 6.7 0 0 0 21 12.8Z"/>
+            </svg>
+        </button>
+
+        <div class="mx-auto mb-8 w-64">
+            <div class="access-denied-logo-dark">
+                <partial name="_BrandLogo" model='"dark"' />
+            </div>
+            <div class="access-denied-logo-light">
+                <partial name="_BrandLogo" model='"light"' />
+            </div>
+        </div>
+
+        <div class="mx-auto mb-6 flex h-16 w-16 items-center justify-center rounded-full bg-red-500/10 text-red-500 dark:text-red-400">
+            <svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4M12 16h.01"/></svg>
+        </div>
+        <h1 class="font-serif text-3xl font-semibold tracking-tight">Acceso denegado</h1>
+        <p class="access-denied-copy mt-4 leading-relaxed">No posee los permisos necesarios para acceder a esta sección. Inicie sesión con una cuenta autorizada o contacte a su banquero privado.</p>
+        <a asp-controller="Login" asp-action="Reauthenticate" class="mt-8 inline-flex min-h-11 w-full items-center justify-center rounded-lg bg-gold px-4 py-3 text-sm font-semibold text-white transition hover:bg-gold-dark focus:outline-none focus:ring-2 focus:ring-gold-light/50">Volver a iniciar sesión</a>
+    </div>
+</main>

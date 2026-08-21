@@ -1,112 +1,158 @@
 @using Microsoft.AspNetCore.Identity
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
+}
 <!DOCTYPE html>
 <html lang="es">
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>@ViewData["Title"] — Artemis Banking Pro</title>
+    <link rel="icon" type="image/svg+xml" href="~/favicon.svg" />
+
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Playfair+Display:wght@400;500;600;700&display=swap" rel="stylesheet" />
-    <link rel="stylesheet" href="~/lib/bootstrap/dist/css/bootstrap.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
     <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
-    <link rel="stylesheet" href="~/ArtemisBankingProApp.styles.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/abp-polish.css" asp-append-version="true" />
+
+    <script>
+        (function() {
+            try {
+                var theme = localStorage.getItem('artemis-theme');
+                var isDark = theme === 'light' ? false : true;
+                document.documentElement.dataset.theme = isDark ? 'dark' : 'light';
+            } catch (e) {}
+        })();
+    </script>
 </head>
-<body>
-    <!-- ═══ TOPBAR ═══ -->
-    <header class="abp-topbar">
-        <a asp-area="" asp-controller="Home" asp-action="Index" class="abp-topbar-brand">
-            <span class="abp-topbar-logo">
-                <svg viewBox="0 0 24 24" fill="none" width="20" height="20">
-                    <path d="M12 2 3 20h4l5-11 5 11h4L12 2Z" fill="currentColor"/>
-                    <circle cx="12" cy="15.5" r="2.2" fill="currentColor"/>
-                </svg>
-            </span>
-            <div>
-                <span class="abp-topbar-title">Artemis <span class="accent">Banking</span></span>
-                <span class="abp-topbar-subtitle">Private Wealth</span>
-            </div>
-        </a>
-
-        <ul class="abp-topbar-nav d-none d-md-flex">
-            <li>
-                <a asp-area="" asp-controller="Home" asp-action="Index"
-                   class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Home" && ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
-                    <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
-                    Inicio
-                </a>
-            </li>
-            <li>
-                <a asp-controller="Transactions" asp-action="Express"
-                   class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Transactions" ? "active" : "")">
-                    <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-                    Transacciones
-                </a>
-            </li>
-            <li>
-                <a asp-controller="CashAdvance" asp-action="Index"
-                   class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "CashAdvance" ? "active" : "")">
-                    <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                    Avances
-                </a>
-            </li>
-            <li>
-                <a asp-controller="Transfer" asp-action="Index"
-                   class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Transfer" ? "active" : "")">
-                    <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
-                    Transferir
-                </a>
-            </li>
-            <li>
-                <a asp-controller="Beneficiaries" asp-action="Index"
-                   class="@(ViewContext.RouteData.Values["controller"]?.ToString() == "Beneficiaries" ? "active" : "")">
-                    <svg class="abp-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
-                    Beneficiarios
-                </a>
-            </li>
-        </ul>
-
-        <div class="abp-topbar-actions">
-            <button class="abp-icon-btn" title="Notificaciones">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg>
-                <span class="notification-dot"></span>
-            </button>
-            <a asp-area="" asp-controller="Home" asp-action="Logout" class="abp-avatar" title="Cerrar sesión">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+<body class="abp-shell abp-shell-client bg-ivory text-obsidian font-sans antialiased min-h-screen">
+    <!-- Sidebar desktop -->
+    <aside class="abp-sidebar fixed inset-y-0 left-0 z-20 hidden h-screen w-64 flex-col bg-obsidian text-ivory shadow-xl lg:flex">
+        <div class="flex h-20 items-center border-b border-white/10 px-4">
+                <a asp-area="Client" asp-controller="Home" asp-action="Index" class="flex items-center gap-3 no-underline">
+                <span class="abp-brand-lockup block w-56 shrink-0">
+                    <partial name="_BrandLogo" model='"light"' />
+                </span>
             </a>
         </div>
-    </header>
 
-    <!-- ═══ MAIN CONTENT ═══ -->
-    <main style="max-width: 76rem; margin: 0 auto; padding: 2rem 1.5rem;">
-        @if (TempData["SuccessMessage"] is string success && !string.IsNullOrEmpty(success))
-        {
-            <div class="abp-alert abp-alert-success">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                @success
-                <button class="abp-alert-close" onclick="this.parentElement.remove()">×</button>
+        <nav class="flex-1 overflow-y-auto px-3 py-6" aria-label="Navegación principal">
+            <div class="mb-4 px-3 text-xs font-semibold uppercase tracking-wider text-ivory/40">Operaciones</div>
+            <div class="flex flex-col gap-1">
+                <a asp-area="Client" asp-controller="Home" asp-action="Index"
+                   class="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium no-underline transition-colors @(currentController == "Home" && currentAction == "Index" ? "bg-gold/10 text-gold" : "text-ivory/70 hover:bg-white/5 hover:text-ivory")">
+                    <svg class="h-5 w-5 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+                    Inicio
+                </a>
+                <a asp-area="Client" asp-controller="Transactions" asp-action="Express"
+                   class="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium no-underline transition-colors @(currentController == "Transactions" ? "bg-gold/10 text-gold" : "text-ivory/70 hover:bg-white/5 hover:text-ivory")">
+                    <svg class="h-5 w-5 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
+                    Transacciones
+                </a>
+                <a asp-area="Client" asp-controller="CashAdvance" asp-action="Index"
+                   class="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium no-underline transition-colors @(currentController == "CashAdvance" ? "bg-gold/10 text-gold" : "text-ivory/70 hover:bg-white/5 hover:text-ivory")">
+                    <svg class="h-5 w-5 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+                    Avances
+                </a>
+                <a asp-area="Client" asp-controller="Transfer" asp-action="Index"
+                   class="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium no-underline transition-colors @(currentController == "Transfer" ? "bg-gold/10 text-gold" : "text-ivory/70 hover:bg-white/5 hover:text-ivory")">
+                    <svg class="h-5 w-5 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="17 1 21 5 17 9"/><path d="M3 11V9a4 4 0 0 1 4-4h14"/><polyline points="7 23 3 19 7 15"/><path d="M21 13v2a4 4 0 0 1-4 4H3"/></svg>
+                    Transferir
+                </a>
+                <a asp-area="Client" asp-controller="Beneficiaries" asp-action="Index"
+                   class="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium no-underline transition-colors @(currentController == "Beneficiaries" ? "bg-gold/10 text-gold" : "text-ivory/70 hover:bg-white/5 hover:text-ivory")">
+                    <svg class="h-5 w-5 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+                    Beneficiarios
+                </a>
             </div>
-        }
-        @if (TempData["ErrorMessage"] is string error && !string.IsNullOrEmpty(error))
-        {
-            <div class="abp-alert abp-alert-danger">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
-                @error
-                <button class="abp-alert-close" onclick="this.parentElement.remove()">×</button>
-            </div>
-        }
-        @RenderBody()
-    </main>
+        </nav>
 
-    <!-- ═══ FOOTER ═══ -->
-    <footer class="abp-footer">
-        <span>© 2026 Artemis Banking Pro</span>
-        <span>Private Wealth Management</span>
-    </footer>
+        <div class="border-t border-white/10 p-4">
+            <a asp-area="" asp-controller="Login" asp-action="Logout" class="flex w-full items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium text-ivory/70 no-underline transition-colors hover:bg-white/5 hover:text-ivory">
+                <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                Cerrar sesión
+            </a>
+        </div>
+    </aside>
+
+    <div class="flex min-h-screen flex-col lg:ml-64">
+        <header class="abp-topbar sticky top-0 z-10 border-b border-obsidian/5 bg-panel px-6 py-4 shadow-sm lg:px-8">
+            <div class="flex items-center justify-between gap-4">
+                <div class="flex items-center gap-3">
+                    <details class="relative lg:hidden">
+                        <summary class="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-full bg-obsidian/5 text-obsidian/70 hover:bg-gold/10 hover:text-gold" aria-label="Abrir menú">
+                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+                        </summary>
+                        <nav class="abp-mobile-nav absolute left-0 top-12 z-30 w-56 rounded-xl border border-obsidian/10 bg-panel p-2 shadow-xl" aria-label="Navegación móvil">
+                            <a asp-area="Client" asp-controller="Home" asp-action="Index" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Inicio</a>
+                            <a asp-area="Client" asp-controller="Transactions" asp-action="Express" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Transacciones</a>
+                            <a asp-area="Client" asp-controller="CashAdvance" asp-action="Index" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Avances</a>
+                            <a asp-area="Client" asp-controller="Transfer" asp-action="Index" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Transferir</a>
+                            <a asp-area="Client" asp-controller="Beneficiaries" asp-action="Index" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Beneficiarios</a>
+                        </nav>
+                    </details>
+                    <div class="client-mobile-brand lg:hidden w-48 shrink-0">
+                        <div class="client-mobile-logo-dark">
+                            <partial name="_BrandLogo" model='"dark"' />
+                        </div>
+                        <div class="client-mobile-logo-light hidden">
+                            <partial name="_BrandLogo" model='"light"' />
+                        </div>
+                    </div>
+                    <div class="hidden lg:block">
+                        <p class="mb-1 text-xs font-semibold uppercase tracking-wider text-obsidian/40">Panel del Cliente</p>
+                        <h1 class="font-serif text-xl font-semibold tracking-tight text-obsidian">@ViewData["Title"]</h1>
+                    </div>
+                </div>
+
+                <div class="flex items-center gap-3">
+                    <partial name="_ThemeToggle" />
+                    <a asp-area="" asp-controller="Login" asp-action="Logout" class="flex h-9 w-9 items-center justify-center rounded-full bg-obsidian/5 text-obsidian transition-colors hover:bg-gold hover:text-white" title="Cerrar sesión" aria-label="Cerrar sesión">
+                        <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
+                    </a>
+                </div>
+            </div>
+        </header>
+
+        <main class="abp-main mx-auto w-full max-w-7xl flex-1 px-6 py-8 lg:px-8">
+            @if (TempData["SuccessMessage"] is string success && !string.IsNullOrEmpty(success))
+            {
+                <div class="mb-6 flex items-center justify-between rounded-lg border border-gold/30 bg-panel p-4 text-obsidian shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-8 w-8 items-center justify-center rounded-full bg-gold/10 text-gold">
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+                        </div>
+                        <span class="text-sm font-medium">@success</span>
+                    </div>
+                    <button class="text-obsidian/40 transition-colors hover:text-gold focus:outline-none" onclick="this.parentElement.remove()" aria-label="Cerrar mensaje">×</button>
+                </div>
+            }
+            @if (TempData["ErrorMessage"] is string error && !string.IsNullOrEmpty(error))
+            {
+                <div class="mb-6 flex items-center justify-between rounded-lg border border-red-200 bg-red-50 p-4 text-red-800 shadow-sm">
+                    <div class="flex items-center gap-3">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
+                        <span class="text-sm font-medium">@error</span>
+                    </div>
+                    <button class="text-red-600 transition-colors hover:text-red-800 focus:outline-none" onclick="this.parentElement.remove()" aria-label="Cerrar mensaje">×</button>
+                </div>
+            }
+
+            @RenderBody()
+        </main>
+
+        <footer class="mt-auto flex items-center justify-between border-t border-obsidian/10 px-6 py-6 text-xs text-obsidian/40 lg:px-8">
+            <span>© 2026 Artemis Banking Pro</span>
+            <span class="hidden uppercase tracking-widest sm:inline">Private Wealth Management</span>
+        </footer>
+    </div>
 
     <script src="~/lib/jquery/dist/jquery.min.js"></script>
-    <script src="~/lib/bootstrap/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/lib/animejs/anime.min.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
+    <script src="~/js/spa.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>

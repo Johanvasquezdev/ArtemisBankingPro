@@ -1,5 +1,6 @@
-﻿using ABP.Core.Application.Interfaces.IServices;
+using ABP.Core.Application.Features.Admin.Queries;
 using ABP.Core.Application.ViewModels.Dashboard;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -8,15 +9,15 @@ namespace ArtemisBankingPro.Areas.Admin.Controllers
     [Area("Admin")]
     [Authorize(Roles = "Admin")]
     [Route("Admin/[controller]")]
-    public class DashboardController(IDashboardService dashboardService) : Controller
+    public class DashboardController(IMediator mediator) : Controller
     {
-        private readonly IDashboardService _dashboardService = dashboardService;
+        private readonly IMediator _mediator = mediator;
 
         [HttpGet("")]
         [HttpGet("Index")]
         public async Task<IActionResult> Index()
         {
-            var dto = await _dashboardService.GetAdminDashboardAsync();
+            var dto = await _mediator.Send(new GetAdminDashboardQuery());
 
             var vm = new AdminDashboardViewModel
             {

@@ -1,0 +1,14 @@
+@model string
+@{
+    var tone = string.Equals(Model, "light", StringComparison.OrdinalIgnoreCase) ? "light" : "dark";
+    var logoPath = tone == "light"
+        ? "~/images/artemis-banking-logo-light.svg"
+        : "~/images/artemis-banking-logo.svg";
+}
+
+<img src="@Url.Content(logoPath)"
+     alt="Artemis Banking Pro"
+     width="520"
+     height="140"
+     class="block h-auto w-full"
+     decoding="async" />

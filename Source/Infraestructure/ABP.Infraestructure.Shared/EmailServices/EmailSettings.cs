@@ -9,5 +9,6 @@ namespace ABP.Infraestructure.Shared.EmailServices
         public string FromEmail { get; set; } = string.Empty;
         public string FromName { get; set; } = string.Empty;
         public bool UseSsl { get; set; } = true;
+        public bool CheckCertificateRevocation { get; set; } = true;
     }
 }

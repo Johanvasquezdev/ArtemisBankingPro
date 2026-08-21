@@ -16,11 +16,13 @@ namespace ABP.Core.Application.Interfaces.IServices
 
         Task<SavingsAccountDto> CreateAccountAsync(string clientId, string adminId, decimal initialAmount, AccountType type = AccountType.Primary);
         Task UpdateAsync(SavingsAccountDto dto);
+        Task UpdateWithoutSaveAsync(SavingsAccountDto dto);
         Task<bool> ChangeStatusAsync(int accountId, AccountStatus status);
 
         Task<bool> DepositAsync(string accountNumber, decimal amount);
         Task<bool> WithdrawAsync(string accountNumber, decimal amount);
         Task<bool> TransferAsync(string sourceAccountNumber, string destinationAccountNumber, decimal amount);
+
 
         Task<bool> AccountNumberExistsAsync(string accountNumber);
         Task<int> GetTotalActiveAccountsCountAsync();

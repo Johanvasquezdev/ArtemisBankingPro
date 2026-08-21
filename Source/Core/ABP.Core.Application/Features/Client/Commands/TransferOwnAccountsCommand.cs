@@ -26,7 +26,7 @@ namespace ABP.Core.Application.Features.Client.Commands
         }
     }
 
-    public class TransferOwnAccountsCommandHandler(ITransactionService transactionService)
+    public class TransferOwnAccountsCommandHandler(IClientTransactionService transactionService)
         : IRequestHandler<TransferOwnAccountsCommand, CommandResult>
     {
         public Task<CommandResult> Handle(TransferOwnAccountsCommand request, CancellationToken cancellationToken)

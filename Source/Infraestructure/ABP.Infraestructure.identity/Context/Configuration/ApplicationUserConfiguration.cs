@@ -11,6 +11,9 @@ namespace ABP.Infraestructure.identity.Context.Configuration
             builder.ToTable("Users");
             builder.HasKey(au => au.Id);
             builder.HasIndex(au => au.Cedula).IsUnique();
+            builder.HasIndex(au => au.CommerceId)
+                .HasFilter("\"Role\" = 'Commerce' AND \"CommerceId\" IS NOT NULL")
+                .IsUnique();
 
             #region properties
             builder.Property(u => u.FirstName).IsRequired().HasMaxLength(100);

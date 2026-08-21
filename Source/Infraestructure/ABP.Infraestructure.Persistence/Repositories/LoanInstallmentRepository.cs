@@ -7,11 +7,23 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ABP.Infraestructure.Persistence.Repositories
 {
-    public class LoanInstallmentRepository(ArtemisBankDbContext context) : GenericRepository<LoanInstallment>(context), ILoanInstallmentRepository
+    public class LoanInstallmentRepository(ArtemisBankingDbContext context) : GenericRepository<LoanInstallment>(context), ILoanInstallmentRepository
     {
         public async Task<IEnumerable<LoanInstallment>> GetByLoanIdAsync(int loanId)
         {
-            return await _dbSet.Where(li => li.LoanId == loanId).OrderBy(li => li.DueDate).ToListAsync();
+            return await _dbSet.AsNoTracking().Where(li => li.LoanId == loanId).OrderBy(li => li.DueDate).ToListAsync();
+        }
+
+        public async Task<IEnumerable<LoanInstallment>> GetByLoanIdsAsync(IEnumerable<int> loanIds)
+        {
+            var ids = loanIds.Distinct().ToArray();
+            if (ids.Length == 0) return [];
+
+            return await _dbSet.AsNoTracking()
+                .Where(li => ids.Contains(li.LoanId))
+                .OrderBy(li => li.LoanId)
+                .ThenBy(li => li.DueDate)
+                .ToListAsync();
         }
 
         public async Task<LoanInstallment?> GetFirstPendingInstallmentAsync(int loanId)
@@ -30,6 +42,18 @@ namespace ABP.Infraestructure.Persistence.Repositories
         public async Task<IEnumerable<LoanInstallment>> GetOverdueInstallmentsAsync()
         {
             return await _dbSet.Where(li => li.Status != InstallmentStatus.Paid && li.DueDate < DateTime.UtcNow)
+                .ToListAsync();
+        }
+
+        public async Task<IEnumerable<LoanInstallment>> GetOverdueInstallmentsByLoanIdsAsync(IEnumerable<int> loanIds)
+        {
+            var ids = loanIds.Distinct().ToArray();
+            if (ids.Length == 0) return [];
+
+            return await _dbSet
+                .Where(li => ids.Contains(li.LoanId)
+                    && li.Status != InstallmentStatus.Paid
+                    && li.DueDate < DateTime.UtcNow)
                 .ToListAsync();
         }
 

@@ -8,6 +8,8 @@ namespace ABP.Core.Domain.Entities
         public DateTime DueDate { get; set; }
         public decimal InstallmentAmount { get; set; }
         public decimal AmountPaid { get; set; }
+        public decimal PrincipalPortion { get; set; }
+        public decimal InterestPortion { get; set; }
         public InstallmentStatus Status { get; set; }
         // Updated daily by the Hangfire/Quartz job
         public bool IsOverdue { get; set; }

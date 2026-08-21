@@ -1,0 +1,49 @@
+@model ABP.Core.Application.ViewModels.Client.TransferOwnAccountsViewModel
+@{
+    ViewData["Title"] = "Transferencia entre Cuentas";
+    var culture = CultureInfo.GetCultureInfo("es-DO");
+}
+
+<div class="abp-operation-page">
+<div class="abp-content-header abp-flex abp-justify-center abp-items-center abp-mb-xl">
+    <h1 class="abp-heading-xl abp-font-serif">Transferencia entre Cuentas</h1>
+</div>
+
+@if (Model.HasError)
+{
+    <div class="abp-alert-danger abp-mb-md">@Model.Error</div>
+}
+
+@if (Model.Options.Accounts.Count < 2)
+{
+    <div class="abp-alert-warning abp-mb-md">Debe tener al menos dos cuentas de ahorro activas para realizar una transferencia entre cuentas.</div>
+}
+else
+{
+    <div class="abp-panel abp-operation-panel">
+        <form asp-action="Index" method="post">
+            <input asp-for="IdempotencyKey" type="hidden" />
+            <div class="abp-mb-md">
+                <label asp-for="SourceAccountNumber" class="abp-label">Cuenta de origen</label>
+                <select asp-for="SourceAccountNumber" class="abp-select" asp-items="@(new SelectList(Model.Options.Accounts, "AccountNumber", "AccountNumber"))">
+                    <option value="">-- Seleccione una cuenta --</option>
+                </select>
+                <span asp-validation-for="SourceAccountNumber" class="abp-text-danger"></span>
+            </div>
+            <div class="abp-mb-md">
+                <label asp-for="DestinationAccountNumber" class="abp-label">Cuenta destino</label>
+                <select asp-for="DestinationAccountNumber" class="abp-select" asp-items="@(new SelectList(Model.Options.Accounts, "AccountNumber", "AccountNumber"))">
+                    <option value="">-- Seleccione una cuenta --</option>
+                </select>
+                <span asp-validation-for="DestinationAccountNumber" class="abp-text-danger"></span>
+            </div>
+            <div class="abp-mb-md">
+                <label asp-for="Amount" class="abp-label">Monto a transferir (RD$)</label>
+                <input asp-for="Amount" class="abp-input" />
+                <span asp-validation-for="Amount" class="abp-text-danger"></span>
+            </div>
+            <button type="submit" class="abp-btn-gold">Realizar Transferencia</button>
+        </form>
+    </div>
+}
+</div>

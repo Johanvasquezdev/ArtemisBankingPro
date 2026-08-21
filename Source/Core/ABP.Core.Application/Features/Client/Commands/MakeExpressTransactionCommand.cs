@@ -26,7 +26,7 @@ namespace ABP.Core.Application.Features.Client.Commands
         }
     }
 
-    public class MakeExpressTransactionCommandHandler(ITransactionService transactionService)
+    public class MakeExpressTransactionCommandHandler(IClientTransactionService transactionService)
         : IRequestHandler<MakeExpressTransactionCommand, CommandResult>
     {
         public Task<CommandResult> Handle(MakeExpressTransactionCommand request, CancellationToken cancellationToken)

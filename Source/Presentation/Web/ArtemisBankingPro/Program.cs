@@ -1,9 +1,11 @@
 using ABP.Core.Application.IoC;
 using ABP.Infraestructure.identity;
+using ABP.Infraestructure.identity.Seeds;
 using ABP.Infraestructure.Persistence.IoC;
 using ABP.Infraestructure.Shared.IoC;
 using ArtemisBankingPro.Filters;
 using Serilog;
+using Microsoft.AspNetCore.Mvc;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -11,7 +13,8 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews(options =>
 {
     options.Filters.Add<HandleDomainExceptionFilter>();
-});
+    options.Filters.Add(new AutoValidateAntiforgeryTokenAttribute());
+}).AddRazorRuntimeCompilation();
 
 builder.Host.UseSerilog((context, _, configuration) =>
     configuration.ReadFrom.Configuration(context.Configuration));
@@ -23,8 +26,19 @@ builder.Services.AddApplicationLayer();
 
 builder.Services.AddAuthorization();
 builder.Services.AddHttpContextAccessor();
+builder.Services.AddMemoryCache();
 
 var app = builder.Build();
+
+var supportedCultures = new[] { "es" };
+var localizationOptions = new RequestLocalizationOptions()
+    .SetDefaultCulture(supportedCultures[0])
+    .AddSupportedCultures(supportedCultures)
+    .AddSupportedUICultures(supportedCultures);
+
+app.UseRequestLocalization(localizationOptions);
+
+await app.SeedIdentityDataAsync();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -33,12 +47,27 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+if (!app.Environment.IsDevelopment())
+{
+    app.UseHttpsRedirection();
+}
 app.UseStaticFiles();
 app.UseRouting();
 
 app.UseAuthentication();
 app.UseAuthorization();
+
+app.MapControllerRoute(
+    name: "cashier-root",
+    pattern: "Cashier/{action=Index}/{id?}",
+    defaults: new { area = "Cashier", controller = "CashierHome" })
+    .WithStaticAssets();
+
+app.MapControllerRoute(
+    name: "client-root",
+    pattern: "Client/{action=Index}/{id?}",
+    defaults: new { area = "Client", controller = "Home" })
+    .WithStaticAssets();
 
 app.MapControllerRoute(
     name: "areas",

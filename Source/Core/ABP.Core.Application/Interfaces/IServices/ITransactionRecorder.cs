@@ -11,5 +11,7 @@ namespace ABP.Core.Application.Interfaces.IServices
     {
         Task RecordAsync(TransactionEntry entry);
         Task RecordDoubleEntryAsync(TransactionEntry debit, TransactionEntry credit);
+        Task RecordWithoutSaveAsync(TransactionEntry entry);
+        Task RecordDoubleEntryWithoutSaveAsync(TransactionEntry debit, TransactionEntry credit);
     }
 }

@@ -4,21 +4,31 @@ using Microsoft.EntityFrameworkCore;
 
 namespace ABP.Infraestructure.Persistence.Repositories.Generic
 {
-    public class GenericRepository<Entity>(ArtemisBankDbContext context) : IGenericRepository<Entity> where Entity : class
+    public class GenericRepository<Entity>(ArtemisBankingDbContext context) : IGenericRepository<Entity> where Entity : class
     {
-        protected readonly ArtemisBankDbContext _context = context;
+        protected readonly ArtemisBankingDbContext _context = context;
         protected readonly DbSet<Entity> _dbSet = context.Set<Entity>();
 
-        public virtual async Task AddAsync(Entity entity)
+        /// <summary>Stages an entity. The application unit of work owns the flush.</summary>
+        public virtual Task AddAsync(Entity entity)
+            => _dbSet.AddAsync(entity).AsTask();
+
+        public virtual Task AddWithoutSaveAsync(Entity entity)
         {
-            await _dbSet.AddAsync(entity);
-            await _context.SaveChangesAsync();
+            return _dbSet.AddAsync(entity).AsTask();
         }
 
-        public virtual async Task DeleteAsync(Entity entity)
+        /// <summary>Stages a deletion. The application unit of work owns the flush.</summary>
+        public virtual Task DeleteAsync(Entity entity)
         {
             _dbSet.Remove(entity);
-            await _context.SaveChangesAsync();
+            return Task.CompletedTask;
+        }
+
+        public virtual Task DeleteWithoutSaveAsync(Entity entity)
+        {
+            _dbSet.Remove(entity);
+            return Task.CompletedTask;
         }
 
         public virtual IQueryable<Entity> GetAll()
@@ -36,10 +46,50 @@ namespace ABP.Infraestructure.Persistence.Repositories.Generic
             return await _dbSet.FindAsync(id);
         }
 
-        public virtual async Task UpdateAsync(Entity entity)
+        /// <summary>Stages an update. The application unit of work owns the flush.</summary>
+        public virtual Task UpdateAsync(Entity entity)
         {
-            _context.Entry(entity).State = EntityState.Modified;
-            await _context.SaveChangesAsync();
+            StageUpdate(entity);
+            return Task.CompletedTask;
+        }
+
+        public virtual Task UpdateWithoutSaveAsync(Entity entity)
+        {
+            StageUpdate(entity);
+            return Task.CompletedTask;
+        }
+
+        private void StageUpdate(Entity entity)
+        {
+            var incomingEntry = _context.Entry(entity);
+            if (incomingEntry.State != EntityState.Detached)
+            {
+                incomingEntry.State = EntityState.Modified;
+                return;
+            }
+
+            var primaryKey = _context.Model.FindEntityType(typeof(Entity))?.FindPrimaryKey();
+            if (primaryKey is null)
+            {
+                incomingEntry.State = EntityState.Modified;
+                return;
+            }
+
+            var trackedEntity = _dbSet.Local.FirstOrDefault(localEntity =>
+                primaryKey.Properties.All(property =>
+                    Equals(
+                        _context.Entry(localEntity).Property(property.Name).CurrentValue,
+                        incomingEntry.Property(property.Name).CurrentValue)));
+
+            if (trackedEntity is null)
+            {
+                incomingEntry.State = EntityState.Modified;
+                return;
+            }
+
+            var trackedEntry = _context.Entry(trackedEntity);
+            trackedEntry.CurrentValues.SetValues(entity);
+            trackedEntry.State = EntityState.Modified;
         }
     }
 }

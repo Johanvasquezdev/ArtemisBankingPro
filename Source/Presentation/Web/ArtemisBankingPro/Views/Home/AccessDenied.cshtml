@@ -2,8 +2,13 @@
     ViewData["Title"] = "Acceso Denegado";
 }
 
-<div class="abp-panel abp-mt-xl" style="text-align: center; max-width: 600px; margin: 4rem auto;">
-    <h1 class="abp-heading-xl abp-text-danger abp-font-serif">Acceso Denegado</h1>
-    <p class="abp-text-muted abp-mt-md abp-mb-lg">No tiene permisos para acceder a esta sección.</p>
-    <a asp-controller="Home" asp-action="Index" class="abp-btn-gold">Ir al Inicio</a>
-</div>
+<main class="flex min-h-[60vh] items-center justify-center py-12">
+    <div class="w-full max-w-xl rounded-2xl border border-gold/20 bg-panel p-10 text-center shadow-xl">
+        <div class="mx-auto mb-5 flex h-14 w-14 items-center justify-center rounded-full bg-red-50 text-red-600">
+            <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M12 8v4M12 16h.01"/></svg>
+        </div>
+        <h1 class="font-serif text-3xl font-semibold tracking-tight text-obsidian">Acceso denegado</h1>
+        <p class="mt-4 text-obsidian/60">No tiene permisos para acceder a esta sección.</p>
+        <a asp-controller="Home" asp-action="Index" class="mt-8 inline-flex min-h-11 items-center justify-center rounded-lg bg-gold px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-gold-dark focus:outline-none focus:ring-2 focus:ring-gold/40">Ir al inicio</a>
+    </div>
+</main>

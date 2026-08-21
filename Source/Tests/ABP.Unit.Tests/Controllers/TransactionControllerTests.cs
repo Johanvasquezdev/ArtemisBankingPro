@@ -4,7 +4,9 @@ using ABP.API.Controllers.v1;
 using ABP.Core.Application.DTOs.Cashier;
 using ABP.Core.Application.DTOs.Account;
 using ABP.Core.Application.Interfaces.IServices;
+using ABP.Core.Application.Features.Cashier.Commands;
 using FluentAssertions;
+using MediatR;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
 using Xunit;
@@ -13,19 +15,14 @@ namespace ABP.Unit.Tests.Controllers
 {
     public class TransactionControllerTests
     {
-        private readonly Mock<ITransactionService> _mockTransactionService;
-        private readonly Mock<IDashboardService> _mockDashboardService;
+        private readonly Mock<IMediator> _mockMediator;
         private readonly TransactionController _controller;
 
         public TransactionControllerTests()
         {
-            _mockTransactionService = new Mock<ITransactionService>();
-            _mockDashboardService = new Mock<IDashboardService>();
+            _mockMediator = new Mock<IMediator>();
             
-            _controller = new TransactionController(
-                _mockTransactionService.Object,
-                _mockDashboardService.Object
-            );
+            _controller = new TransactionController(_mockMediator.Object);
         }
 
         [Fact]
@@ -33,8 +30,8 @@ namespace ABP.Unit.Tests.Controllers
         {
             // Arrange
             var request = new CashierDepositDto { AccountNumber = "ACC-1", Amount = 100 };
-            _mockTransactionService.Setup(s => s.DepositAsync(request))
-                .Returns(Task.CompletedTask);
+            _mockMediator.Setup(m => m.Send(It.IsAny<DepositCashierCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(MediatR.Unit.Value);
 
             // Act
             var result = await _controller.Deposit(request);
@@ -49,14 +46,14 @@ namespace ABP.Unit.Tests.Controllers
         {
             // Arrange
             var request = new CashierWithdrawalDto { AccountNumber = "ACC-1", Amount = 1000 };
-            _mockTransactionService.Setup(s => s.WithdrawAsync(request))
+            _mockMediator.Setup(m => m.Send(It.IsAny<WithdrawCashierCommand>(), It.IsAny<CancellationToken>()))
                 .ThrowsAsync(new InvalidOperationException("Fondos insuficientes."));
 
             // Act
             var result = await _controller.Withdraw(request);
 
             // Assert
-            var badRequest = result.Should().BeOfType<BadRequestObjectResult>().Subject;
+            var badRequest = result.Should().BeOfType<ObjectResult>().Subject;
             badRequest.StatusCode.Should().Be(400);
         }
     }

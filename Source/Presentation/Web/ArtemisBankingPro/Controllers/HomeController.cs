@@ -1,52 +1,43 @@
-using ABP.Core.Application.Features.Client.Queries;
-using ArtemisBankingPro.Extensions;
-using ArtemisBankingPro.Models;using MediatR;
+using ArtemisBankingPro.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System.Diagnostics;
 
-namespace ArtemisBankingPro.Controllers
+namespace ArtemisBankingPro.Controllers;
+
+public sealed class HomeController : Controller
 {
-    [Authorize(Roles = "Client")]
-    public class HomeController(IMediator mediator, ILogger<HomeController> logger) : Controller
+    [AllowAnonymous]
+    [HttpGet]
+    public IActionResult Index() => RedirectToAction("Index", "Login");
+
+    [AllowAnonymous]
+    [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
+    public IActionResult Error()
     {
-        private readonly ILogger<HomeController> _logger = logger;
+        var requestId = HttpContext.TraceIdentifier;
 
-        public async Task<IActionResult> Index()
+        if (Request.Headers.Accept.ToString().Contains(
+                "application/problem+json", StringComparison.OrdinalIgnoreCase))
         {
-            var clientId = User.GetUserId();
-            if (string.IsNullOrEmpty(clientId))
-                return RedirectToAction(nameof(AccessDenied));
+            var problem = new ProblemDetails
+            {
+                Status = StatusCodes.Status500InternalServerError,
+                Title = "Error interno",
+                Detail = "Ocurrió un error inesperado. Intente nuevamente más tarde.",
+                Instance = HttpContext.Request.Path
+            };
+            problem.Extensions["traceId"] = requestId;
 
-            var model = await mediator.Send(new GetClientHomeQuery(clientId));
-            return View(model);
+            return new JsonResult(problem)
+            {
+                StatusCode = problem.Status,
+                ContentType = "application/problem+json"
+            };
         }
 
-        [HttpGet]
-        public async Task<IActionResult> AccountDetail(string accountNumber, DateTime? dateFrom, DateTime? dateTo)
+        return View("~/Views/Shared/Error.cshtml", new ErrorViewModel
         {
-            var clientId = User.GetUserId();
-            if (string.IsNullOrEmpty(clientId))
-                return RedirectToAction(nameof(AccessDenied));
-
-            var model = await mediator.Send(new GetAccountDetailQuery(clientId, accountNumber, dateFrom, dateTo));
-            return View(model);
-        }
-
-        public IActionResult AccessDenied()
-        {
-            return View();
-        }
-
-        public IActionResult Privacy()
-        {
-            return View();
-        }
-
-        [ResponseCache(Duration = 0, Location = ResponseCacheLocation.None, NoStore = true)]
-        public IActionResult Error()
-        {
-            return View(new ErrorViewModel { RequestId = Activity.Current?.Id ?? HttpContext.TraceIdentifier });
-        }
+            RequestId = requestId
+        });
     }
 }

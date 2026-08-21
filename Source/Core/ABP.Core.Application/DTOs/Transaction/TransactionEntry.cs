@@ -13,5 +13,6 @@ namespace ABP.Core.Application.DTOs.Transaction
         public string Description { get; init; } = string.Empty;
         public int SavingAccountId { get; init; }
         public TransactionStatus Status { get; init; } = TransactionStatus.Approved;
+        public string PerformedByUserId { get; init; } = string.Empty;
     }
 }

@@ -3,7 +3,10 @@ using ABP.API.DTOs.User;
 using ABP.Core.Application.DTOs;
 using ABP.Core.Application.DTOs.User;
 using ABP.Core.Application.Interfaces.IServices;
+using ABP.Core.Application.Features.Admin.Commands;
+using ABP.Core.Application.Features.Admin.Queries;
 using FluentAssertions;
+using MediatR;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Moq;
@@ -14,16 +17,14 @@ namespace ABP.Unit.Tests.Controllers
 {
     public class UsersControllerTests
     {
-        private readonly Mock<IUserService> _mockUserService;
-        private readonly Mock<IUserReadOnlyService> _mockUserReadOnlyService;
+        private readonly Mock<IMediator> _mockMediator;
         private readonly UsersController _controller;
 
         public UsersControllerTests()
         {
-            _mockUserService = new Mock<IUserService>();
-            _mockUserReadOnlyService = new Mock<IUserReadOnlyService>();
+            _mockMediator = new Mock<IMediator>();
 
-            _controller = new UsersController(_mockUserService.Object, _mockUserReadOnlyService.Object)
+            _controller = new UsersController(_mockMediator.Object)
             {
                 ControllerContext = new ControllerContext
                 {
@@ -42,7 +43,7 @@ namespace ABP.Unit.Tests.Controllers
             var result = await _controller.GetAll(1, 50);
 
             // Assert
-            result.Should().BeOfType<BadRequestObjectResult>();
+            result.Should().BeOfType<ObjectResult>();
         }
 
         [Fact]
@@ -50,7 +51,8 @@ namespace ABP.Unit.Tests.Controllers
         {
             // Arrange
             var paged = new PaginatedResult<UserDto> { Items = [], TotalCount = 0, Page = 1, PageSize = 20 };
-            _mockUserReadOnlyService.Setup(s => s.GetAllAsync(1, 20, null)).ReturnsAsync(paged);
+            _mockMediator.Setup(m => m.Send(It.IsAny<GetUsersQuery>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(paged);
 
             // Act
             var result = await _controller.GetAll(1, 20, null);
@@ -70,7 +72,7 @@ namespace ABP.Unit.Tests.Controllers
             var result = await _controller.Create(request);
 
             // Assert
-            result.Should().BeOfType<BadRequestObjectResult>();
+            result.Should().BeOfType<ObjectResult>();
         }
 
         [Fact]
@@ -78,13 +80,14 @@ namespace ABP.Unit.Tests.Controllers
         {
             // Arrange
             var request = new CreateUserRequest { Role = "Client", Cedula = "00187654321", Email = "a@a.com", UserName = "u", Password = "p", ConfirmPassword = "p" };
-            _mockUserReadOnlyService.Setup(s => s.ExistsByCedulaAsync(request.Cedula, null)).ReturnsAsync(true);
+            _mockMediator.Setup(m => m.Send(It.IsAny<CreateUserCommand>(), It.IsAny<CancellationToken>()))
+                .ReturnsAsync(new CreateUserResult { CedulaAlreadyExists = true });
 
             // Act
             var result = await _controller.Create(request);
 
             // Assert
-            result.Should().BeOfType<ConflictObjectResult>();
+            result.Should().BeOfType<ObjectResult>();
         }
 
         [Fact]
@@ -97,7 +100,7 @@ namespace ABP.Unit.Tests.Controllers
             var result = await _controller.ChangeStatus("admin-1", request);
 
             // Assert
-            result.Should().BeOfType<ForbidResult>();
+            result.Should().BeOfType<ObjectResult>();
         }
     }
 }

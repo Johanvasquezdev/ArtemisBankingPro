@@ -7,7 +7,6 @@ namespace ABP.Core.Application.ViewModels.Client
     public class ClientHomeViewModel
     {
         public string ClientFullName { get; set; } = string.Empty;
-        public decimal TotalBalance { get; set; }
         public int TotalAccounts { get; set; }
         public int TotalCreditCards { get; set; }
         public int TotalLoans { get; set; }

@@ -1,126 +1,176 @@
+using Microsoft.AspNetCore.Http;
+using ABP.Core.Application.DTOs.Account;
 using ABP.API.DTOs.User;
-using ABP.Core.Application.Interfaces.IServices;
-using ABP.Core.Domain.Enums;
+using ABP.Core.Application.Features.Admin.Commands;
+using ABP.Core.Application.Features.Admin.Queries;
+using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ABP.API.Controllers.v1.Admin
 {
     [Route("api/v{version:apiVersion}/users")]
-    [Authorize(Roles = "Admin")]
-    public class UsersController(IUserService userService, IUserReadOnlyService userReadOnlyService) : BaseApiController
+    [Authorize(AuthenticationSchemes = Microsoft.AspNetCore.Authentication.JwtBearer.JwtBearerDefaults.AuthenticationScheme, Roles = "Admin")]
+    public class UsersController(IMediator mediator) : BaseApiController
     {
-        private readonly IUserService _userService = userService;
-        private readonly IUserReadOnlyService _userReadOnlyService = userReadOnlyService;
+        private readonly IMediator _mediator = mediator;
 
-        // GET /api/v1/users
+        /// <summary>
+        /// Operation: GET /api/v1/users
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación GET en la ruta /api/v1/users.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? role = null)
         {
-            if (page <= 0 || pageSize <= 0 || pageSize > 20)
-                return BadRequest(new { message = "Parámetros de paginación inválidos." });
-
-            UserRole? parsedRole = null;
-            if (!string.IsNullOrWhiteSpace(role))
-            {
-                if (!Enum.TryParse<UserRole>(role, true, out var r) || r == UserRole.Commerce)
-                    return BadRequest(new { message = "Filtro de rol inválido." });
-                parsedRole = r;
-            }
-
-            var result = await _userReadOnlyService.GetAllAsync(page, pageSize, parsedRole);
+            if (page < 1 || pageSize is < 1 or > 20)
+                return ApiProblem(StatusCodes.Status400BadRequest, "Validación fallida", "Los parámetros de paginación no son válidos.");
+            var result = await _mediator.Send(new GetUsersQuery(page, pageSize, role));
             return Ok(result);
         }
 
-        // GET /api/v1/users/commerce
+        /// <summary>
+        /// Operation: GET /api/v1/users/commerce
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación GET en la ruta /api/v1/users/commerce.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("commerce")]
         public async Task<IActionResult> GetCommerceUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
-            if (page <= 0 || pageSize <= 0 || pageSize > 20)
-                return BadRequest(new { message = "Parámetros de paginación inválidos." });
-
-            var result = await _userReadOnlyService.GetCommerceUsersAsync(page, pageSize);
+            var result = await _mediator.Send(new GetCommerceUsersQuery(page, pageSize));
             return Ok(result);
         }
 
-        // GET /api/v1/users/{id}
+        /// <summary>
+        /// Operation: GET /api/v1/users/{id}
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación GET en la ruta /api/v1/users/{id}.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
         {
-            var user = await _userReadOnlyService.GetByIdAsync(id);
-            if (user == null) return NotFound(new { message = "El usuario especificado no existe." });
+            var user = await _mediator.Send(new GetUserByIdQuery(id));
+            if (user == null) return ApiProblem(StatusCodes.Status404NotFound, "Usuario no encontrado", "El usuario especificado no existe.");
             return Ok(user);
         }
 
-        // POST /api/v1/users
+        /// <summary>
+        /// Operation: POST /api/v1/users
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación POST en la ruta /api/v1/users.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateUserRequest request)
         {
-            if (!Enum.TryParse<UserRole>(request.Role, true, out var role) || role == UserRole.Commerce)
-                return BadRequest(new { message = "El rol debe ser Administrador, Cajero o Cliente." });
-
-            if (await _userReadOnlyService.ExistsByCedulaAsync(request.Cedula))
-                return Conflict(new { message = "Ya existe un usuario con esta Cédula." });
-
+            if (string.Equals(request.Role, "Commerce", StringComparison.OrdinalIgnoreCase))
+                return ApiProblem(StatusCodes.Status400BadRequest, "Rol inválido", "Los usuarios de comercio deben crearse mediante el endpoint de comercio.");
             var adminId = User.FindFirst("uid")?.Value ?? string.Empty;
 
-            var created = await _userService.RegisterAsync(
+            var result = await _mediator.Send(new CreateUserCommand(
                 request.FirstName, request.LastName, request.Cedula, request.UserName,
-                request.Email, request.Password, role.ToString(), adminId, request.InitialAmount);
+                request.Email, request.Password, request.Role, adminId, request.InitialAmount,
+                AccountEmailChannel.Web));
 
-            if (!created)
-                return Conflict(new { message = "El nombre de usuario o correo electrónico ya se encuentra registrado." });
+            if (result.CedulaAlreadyExists)
+                return ApiProblem(StatusCodes.Status409Conflict, "Cédula duplicada", "Ya existe un usuario con esta Cédula.");
+
+            if (result.UsernameOrEmailAlreadyExists)
+                return ApiProblem(StatusCodes.Status409Conflict, "Usuario duplicado", "El nombre de usuario o correo electrónico ya se encuentra registrado.");
 
             return StatusCode(201, new { message = "Usuario creado exitosamente. Se envió un correo electrónico de activación." });
         }
 
-        // POST /api/v1/users/commerce/{commerceId}
+        /// <summary>
+        /// Operation: POST /api/v1/users/commerce/{commerceId}
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación POST en la ruta /api/v1/users/commerce/{commerceId}.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status201Created)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status409Conflict)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPost("commerce/{commerceId:int}")]
         public async Task<IActionResult> CreateCommerceUser(int commerceId, [FromBody] CreateCommerceUserRequest request)
         {
-            var created = await _userService.RegisterCommerceUserAsync(
-                request.FirstName, request.LastName, request.Cedula, request.UserName, request.Email, request.Password, commerceId);
+            var created = await _mediator.Send(new CreateCommerceUserCommand(
+                request.FirstName, request.LastName, request.Cedula, request.UserName, request.Email, request.Password, commerceId));
 
             if (!created)
-                return Conflict(new { message = "El comercio ya tiene un usuario asociado, o el nombre de usuario/correo/cédula ya se encuentra registrado." });
+                return ApiProblem(StatusCodes.Status409Conflict, "Usuario de comercio no creado", "El comercio ya tiene un usuario asociado, o el nombre de usuario, correo o Cédula ya se encuentra registrado.");
 
             return StatusCode(201, new { message = "Usuario de comercio creado exitosamente." });
         }
 
-        // PUT /api/v1/users/{id}
+        /// <summary>
+        /// Operation: PUT /api/v1/users/{id}
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación PUT en la ruta /api/v1/users/{id}.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(string id, [FromBody] UpdateUserRequest request)
         {
-            var dto = new Core.Application.DTOs.User.UpdateUserDto
-            {
-                Id = id,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                Cedula = request.Cedula,
-                Email = request.Email,
-                Username = request.UserName,
-                Password = request.Password,
-                ConfirmPassword = request.ConfirmPassword,
-                AdditionalAmount = request.AdditionalAmount
-            };
+            var updated = await _mediator.Send(new UpdateUserCommand(
+                id, request.FirstName, request.LastName, request.Cedula, request.Email, request.UserName,
+                request.Password, request.ConfirmPassword, request.AdditionalAmount));
 
-            var updated = await _userService.UpdateAsync(dto);
-            if (!updated) return Conflict(new { message = "No se pudo actualizar el usuario. Verifique que el usuario exista y que los datos sean únicos." });
+            if (!updated)
+                return ApiProblem(StatusCodes.Status409Conflict, "Usuario no actualizado", "No se pudo actualizar el usuario. Verifique que el usuario exista y que los datos sean únicos.");
 
             return NoContent();
         }
 
-        // PATCH /api/v1/users/{id}/status
+        /// <summary>
+        /// Operation: PATCH /api/v1/users/{id}/status
+        /// </summary>
+        /// <remarks>
+        /// Ejecuta la operación PATCH en la ruta /api/v1/users/{id}/status.
+        /// </remarks>
+        [ProducesResponseType(StatusCodes.Status204NoContent)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
+        [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> ChangeStatus(string id, [FromBody] ChangeUserStatusRequest request)
         {
             var adminId = User.FindFirst("uid")?.Value ?? string.Empty;
 
             if (adminId == id)
-                return Forbid();
+                return ApiProblem(StatusCodes.Status403Forbidden, "Operación no permitida", "No puede modificar su propia cuenta.");
 
-            var changed = await _userService.ChangeStatusAsync(adminId, id, request.Status);
-            if (!changed) return NotFound(new { message = "El usuario especificado no existe." });
+            var result = await _mediator.Send(new ChangeUserStatusCommand(adminId, id, request.Status));
+
+            if (result.SelfModificationForbidden)
+                return ApiProblem(StatusCodes.Status403Forbidden, "Operación no permitida", "No puede modificar su propia cuenta.");
+            if (result.UserNotFound)
+                return ApiProblem(StatusCodes.Status404NotFound, "Usuario no encontrado", "El usuario especificado no existe.");
 
             return NoContent();
         }
