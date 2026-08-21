@@ -121,6 +121,7 @@ namespace ABP.Core.Application.Interfaces.Services
                     SourceAccountNumber = "SYSTEM",
                     DestinationAccountNumber = accountNumber,
                     Description = "Depósito inicial - apertura de cuenta",
+                    PerformedByUserId = adminId,
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -328,6 +329,7 @@ namespace ABP.Core.Application.Interfaces.Services
                     SourceAccountNumber = "SYSTEM",
                     DestinationAccountNumber = accountNumber,
                     Description = "Depósito inicial - apertura de cuenta secundaria",
+                    PerformedByUserId = dto.AdminId,
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -370,6 +372,7 @@ namespace ABP.Core.Application.Interfaces.Services
                     Status = TransactionStatus.Approved,
                     SavingAccountId = secondaryAccount.Id,
                     Description = "Cierre de cuenta secundaria - saldo transferido a la principal",
+                    PerformedByUserId = secondaryAccount.UserId,
                     CreatedAt = DateTime.UtcNow
                 };
 
@@ -384,7 +387,8 @@ namespace ABP.Core.Application.Interfaces.Services
                     Beneficiary = primaryAccount.AccountNumber,
                     Status = TransactionStatus.Approved,
                     SavingAccountId = primaryAccount.Id,
-                    Description = "Crédito por cierre de cuenta secundaria",
+                    Description = "Recepción de fondos por cierre de cuenta secundaria",
+                    PerformedByUserId = secondaryAccount.UserId,
                     CreatedAt = DateTime.UtcNow
                 };
 

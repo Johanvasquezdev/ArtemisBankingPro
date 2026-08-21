@@ -20,5 +20,6 @@ namespace ABP.Core.Domain.Interfaces
         Task<decimal> GetTotalDebtByClientIdAsync(string clientId);
         // get list of loans with pagination for the admin
         Task<IEnumerable<Loan>> GetAllPagedAsync(int page, int pageSize, LoanStatus? status = null, string? clientId = null);
+        Task<int> GetFilteredCountAsync(LoanStatus? status = null, string? clientId = null);
     }
 }

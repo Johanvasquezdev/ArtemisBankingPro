@@ -94,6 +94,16 @@ namespace ABP.Infraestructure.Persistence.Repositories
             return await _dbSet.CountAsync(l => l.Status == LoanStatus.Active);
         }
 
+        public async Task<int> GetFilteredCountAsync(LoanStatus? status = null, string? clientId = null)
+        {
+            var query = _dbSet.AsQueryable();
+            if (status.HasValue)
+                query = query.Where(l => l.Status == status.Value);
+            if (!string.IsNullOrWhiteSpace(clientId))
+                query = query.Where(l => l.ClientId == clientId);
+            return await query.CountAsync();
+        }
+
         public async Task<decimal> GetTotalDebtByClientIdAsync(string clientId)
         {
             // total debt = pending amount  + debt in credit cards

@@ -5,6 +5,7 @@ using ABP.Core.Application.Interfaces.IServices;
 using ABP.Core.Domain.Entities;
 using ABP.Core.Domain.Enums;
 using ABP.Core.Domain.Interfaces;
+using ABP.Core.Domain.Exceptions;
 using Microsoft.Extensions.Logging;
 using System.Globalization;
 
@@ -71,6 +72,13 @@ namespace ABP.Core.Application.Interfaces.Services
             {
                 await RecordDeclinedConsumptionAsync(card.Id, commerceId, commerce.Name, paymentDto.TransactionAmount);
                 return Failure("Card is not active.");
+            }
+
+            var cardOwner = await _userService.GetByIdAsync(card.ClientId);
+            if (cardOwner == null || !cardOwner.IsActive)
+            {
+                await RecordDeclinedConsumptionAsync(card.Id, commerceId, commerce.Name, paymentDto.TransactionAmount);
+                return Failure("Card owner is inactive.");
             }
 
             if (!IsMatchingAndCurrentExpiration(card.ExpirationDate, paymentDto))
@@ -149,6 +157,7 @@ namespace ABP.Core.Application.Interfaces.Services
                 Description = $"Hermes Pay settlement - {commerce.Name}",
                 Status = TransactionStatus.Approved,
                 SavingAccountId = commerceAccount.Id,
+                PerformedByUserId = commerceUserId,
                 CreatedAt = DateTime.UtcNow
             });
 
@@ -176,43 +185,51 @@ namespace ABP.Core.Application.Interfaces.Services
             };
         }
 
-        public async Task<PaginatedResult<PaymentTransactionDto>> GetCommerceTransactionsAsync(int commerceId, int pageNumber, int pageSize)
+        public async Task<PaginatedResult<PaymentTransactionDto>> GetCommerceTransactionsAsync(int commerceId, int page, int pageSize)
         {
-            var commerce = await _commerceService.GetByIdAsync(commerceId);
-            if (commerce == null)
-            {
-                return new PaginatedResult<PaymentTransactionDto>
-                {
-                    Items = [],
-                    TotalCount = 0,
-                    Page = pageNumber,
-                    PageSize = pageSize
-                };
-            }
+            var commerce = await _commerceService.GetByIdAsync(commerceId) 
+                ?? throw new KeyNotFoundException("El comercio no existe.");
+
+            if (!commerce.IsActive)
+                throw new InactiveCommerceException();
 
             var consumptions = await _consumptionService.GetByCommerceIdAsync(commerceId);
             var query = consumptions.AsQueryable();
 
             int totalCount = query.Count();
-            var items = query
-                .Skip((pageNumber - 1) * pageSize)
+            var pagedConsumptions = query
+                .Skip((page - 1) * pageSize)
                 .Take(pageSize)
-                .Select(c => new PaymentTransactionDto
+                .ToList();
+
+            var items = new List<PaymentTransactionDto>();
+            foreach (var c in pagedConsumptions)
+            {
+                string last4 = "****";
+                try 
+                {
+                    var card = await _creditCardService.GetByIdAsync(c.CreditCardId);
+                    if (card != null && card.CardNumber.Length >= 4)
+                        last4 = card.CardNumber[^4..];
+                }
+                catch { /* Ignore if card not found */ }
+
+                items.Add(new PaymentTransactionDto
                 {
                     Id = c.Id,
                     Amount = c.Amount,
                     TransactionDate = c.TransactionDate,
-                    CardNumber = "****",
+                    CardNumber = last4,
                     Description = c.CommerceName,
                     Status = c.Status == ConsumptionStatus.Approved ? TransactionStatus.Approved : TransactionStatus.Declined
-                })
-                .ToList();
+                });
+            }
 
             return new PaginatedResult<PaymentTransactionDto>
             {
                 Items = items,
                 TotalCount = totalCount,
-                Page = pageNumber,
+                Page = page,
                 PageSize = pageSize
             };
         }

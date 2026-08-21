@@ -3,13 +3,15 @@ using MailKit.Net.Smtp;
 using MailKit.Security;
 using Microsoft.Extensions.Options;
 using MimeKit;
+using Microsoft.Extensions.Configuration;
 using System.Net;
 using System.Text.RegularExpressions;
 namespace ABP.Infraestructure.Shared.EmailServices
 {
-    public class EmailService(IOptions<EmailSettings> settings) : ICorreoServices
+    public class EmailService(IOptions<EmailSettings> settings, IConfiguration configuration) : ICorreoServices
     {
         private readonly EmailSettings _settings = settings.Value;
+        private readonly IConfiguration _configuration = configuration;
 
         public async Task SendAsync(string to, string subject, string body)
         {
@@ -75,8 +77,29 @@ namespace ABP.Infraestructure.Shared.EmailServices
                 request.Body = WrapWithTemplate(request.Subject, request.Body);
             }
 
-            var email = new MimeMessage();
+            var connectionString = _configuration.GetConnectionString("AzureWebJobsStorage") ?? Environment.GetEnvironmentVariable("AzureWebJobsStorage");
+            var isFunction = Environment.GetEnvironmentVariable("FUNCTIONS_WORKER_RUNTIME") != null;
 
+            if (!string.IsNullOrEmpty(connectionString) && !isFunction)
+            {
+                var queueClient = new Azure.Storage.Queues.QueueClient(connectionString, "email-queue");
+                await queueClient.CreateIfNotExistsAsync();
+
+                var message = new 
+                { 
+                    To = request.To, 
+                    Subject = request.Subject, 
+                    Body = request.Body 
+                };
+                var json = System.Text.Json.JsonSerializer.Serialize(message);
+                var bytes = System.Text.Encoding.UTF8.GetBytes(json);
+                var base64 = Convert.ToBase64String(bytes);
+
+                await queueClient.SendMessageAsync(base64);
+                return;
+            }
+
+            var email = new MimeMessage();
             email.From.Add(new MailboxAddress(_settings.FromName, _settings.FromEmail));
             email.To.Add(MailboxAddress.Parse(request.To));
             email.Subject = request.Subject;
@@ -95,8 +118,6 @@ namespace ABP.Infraestructure.Shared.EmailServices
 
             using var smtp = new SmtpClient();
 
-            smtp.ServerCertificateValidationCallback = (s, c, h, e) => true;
-
             var socketOptions = _settings.SmtpPort == 465
                 ? SecureSocketOptions.SslOnConnect
                 : _settings.UseSsl
@@ -104,7 +125,6 @@ namespace ABP.Infraestructure.Shared.EmailServices
                     : SecureSocketOptions.None;
 
             await smtp.ConnectAsync(_settings.SmtpHost, _settings.SmtpPort, socketOptions);
-
             await smtp.AuthenticateAsync(_settings.SmtpUser, _settings.SmtpPassword);
             await smtp.SendAsync(email);
             await smtp.DisconnectAsync(true);

@@ -15,15 +15,14 @@ namespace ABP.API.Controllers.v1.Admin
         private readonly IMediator _mediator = mediator;
 
         /// <summary>
-        /// Operation: GET /api/v1/Admin/loan
+        /// Operation: GET /api/v1/loan
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación GET en la ruta /api/v1/Admin/loan.
+        /// Ejecuta la operación GET en la ruta /api/v1/loan.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string status = "activos", 
@@ -36,15 +35,14 @@ namespace ABP.API.Controllers.v1.Admin
         }
 
         /// <summary>
-        /// Operation: GET /api/v1/Admin/loan/{id}
+        /// Operation: GET /api/v1/loan/{id}
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación GET en la ruta /api/v1/Admin/loan/{id}.
+        /// Ejecuta la operación GET en la ruta /api/v1/loan/{id}.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
@@ -55,10 +53,10 @@ namespace ABP.API.Controllers.v1.Admin
         }
 
         /// <summary>
-        /// Operation: POST /api/v1/Admin/loan
+        /// Operation: POST /api/v1/loan
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación POST en la ruta /api/v1/Admin/loan.
+        /// Ejecuta la operación POST en la ruta /api/v1/loan.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -97,15 +95,14 @@ namespace ABP.API.Controllers.v1.Admin
         }
 
         /// <summary>
-        /// Operation: PATCH /api/v1/Admin/loan/{id}/rate
+        /// Operation: PATCH /api/v1/loan/{id}/rate
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación PATCH en la ruta /api/v1/Admin/loan/{id}/rate.
+        /// Ejecuta la operación PATCH en la ruta /api/v1/loan/{id}/rate.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPatch("{id:int}/rate")]
         public async Task<IActionResult> UpdateRate(int id, [FromBody] UpdateRateRequest request)

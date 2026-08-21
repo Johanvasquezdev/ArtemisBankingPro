@@ -60,5 +60,15 @@ namespace ABP.Infraestructure.Persistence.Repositories
             return await _dbSet.Where(cc => cc.ClientId == clientId && cc.Status == CardStatus.Active)
                 .SumAsync(cc => cc.AmountOwed);
         }
+
+        public async Task<int> GetFilteredCountAsync(CardStatus? status = null, string? clientId = null)
+        {
+            var query = _dbSet.AsQueryable();
+            if (!string.IsNullOrEmpty(clientId))
+                query = query.Where(cc => cc.ClientId == clientId);
+            if (status.HasValue)
+                query = query.Where(cc => cc.Status == status.Value);
+            return await query.CountAsync();
+        }
     }
 }

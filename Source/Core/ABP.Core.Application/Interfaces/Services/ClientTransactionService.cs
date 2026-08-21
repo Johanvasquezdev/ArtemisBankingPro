@@ -461,6 +461,10 @@ internal sealed class ClientTransactionService : IClientTransactionService
             if (account.UserId != clientId || account.Status != AccountStatus.Active)
                 throw new InactiveAccountException();
 
+            var client = await _userService.GetByIdAsync(clientId);
+            if (client == null || !client.IsActive)
+                throw new InvalidOperationException("El usuario se encuentra inactivo y no puede realizar transacciones.");
+
             return account;
         }
 

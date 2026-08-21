@@ -79,3 +79,35 @@ Al arrancar el sistema, se crearán los roles principales y el siguiente usuario
 
 - **Comercio (Hermes Pay):**
 - Por defecto, se siembra Default Commerce de forma inactiva. Un Admin debe activarlo antes de operar.
+
+## Configuración de User Secrets (Desarrollo Local)
+
+Las credenciales sensibles (JWT Key, cadenas de conexión, contraseñas SMTP) **no** se almacenan en los archivos `appsettings.json`. En su lugar, se utilizan [User Secrets](https://learn.microsoft.com/en-us/aspnet/core/security/app-secrets) de .NET.
+
+### Inicializar User Secrets (solo la primera vez)
+
+```bash
+dotnet user-secrets init --project Source/Presentation/Api/ABP.API/ABP.API.csproj
+dotnet user-secrets init --project Source/Presentation/Web/ArtemisBankingPro/ArtemisBankingPro.csproj
+```
+
+### Establecer los secretos necesarios
+
+Ejecute los siguientes comandos para cada proyecto que lo requiera (API y Web):
+
+```bash
+# JWT Key
+dotnet user-secrets set "JWT:Key" "<su-clave-jwt>" --project Source/Presentation/Api/ABP.API/ABP.API.csproj
+
+# Connection Strings
+dotnet user-secrets set "ConnectionStrings:DefaultConnection" "<su-cadena-de-conexion>" --project Source/Presentation/Api/ABP.API/ABP.API.csproj
+dotnet user-secrets set "ConnectionStrings:IdentityConnection" "<su-cadena-de-conexion>" --project Source/Presentation/Api/ABP.API/ABP.API.csproj
+
+# Email / SMTP
+dotnet user-secrets set "EmailSettings:SmtpUser" "<su-usuario-smtp>" --project Source/Presentation/Api/ABP.API/ABP.API.csproj
+dotnet user-secrets set "EmailSettings:SmtpPassword" "<su-contraseña-smtp>" --project Source/Presentation/Api/ABP.API/ABP.API.csproj
+```
+
+Repita los mismos comandos cambiando el `--project` para el proyecto Web (`Source/Presentation/Web/ArtemisBankingPro/ArtemisBankingPro.csproj`).
+
+> **Nota:** Los User Secrets solo se cargan en el entorno `Development`. Para producción, utilice variables de entorno, Azure Key Vault u otro proveedor de configuración seguro.

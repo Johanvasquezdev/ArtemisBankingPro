@@ -94,7 +94,7 @@ namespace ABP.Core.Application.Interfaces.Services
                 if (user != null)
                     item.ClientFullName = $"{user.FirstName} {user.LastName}";
             }
-            var totalCount = await _repo.GetTotalActiveCardsCountAsync();
+            var totalCount = await _repo.GetFilteredCountAsync(status, clientId);
 
             return new PaginatedResult<CreditCardDto>
             {
@@ -118,7 +118,7 @@ namespace ABP.Core.Application.Interfaces.Services
             }
             while (await _repo.CardNumberExistsAsync(cardNumber));
 
-            var cvc = Random.Shared.Next(100, 999).ToString();
+            var cvc = RandomNumberGenerator.GetInt32(100, 1000).ToString();
             var cvcHash = HashCvc(cvc);
 
             var card = new CreditCard
@@ -138,8 +138,7 @@ namespace ABP.Core.Application.Interfaces.Services
             await _repo.AddWithoutSaveAsync(card);
             await _unitOfWork.SaveChangesAsync();
             await assignmentTransaction.CommitAsync();
-            
-            var user = await _userService.GetByIdAsync(dto.ClientId);
+
             if (user != null && !string.IsNullOrWhiteSpace(user.Email))
             {
                 try
@@ -246,8 +245,7 @@ namespace ABP.Core.Application.Interfaces.Services
 
         private static string GenerateCardNumber()
         {
-            var rng = Random.Shared;
-            return $"{rng.Next(1000, 9999)}{rng.Next(1000, 9999)}{rng.Next(1000, 9999)}{rng.Next(1000, 9999)}";
+            return $"{RandomNumberGenerator.GetInt32(1000, 10000)}{RandomNumberGenerator.GetInt32(1000, 10000)}{RandomNumberGenerator.GetInt32(1000, 10000)}{RandomNumberGenerator.GetInt32(1000, 10000)}";
         }
 
         private static string HashCvc(string cvc)

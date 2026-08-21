@@ -7,6 +7,7 @@ using MediatR;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
+using ABP.Core.Domain.Interfaces;
 
 namespace ABP.API.Controllers.v1
 {
@@ -16,10 +17,12 @@ namespace ABP.API.Controllers.v1
     public class HermesPayController : BaseApiController
     {
         private readonly IMediator _mediator;
+        private readonly ICommerceRepository _commerceRepo;
 
-        public HermesPayController(IMediator mediator)
+        public HermesPayController(IMediator mediator, ICommerceRepository commerceRepo)
         {
             _mediator = mediator;
+            _commerceRepo = commerceRepo;
         }
 
         /// <summary>
@@ -32,7 +35,7 @@ namespace ABP.API.Controllers.v1
         [HttpGet("get-transactions/{commerceId}")]
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        public async Task<IActionResult> GetTransactions([FromRoute] int commerceId, [FromQuery] int pageNumber = 1, [FromQuery] int pageSize = 10)
+        public async Task<IActionResult> GetTransactions([FromRoute] int commerceId, [FromQuery] int page = 1, [FromQuery] int pageSize = 20)
         {
             var userRole = User.FindFirst(ClaimTypes.Role)?.Value;
             var actualCommerceId = commerceId;
@@ -47,9 +50,15 @@ namespace ABP.API.Controllers.v1
                 actualCommerceId = parsedCommerceId;
             }
 
-            var transactions = await _mediator.Send(new GetCommerceTransactionsQuery(actualCommerceId, pageNumber, pageSize));
+            var transactions = await _mediator.Send(new GetCommerceTransactionsQuery(actualCommerceId, page, pageSize));
+            var commerce = await _commerceRepo.GetByIdAsync(actualCommerceId);
 
-            return Ok(transactions);
+            return Ok(new
+            {
+                commerceId = commerce?.Id ?? actualCommerceId,
+                commerceName = commerce?.Name ?? "Comercio Desconocido",
+                data = transactions
+            });
         }
 
         /// <summary>

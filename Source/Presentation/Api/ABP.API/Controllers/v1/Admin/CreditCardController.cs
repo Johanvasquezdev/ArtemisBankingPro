@@ -15,15 +15,14 @@ namespace ABP.API.Controllers.v1.Admin
         private readonly IMediator _mediator = mediator;
 
         /// <summary>
-        /// Operation: GET /api/v1/Admin/credit-card
+        /// Operation: GET /api/v1/credit-card
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación GET en la ruta /api/v1/Admin/credit-card.
+        /// Ejecuta la operación GET en la ruta /api/v1/credit-card.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20,
@@ -36,10 +35,10 @@ namespace ABP.API.Controllers.v1.Admin
         }
 
         /// <summary>
-        /// Operation: POST /api/v1/Admin/credit-card
+        /// Operation: POST /api/v1/credit-card
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación POST en la ruta /api/v1/Admin/credit-card.
+        /// Ejecuta la operación POST en la ruta /api/v1/credit-card.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -62,15 +61,14 @@ namespace ABP.API.Controllers.v1.Admin
         }
 
         /// <summary>
-        /// Operation: GET /api/v1/Admin/credit-card/{id}
+        /// Operation: GET /api/v1/credit-card/{id}
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación GET en la ruta /api/v1/Admin/credit-card/{id}.
+        /// Ejecuta la operación GET en la ruta /api/v1/credit-card/{id}.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
@@ -81,15 +79,14 @@ namespace ABP.API.Controllers.v1.Admin
         }
 
         /// <summary>
-        /// Operation: PATCH /api/v1/Admin/credit-card/{id}/limit
+        /// Operation: PATCH /api/v1/credit-card/{id}/limit
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación PATCH en la ruta /api/v1/Admin/credit-card/{id}/limit.
+        /// Ejecuta la operación PATCH en la ruta /api/v1/credit-card/{id}/limit.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPatch("{id:int}/limit")]
         public async Task<IActionResult> UpdateLimit(int id, [FromBody] UpdateLimitRequest request)
@@ -112,15 +109,14 @@ namespace ABP.API.Controllers.v1.Admin
         }
 
         /// <summary>
-        /// Operation: PATCH /api/v1/Admin/credit-card/{id}/cancel
+        /// Operation: PATCH /api/v1/credit-card/{id}/cancel
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación PATCH en la ruta /api/v1/Admin/credit-card/{id}/cancel.
+        /// Ejecuta la operación PATCH en la ruta /api/v1/credit-card/{id}/cancel.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPatch("{id:int}/cancel")]
         public async Task<IActionResult> Cancel(int id)

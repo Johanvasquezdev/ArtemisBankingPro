@@ -6,11 +6,12 @@ using ABP.Core.Domain.Entities;
 using ABP.Core.Domain.Enums;
 using ABP.Core.Domain.Interfaces;
 using AutoMapper;
+using Microsoft.Extensions.Logging;
 
 namespace ABP.Core.Application.Interfaces.Services
 {
     public class LoanService(ILoanRepository repo, ILoanInstallmentRepository installmentRepo, ITransactionRepository transactionrepo, 
-        ISavingsAccountRepository accountRepo, IUserReadOnlyService user, IMapper mapper, IUnitOfWork? unitOfWork = null) : ILoanService
+        ISavingsAccountRepository accountRepo, IUserReadOnlyService user, IMapper mapper, IEmailServices emailService, ILogger<LoanService> logger, IUnitOfWork? unitOfWork = null) : ILoanService
     {
         private readonly ILoanRepository _repo = repo;
         private readonly ILoanInstallmentRepository _installmentRepo = installmentRepo;
@@ -18,6 +19,8 @@ namespace ABP.Core.Application.Interfaces.Services
         private readonly ISavingsAccountRepository _accountRepo = accountRepo;
         private readonly IUserReadOnlyService _userService = user;
         private readonly IMapper _mapper = mapper;
+        private readonly IEmailServices _emailService = emailService;
+        private readonly ILogger<LoanService> _logger = logger;
         private readonly IUnitOfWork? _unitOfWork = unitOfWork;
 
         public async Task<LoanDto> GetByIdAsync(int id)
@@ -79,7 +82,7 @@ namespace ABP.Core.Application.Interfaces.Services
                 if (user != null)
                     item.ClientFullName = $"{user.FirstName} {user.LastName}";
             }
-            var totalCount = await _repo.GetTotalActiveLoansCountAsync();
+            var totalCount = await _repo.GetFilteredCountAsync(status, clientId);
 
             return new PaginatedResult<LoanDto>
             {
@@ -202,12 +205,35 @@ namespace ABP.Core.Application.Interfaces.Services
                     Description = $"Desembolso de préstamo {loan.LoanNumber}",
                     Status = TransactionStatus.Approved,
                     SavingAccountId = primaryAccount.Id,
-                    CreatedAt = DateTime.UtcNow
+                    CreatedAt = DateTime.UtcNow,
+                    PerformedByUserId = dto.AdminId
                 });
             }
 
             await _unitOfWork.SaveChangesAsync();
             await loanTransaction.CommitAsync();
+
+            if (user != null && !string.IsNullOrWhiteSpace(user.Email))
+            {
+                try
+                {
+                    await _emailService.SendAsync(
+                        user.Email,
+                        "Nuevo Préstamo Asignado",
+                        $"Se ha desembolsado un nuevo préstamo en su cuenta principal.<br>" +
+                        $"Número de Préstamo: {loan.LoanNumber}<br>" +
+                        $"Monto Aprobado: {dto.Amount:C}<br>" +
+                        $"Tasa Anual: {dto.AnnualInterestRate}%<br>" +
+                        $"Plazo: {dto.TermInMonths} meses<br><br>" +
+                        $"Los fondos ya están disponibles en su cuenta."
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Loan assigned to user {UserId}, but the email notification failed.", dto.ClientId);
+                }
+            }
+
             return _mapper.Map<LoanDto>(createdLoan);
         }
 
@@ -321,7 +347,8 @@ namespace ABP.Core.Application.Interfaces.Services
             if (loan == null) throw new Exception("Loan not found");
 
             var pendingInstallments = (await _installmentRepo.GetByLoanIdAsync(loanId))
-                .Where(i => i.Status != InstallmentStatus.Paid).OrderBy(i => i.InstallmentNumber).ToList();
+                .Where(i => i.Status != InstallmentStatus.Paid && i.AmountPaid == 0 && i.DueDate > DateTime.UtcNow)
+                .OrderBy(i => i.InstallmentNumber).ToList();
             if (_unitOfWork is null)
                 throw new InvalidOperationException("La unidad de trabajo no está disponible.");
 
@@ -387,6 +414,27 @@ namespace ABP.Core.Application.Interfaces.Services
             }
             await _unitOfWork.SaveChangesAsync();
             await rateTransaction.CommitAsync();
+
+            var user = await _userService.GetByIdAsync(loan.ClientId);
+            if (user != null && !string.IsNullOrWhiteSpace(user.Email))
+            {
+                try
+                {
+                    await _emailService.SendAsync(
+                        user.Email,
+                        "Actualización de Tasa de Préstamo",
+                        $"Se ha actualizado la tasa de interés de su préstamo.<br>" +
+                        $"Número de Préstamo: {loan.LoanNumber}<br>" +
+                        $"Nueva Tasa Anual: {newAnnualInterestRate}%<br>" +
+                        $"El nuevo monto de sus cuotas pendientes ha sido recalculado.<br><br>" +
+                        $"Puede verificar el nuevo cronograma de pagos en su portal."
+                    );
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogWarning(ex, "Loan interest updated, but email notification failed for user {UserId}.", loan.ClientId);
+                }
+            }
         }
 
         #endregion

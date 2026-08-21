@@ -7,4 +7,10 @@ namespace ABP.Core.Domain.Exceptions
 
     public sealed class DuplicateCommerceException(string message)
         : DomainException(message);
+
+    public sealed class CommerceNotFoundException() 
+        : DomainException("El comercio no existe.");
+
+    public sealed class InactiveCommerceException() 
+        : DomainException("El comercio se encuentra inactivo.");
 }

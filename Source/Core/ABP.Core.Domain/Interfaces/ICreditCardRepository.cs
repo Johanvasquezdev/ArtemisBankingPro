@@ -14,5 +14,6 @@ namespace ABP.Core.Domain.Interfaces
         Task<IEnumerable<CreditCard>> GetActiveCardsByClientIdAsync(string clientId);
         Task<IEnumerable<CreditCard>> GetAllPagedAsync(int page, int pageSize, CardStatus? status = null, string? clientId = null);
         Task<int> GetTotalActiveCardsCountAsync();
+        Task<int> GetFilteredCountAsync(CardStatus? status = null, string? clientId = null);
     }
 }

@@ -14,15 +14,14 @@ namespace ABP.API.Controllers.v1.Admin
         private readonly IMediator _mediator = mediator;
 
         /// <summary>
-        /// Operation: GET /api/v1/Admin/commerce
+        /// Operation: GET /api/v1/commerce
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación GET en la ruta /api/v1/Admin/commerce.
+        /// Ejecuta la operación GET en la ruta /api/v1/commerce.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string status = "activo")
@@ -42,15 +41,14 @@ namespace ABP.API.Controllers.v1.Admin
         }
 
         /// <summary>
-        /// Operation: GET /api/v1/Admin/commerce/{id}
+        /// Operation: GET /api/v1/commerce/{id}
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación GET en la ruta /api/v1/Admin/commerce/{id}.
+        /// Ejecuta la operación GET en la ruta /api/v1/commerce/{id}.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("{id:int}")]
         public async Task<IActionResult> GetById(int id)
@@ -75,10 +73,10 @@ namespace ABP.API.Controllers.v1.Admin
         }
 
         /// <summary>
-        /// Operation: POST /api/v1/Admin/commerce
+        /// Operation: POST /api/v1/commerce
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación POST en la ruta /api/v1/Admin/commerce.
+        /// Ejecuta la operación POST en la ruta /api/v1/commerce.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -104,15 +102,14 @@ namespace ABP.API.Controllers.v1.Admin
         }
 
         /// <summary>
-        /// Operation: PUT /api/v1/Admin/commerce/{id}
+        /// Operation: PUT /api/v1/commerce/{id}
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación PUT en la ruta /api/v1/Admin/commerce/{id}.
+        /// Ejecuta la operación PUT en la ruta /api/v1/commerce/{id}.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPut("{id:int}")]
         public async Task<IActionResult> Update(int id, [FromBody] UpdateCommerceRequest request)
@@ -132,15 +129,14 @@ namespace ABP.API.Controllers.v1.Admin
         }
 
         /// <summary>
-        /// Operation: PATCH /api/v1/Admin/commerce/{id}/status
+        /// Operation: PATCH /api/v1/commerce/{id}/status
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación PATCH en la ruta /api/v1/Admin/commerce/{id}/status.
+        /// Ejecuta la operación PATCH en la ruta /api/v1/commerce/{id}/status.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPatch("{id:int}/status")]
         public async Task<IActionResult> ChangeStatus(int id, [FromBody] ChangeCommerceStatusRequest request)

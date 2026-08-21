@@ -15,15 +15,14 @@ namespace ABP.API.Controllers.v1.Admin
         private readonly IMediator _mediator = mediator;
 
         /// <summary>
-        /// Operation: GET /api/v1/Admin/users
+        /// Operation: GET /api/v1/users
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación GET en la ruta /api/v1/Admin/users.
+        /// Ejecuta la operación GET en la ruta /api/v1/users.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet]
         public async Task<IActionResult> GetAll([FromQuery] int page = 1, [FromQuery] int pageSize = 20, [FromQuery] string? role = null)
@@ -35,15 +34,14 @@ namespace ABP.API.Controllers.v1.Admin
         }
 
         /// <summary>
-        /// Operation: GET /api/v1/Admin/users/commerce
+        /// Operation: GET /api/v1/users/commerce
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación GET en la ruta /api/v1/Admin/users/commerce.
+        /// Ejecuta la operación GET en la ruta /api/v1/users/commerce.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("commerce")]
         public async Task<IActionResult> GetCommerceUsers([FromQuery] int page = 1, [FromQuery] int pageSize = 20)
@@ -53,15 +51,14 @@ namespace ABP.API.Controllers.v1.Admin
         }
 
         /// <summary>
-        /// Operation: GET /api/v1/Admin/users/{id}
+        /// Operation: GET /api/v1/users/{id}
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación GET en la ruta /api/v1/Admin/users/{id}.
+        /// Ejecuta la operación GET en la ruta /api/v1/users/{id}.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status200OK)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpGet("{id}")]
         public async Task<IActionResult> GetById(string id)
@@ -72,10 +69,10 @@ namespace ABP.API.Controllers.v1.Admin
         }
 
         /// <summary>
-        /// Operation: POST /api/v1/Admin/users
+        /// Operation: POST /api/v1/users
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación POST en la ruta /api/v1/Admin/users.
+        /// Ejecuta la operación POST en la ruta /api/v1/users.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -103,10 +100,10 @@ namespace ABP.API.Controllers.v1.Admin
         }
 
         /// <summary>
-        /// Operation: POST /api/v1/Admin/users/commerce/{commerceId}
+        /// Operation: POST /api/v1/users/commerce/{commerceId}
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación POST en la ruta /api/v1/Admin/users/commerce/{commerceId}.
+        /// Ejecuta la operación POST en la ruta /api/v1/users/commerce/{commerceId}.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status201Created)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
@@ -126,15 +123,14 @@ namespace ABP.API.Controllers.v1.Admin
         }
 
         /// <summary>
-        /// Operation: PUT /api/v1/Admin/users/{id}
+        /// Operation: PUT /api/v1/users/{id}
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación PUT en la ruta /api/v1/Admin/users/{id}.
+        /// Ejecuta la operación PUT en la ruta /api/v1/users/{id}.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPut("{id}")]
         public async Task<IActionResult> Update(string id, [FromBody] UpdateUserRequest request)
@@ -150,15 +146,14 @@ namespace ABP.API.Controllers.v1.Admin
         }
 
         /// <summary>
-        /// Operation: PATCH /api/v1/Admin/users/{id}/status
+        /// Operation: PATCH /api/v1/users/{id}/status
         /// </summary>
         /// <remarks>
-        /// Ejecuta la operación PATCH en la ruta /api/v1/Admin/users/{id}/status.
+        /// Ejecuta la operación PATCH en la ruta /api/v1/users/{id}/status.
         /// </remarks>
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status401Unauthorized)]
-        [ProducesResponseType(StatusCodes.Status400BadRequest)]
         [ProducesResponseType(StatusCodes.Status500InternalServerError)]
         [HttpPatch("{id}/status")]
         public async Task<IActionResult> ChangeStatus(string id, [FromBody] ChangeUserStatusRequest request)

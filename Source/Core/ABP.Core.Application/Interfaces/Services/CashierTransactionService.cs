@@ -45,6 +45,11 @@ internal sealed class CashierTransactionService : ICashierTransactionService
 
             if (account.Status != AccountStatus.Active)
                 throw new InvalidOperationException("No se puede depositar en una cuenta inactiva o cancelada.");
+
+            var user = await _userService.GetByIdAsync(account.UserId);
+            if (user == null || !user.IsActive)
+                throw new InvalidOperationException("No se puede depositar a una cuenta cuyo cliente está inactivo.");
+
             await using var depositTx = await _unitOfWork.BeginTransactionAsync();
             await ReserveIdempotencyAsync("cashier.deposit", cashierDepositDto.PerformedByUserId, cashierDepositDto.IdempotencyKey);
             account.Balance += cashierDepositDto.Amount;
@@ -68,7 +73,6 @@ internal sealed class CashierTransactionService : ICashierTransactionService
             await _repo.AddWithoutSaveAsync(transaction);
             await _unitOfWork.SaveChangesAsync();
             await depositTx.CommitAsync();
-            var user = await _userService.GetByIdAsync(account.UserId);
             if (user != null)
             {
                 try
@@ -90,6 +94,11 @@ internal sealed class CashierTransactionService : ICashierTransactionService
 
             if (account.Status != AccountStatus.Active)
                 throw new InvalidOperationException("No se puede retirar dinero de una cuenta inactiva o cancelada.");
+
+            var user = await _userService.GetByIdAsync(account.UserId);
+            if (user == null || !user.IsActive)
+                throw new InvalidOperationException("No se puede retirar de una cuenta cuyo cliente está inactivo.");
+
             if (account.Balance < dto.Amount)
             {
                 var declinedTx = new Transaction
@@ -135,7 +144,6 @@ internal sealed class CashierTransactionService : ICashierTransactionService
             await _unitOfWork.SaveChangesAsync();
             await withdrawalTx.CommitAsync();
 
-            var user = await _userService.GetByIdAsync(account.UserId);
             if (user != null)
             {
                 try
@@ -157,12 +165,20 @@ internal sealed class CashierTransactionService : ICashierTransactionService
             if (account.Status != AccountStatus.Active)
                 throw new InvalidOperationException("No se puede procesar el pago desde una cuenta inactiva o cancelada.");
 
+            var accountOwner = await _userService.GetByIdAsync(account.UserId);
+            if (accountOwner == null || !accountOwner.IsActive)
+                throw new InvalidOperationException("El cliente de la cuenta de origen está inactivo.");
+
             var card = await _creditCardRepo.GetByCardNumberAsync(dto.CardNumber);
             if (card == null)
                 throw new Exception("Tarjeta de credito no encontrada.");
 
             if (card.Status != CardStatus.Active)
                 throw new InvalidOperationException("No se pueden procesar pagos para una tarjeta inactiva o cancelada.");
+
+            var cardOwner = await _userService.GetByIdAsync(card.ClientId);
+            if (cardOwner == null || !cardOwner.IsActive)
+                throw new InvalidOperationException("El dueño de la tarjeta de crédito está inactivo.");
 
             if (account.Balance < dto.Amount)
             {
@@ -172,7 +188,7 @@ internal sealed class CashierTransactionService : ICashierTransactionService
                     TransactionDate = DateTime.UtcNow,
                     Type = TransactionType.Payment,
                     Origin = dto.SourceAccountNumber,
-                    Beneficiary = dto.CardNumber,
+                    Beneficiary = $"CARD-{card.CardNumber[^4..]}",
                     Status = TransactionStatus.Declined,
                     SavingAccountId = account.Id,
                     SourceAccountNumber = dto.SourceAccountNumber,
@@ -207,7 +223,7 @@ internal sealed class CashierTransactionService : ICashierTransactionService
                 TransactionDate = DateTime.UtcNow,
                 Type = TransactionType.Payment,
                 Origin = dto.SourceAccountNumber,
-                Beneficiary = dto.CardNumber,
+                Beneficiary = destinationReference,
                 Status = TransactionStatus.Approved,
                 SavingAccountId = account.Id,
                 SourceAccountNumber = dto.SourceAccountNumber,
@@ -241,9 +257,17 @@ internal sealed class CashierTransactionService : ICashierTransactionService
             
             if (account.Status != AccountStatus.Active)
                 throw new InvalidOperationException("No se puede procesar el pago desde una cuenta inactiva o cancelada.");
+
+            var accountOwner = await _userService.GetByIdAsync(account.UserId);
+            if (accountOwner == null || !accountOwner.IsActive)
+                throw new InvalidOperationException("El cliente de la cuenta de origen está inactivo.");
                 
             if (loan.Status != LoanStatus.Active)
                 throw new InvalidOperationException("No se pueden procesar pagos para un prestamo inactivo o completado.");
+
+            var loanOwner = await _userService.GetByIdAsync(loan.ClientId);
+            if (loanOwner == null || !loanOwner.IsActive)
+                throw new InvalidOperationException("El dueño del préstamo está inactivo.");
 
             if (account.Balance < Dto.Amount)
             {

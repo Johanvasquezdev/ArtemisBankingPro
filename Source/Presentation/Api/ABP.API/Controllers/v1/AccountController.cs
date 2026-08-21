@@ -75,13 +75,12 @@ namespace ABP.API.Controllers.v1
         [HttpPost("get-reset-token")]
         [ProducesResponseType(StatusCodes.Status204NoContent)]
         [ProducesResponseType(StatusCodes.Status400BadRequest)]
-        [ProducesResponseType(StatusCodes.Status401Unauthorized)]
         public async Task<IActionResult> GetResetToken([FromBody] GetResetTokenRequest request)
         {
             var result = await _mediator.Send(new GeneratePasswordResetTokenCommand(request.UserName, AccountEmailChannel.Api));
 
             if (!result)
-                return ApiProblem(404, "Usuario no encontrado", "No existe un usuario con ese nombre.");
+                return ApiProblem(400, "Usuario no encontrado", "No existe un usuario con ese nombre.");
 
             return NoContent();
         }
