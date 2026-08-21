@@ -255,7 +255,7 @@ namespace ABP.Infraestructure.identity.Services
             await _emailService.SendEmailAsync(new EmailRequest
             {
                 To = user.Email!,
-                Subject = "Restablecer su contraseÃ±a de ArtemisBank",
+                Subject = "Restablecer su contraseña de ArtemisBank",
                 Body = resetBody,
                 IsHtml = true
             });
@@ -384,7 +384,7 @@ namespace ABP.Infraestructure.identity.Services
                 if (!deposited)
                 {
                     throw new InvalidOperationException(
-                        "El usuario se actualizÃƒÂ³, pero no fue posible acreditar el monto adicional en su cuenta principal.");
+                        "El usuario se actualizó, pero no fue posible acreditar el monto adicional en su cuenta principal.");
                 }
             }
 
@@ -479,11 +479,11 @@ namespace ABP.Infraestructure.identity.Services
                 </tr>
               </table>
 
-              <p style="margin:0 0 22px; color:#5f625f; font-size:15px; line-height:1.6;">Cuando estÃƒÂ©s listo, utiliza el botÃƒÂ³n para confirmar tu correo y habilitar el acceso.</p>
+              <p style="margin:0 0 22px; color:#5f625f; font-size:15px; line-height:1.6;">Cuando estés listo, utiliza el botón para confirmar tu correo y habilitar el acceso.</p>
               <table role="presentation" cellspacing="0" cellpadding="0">
                 <tr>
                   <td style="border-radius:8px; background:#c5a059;">
-                    <a href="{{safeActivationLink}}" style="display:inline-block; padding:15px 24px; color:#141414; font-size:15px; font-weight:bold; text-decoration:none;">Activar mi cuenta&nbsp; Ã¢â€ â€™</a>
+                    <a href="{{safeActivationLink}}" style="display:inline-block; padding:15px 24px; color:#141414; font-size:15px; font-weight:bold; text-decoration:none;">Activar mi cuenta&nbsp; →</a>
                   </td>
                 </tr>
               </table>
@@ -492,7 +492,7 @@ namespace ABP.Infraestructure.identity.Services
             </td>
           </tr>
           <tr>
-            <td style="padding:22px 38px; border-top:1px solid #eeeae2; background:#faf9f6; color:#88847b; font-size:12px; line-height:1.6;">Artemis Banking Pro Ã‚Â· Private Wealth<br>Este mensaje fue enviado automÃƒÂ¡ticamente; por favor, no respondas a este correo.</td>
+            <td style="padding:22px 38px; border-top:1px solid #eeeae2; background:#faf9f6; color:#88847b; font-size:12px; line-height:1.6;">Artemis Banking Pro · Private Wealth<br>Este mensaje fue enviado automáticamente; por favor, no respondas a este correo.</td>
           </tr>
         </table>
       </td>
@@ -504,7 +504,7 @@ namespace ABP.Infraestructure.identity.Services
         }
 
         private static string BuildActivationEmailText(ApplicationUser user, string activationLink) =>
-            $"Hola {user.FirstName},\n\nTu cuenta de Artemis Banking Pro está lista. Activa tus credenciales para comenzar.\n\nUsuario: {user.UserName}\nPerfil: {GetRoleLabel(user.Role)}\n\nActiva tu cuenta aquÃƒÂ­:\n{activationLink}\n\nEste enlace es personal y de un solo uso. Si no reconoces esta solicitud, puedes ignorar este mensaje.\n\nArtemis Banking Pro Ã‚Â· Private Wealth";
+            $"Hola {user.FirstName},\n\nTu cuenta de Artemis Banking Pro está lista. Activa tus credenciales para comenzar.\n\nUsuario: {user.UserName}\nPerfil: {GetRoleLabel(user.Role)}\n\nActiva tu cuenta aquí:\n{activationLink}\n\nEste enlace es personal y de un solo uso. Si no reconoces esta solicitud, puedes ignorar este mensaje.\n\nArtemis Banking Pro · Private Wealth";
 
         private static string GetRoleLabel(UserRole role) => role switch
         {

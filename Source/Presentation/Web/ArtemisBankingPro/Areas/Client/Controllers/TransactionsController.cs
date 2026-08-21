@@ -13,10 +13,10 @@ namespace ArtemisBankingPro.Areas.Client.Controllers
     [Authorize(Roles = "Client")]
     public class TransactionsController(IMediator mediator) : Controller
     {
-        private const string ExpressSuccess = "TransacciÃ³n realizada exitosamente.";
+        private const string ExpressSuccess = "Transacción realizada exitosamente.";
         private const string PayCardSuccess = "Pago a tarjeta realizado exitosamente.";
-        private const string PayLoanSuccess = "Pago a prÃ©stamo realizado exitosamente.";
-        private const string PayBeneficiarySuccess = "TransacciÃ³n a beneficiario realizada exitosamente.";
+        private const string PayLoanSuccess = "Pago a préstamo realizado exitosamente.";
+        private const string PayBeneficiarySuccess = "Transacción a beneficiario realizada exitosamente.";
 
         [HttpGet]
         public async Task<IActionResult> Express()
@@ -81,7 +81,7 @@ namespace ArtemisBankingPro.Areas.Client.Controllers
             if (card is null)
             {
                 model.HasError = true;
-                model.Error = "La tarjeta de crÃ©dito seleccionada no es vÃ¡lida.";
+                model.Error = "La tarjeta de crédito seleccionada no es válida.";
                 model.Options = options;
                 return View(model);
             }
@@ -131,7 +131,7 @@ namespace ArtemisBankingPro.Areas.Client.Controllers
             if (loan is null)
             {
                 model.HasError = true;
-                model.Error = "El prÃ©stamo seleccionado no es vÃ¡lido.";
+                model.Error = "El préstamo seleccionado no es válido.";
                 model.Options = options;
                 return View(model);
             }
@@ -207,7 +207,7 @@ namespace ArtemisBankingPro.Areas.Client.Controllers
         private void SetSuccessMessage(string message, bool emailNotificationFailed)
         {
             TempData["SuccessMessage"] = emailNotificationFailed
-                ? $"{message} No se pudo enviar la notificaciÃ³n por correo electrÃ³nico."
+                ? $"{message} No se pudo enviar la notificación por correo electrónico."
                 : message;
         }
     }

@@ -62,10 +62,10 @@ namespace ArtemisBankingPro.Areas.Cashier.Controllers
                     IdempotencyKey = idempotencyKey ?? string.Empty
                 };
                 await _mediator.Send(new DepositCashierCommand(dto));
-                TempData["SuccessMessage"] = "DepÃ³sito realizado correctamente.";
+                TempData["SuccessMessage"] = "Depósito realizado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
-            catch (FluentValidation.ValidationException ex) { TempData["ErrorMessage"] = "Datos invÃ¡lidos: " + string.Join(" ", ex.Errors.Select(e => e.ErrorMessage)); return View(); } catch (System.Exception ex) { TempData["ErrorMessage"] = "Error procesando el depÃ³sito: " + ex.Message;
+            catch (FluentValidation.ValidationException ex) { TempData["ErrorMessage"] = "Datos inválidos: " + string.Join(" ", ex.Errors.Select(e => e.ErrorMessage)); return View(); } catch (System.Exception ex) { TempData["ErrorMessage"] = "Error procesando el depósito: " + ex.Message;
                 return View();
             }
         }
@@ -93,7 +93,7 @@ namespace ArtemisBankingPro.Areas.Cashier.Controllers
                 TempData["SuccessMessage"] = "Retiro realizado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
-            catch (FluentValidation.ValidationException ex) { TempData["ErrorMessage"] = "Datos invÃ¡lidos: " + string.Join(" ", ex.Errors.Select(e => e.ErrorMessage)); return View(); } catch (System.Exception ex) { TempData["ErrorMessage"] = "Error procesando el retiro: " + ex.Message;
+            catch (FluentValidation.ValidationException ex) { TempData["ErrorMessage"] = "Datos inválidos: " + string.Join(" ", ex.Errors.Select(e => e.ErrorMessage)); return View(); } catch (System.Exception ex) { TempData["ErrorMessage"] = "Error procesando el retiro: " + ex.Message;
                 return View();
             }
         }
@@ -122,7 +122,7 @@ namespace ArtemisBankingPro.Areas.Cashier.Controllers
                 TempData["SuccessMessage"] = "Pago a tarjeta realizado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
-            catch (FluentValidation.ValidationException ex) { TempData["ErrorMessage"] = "Datos invÃ¡lidos: " + string.Join(" ", ex.Errors.Select(e => e.ErrorMessage)); return View(); } catch (System.Exception ex) { TempData["ErrorMessage"] = "Error procesando el pago: " + ex.Message;
+            catch (FluentValidation.ValidationException ex) { TempData["ErrorMessage"] = "Datos inválidos: " + string.Join(" ", ex.Errors.Select(e => e.ErrorMessage)); return View(); } catch (System.Exception ex) { TempData["ErrorMessage"] = "Error procesando el pago: " + ex.Message;
                 return View();
             }
         }
@@ -148,10 +148,10 @@ namespace ArtemisBankingPro.Areas.Cashier.Controllers
                     IdempotencyKey = idempotencyKey ?? string.Empty
                 };
                 await _mediator.Send(new PayCashierLoanCommand(dto));
-                TempData["SuccessMessage"] = "Pago a prÃ©stamo realizado correctamente.";
+                TempData["SuccessMessage"] = "Pago a préstamo realizado correctamente.";
                 return RedirectToAction(nameof(Index));
             }
-            catch (FluentValidation.ValidationException ex) { TempData["ErrorMessage"] = "Datos invÃ¡lidos: " + string.Join(" ", ex.Errors.Select(e => e.ErrorMessage)); return View(); } catch (System.Exception ex) { TempData["ErrorMessage"] = "Error procesando el pago: " + ex.Message;
+            catch (FluentValidation.ValidationException ex) { TempData["ErrorMessage"] = "Datos inválidos: " + string.Join(" ", ex.Errors.Select(e => e.ErrorMessage)); return View(); } catch (System.Exception ex) { TempData["ErrorMessage"] = "Error procesando el pago: " + ex.Message;
                 return View();
             }
         }
@@ -180,7 +180,7 @@ namespace ArtemisBankingPro.Areas.Cashier.Controllers
                 TempData["SuccessMessage"] = "Transferencia realizada correctamente.";
                 return RedirectToAction(nameof(Index));
             }
-            catch (FluentValidation.ValidationException ex) { TempData["ErrorMessage"] = "Datos invÃ¡lidos: " + string.Join(" ", ex.Errors.Select(e => e.ErrorMessage)); return View(); } catch (System.Exception ex) { TempData["ErrorMessage"] = "Error procesando la transferencia: " + ex.Message;
+            catch (FluentValidation.ValidationException ex) { TempData["ErrorMessage"] = "Datos inválidos: " + string.Join(" ", ex.Errors.Select(e => e.ErrorMessage)); return View(); } catch (System.Exception ex) { TempData["ErrorMessage"] = "Error procesando la transferencia: " + ex.Message;
                 return View();
             }
         }

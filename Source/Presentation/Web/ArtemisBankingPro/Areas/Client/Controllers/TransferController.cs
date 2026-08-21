@@ -43,7 +43,7 @@ namespace ArtemisBankingPro.Areas.Client.Controllers
                 }));
 
                 TempData["SuccessMessage"] = result.EmailNotificationFailed
-                    ? "Transferencia realizada exitosamente. No se pudo enviar la notificaciÃ³n por correo electrÃ³nico."
+                    ? "Transferencia realizada exitosamente. No se pudo enviar la notificación por correo electrónico."
                     : "Transferencia realizada exitosamente.";
 
                 return RedirectToAction(nameof(Index));

@@ -50,7 +50,7 @@ namespace ArtemisBankingPro.Areas.Client.Controllers
                 }));
 
                 TempData["SuccessMessage"] = result.EmailNotificationFailed
-                    ? "Avance de efectivo realizado exitosamente. No se pudo enviar la notificaciÃ³n por correo electrÃ³nico."
+                    ? "Avance de efectivo realizado exitosamente. No se pudo enviar la notificación por correo electrónico."
                     : "Avance de efectivo realizado exitosamente.";
 
                 return RedirectToAction(nameof(Index));
