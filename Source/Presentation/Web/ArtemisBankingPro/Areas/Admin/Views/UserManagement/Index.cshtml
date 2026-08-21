@@ -15,11 +15,11 @@
     <div class="p-6 border-b border-obsidian/5 bg-ivory/30">
         <form method="get" class="flex flex-col sm:flex-row gap-4 items-end">
             <div class="w-full sm:w-64">
-                <label class="block text-xs font-semibold uppercase tracking-wider text-obsidian/60 mb-2">Filtrar por rol</label>                <select name="role" class="block w-full pl-3 pr-10 py-2 text-sm border border-obsidian/10 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-gold focus:border-gold transition-colors" onchange="this.form.submit()">
+                <label class="block text-xs font-semibold uppercase tracking-wider text-obsidian/60 mb-2">Filtrar por rol</label>
+                <select name="role" class="block w-full pl-3 pr-10 py-2 text-sm border border-obsidian/10 rounded-md bg-white focus:outline-none focus:ring-1 focus:ring-gold focus:border-gold transition-colors" onchange="this.form.submit()">
                     <option value="">Todos los roles</option>
                     <option value="Admin">Administrador</option>
                     <option value="Cashier">Cajero</option>
-                    <option value="Commerce">Comercio</option>
                     <option value="Client">Cliente</option>
                 </select>
             </div>
@@ -53,9 +53,6 @@
                             }
                             else if(user.Role == UserRole.Cashier) { 
                                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-700">Cajero</span> 
-                            }
-                            else if(user.Role == UserRole.Commerce) { 
-                                <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-purple-100 text-purple-700">Comercio</span> 
                             }
                             else { 
                                 <span class="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-gold/10 text-gold">Cliente</span> 
