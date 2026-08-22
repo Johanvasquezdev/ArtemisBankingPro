@@ -54,6 +54,8 @@ namespace ABP.Core.Application.IoC
             services.AddTransient<IDashboardService, DashboardService>();
             services.AddTransient<IPaymentProcessorService, PaymentProcessorService>();
             services.AddTransient<IVirtualCardService, VirtualCardService>();
+            services.AddTransient<ABP.Core.Application.Interfaces.IServices.ISavingsGoalService, ABP.Core.Application.Interfaces.Services.SavingsGoalService>();
+            services.AddTransient<IPersonalFinanceService, PersonalFinanceService>();
 
             services.AddScoped<ITransactionRecorder, TransactionRecorder>();
             services.AddScoped<IOverpaymentCalculator, AntiOverpaymentCalculator>();
@@ -72,3 +74,4 @@ namespace ABP.Core.Application.IoC
         }
     }
 }
+

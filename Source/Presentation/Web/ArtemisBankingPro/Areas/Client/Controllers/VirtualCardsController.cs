@@ -41,7 +41,7 @@ public class VirtualCardsController : Controller
     {
         var dto = new CreateVirtualCardDto { SavingsAccountId = savingsAccountId, LimitAmount = 50000 };
         await _virtualCardService.CreateAsync(dto);
-        TempData["SuccessMessage"] = "Tarjeta virtual creada exitosamente.;
+        TempData["SuccessMessage"] = "Tarjeta virtual creada exitosamente.";
         return RedirectToAction("Index");
     }
 
@@ -50,7 +50,7 @@ public class VirtualCardsController : Controller
     {
         // Implement toggle freeze logic (we can add a toggle method or just get and update)
         // For now, let's assume IVirtualCardService has Freeze/Unfreeze, or we can just fetch and check
-        TempData["SuccessMessage"] = "Estado de la tarjeta actualizado.;
+        TempData["SuccessMessage"] = "Estado de la tarjeta actualizado.";
         return RedirectToAction("Index");
     }
 
@@ -58,7 +58,7 @@ public class VirtualCardsController : Controller
     public async Task<IActionResult> GetCvv(int id, [FromBody] CvvRequest request)
     {
         if (string.IsNullOrEmpty(request.Assertion))
-            return BadRequest("Autenticacion biometrica fallida.);
+            return BadRequest("Autenticacion biometrica fallida.");
 
         // In a real scenario, we validate the WebAuthn assertion here.
         // For now, we return the CVV.
@@ -73,3 +73,4 @@ public class CvvRequest
 {
     public string Assertion { get; set; }
 }
+

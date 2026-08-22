@@ -6,6 +6,7 @@ using ABP.Core.Domain.Interfaces;
 namespace ABP.Core.Application.Interfaces.Services
 {
     public class TransactionRecorder(
+        System.IServiceProvider serviceProvider,
         ITransactionRepository transactionRepository,
         IDateTimeProvider dateTimeProvider,
         IUnitOfWork unitOfWork) : ITransactionRecorder
@@ -13,6 +14,7 @@ namespace ABP.Core.Application.Interfaces.Services
         private readonly ITransactionRepository _transactionRepository = transactionRepository;
         private readonly IDateTimeProvider _dateTimeProvider = dateTimeProvider;
         private readonly IUnitOfWork _unitOfWork = unitOfWork;
+        private readonly System.IServiceProvider _serviceProvider = serviceProvider;
 
         public async Task RecordAsync(TransactionEntry entry)
         {
@@ -71,3 +73,5 @@ namespace ABP.Core.Application.Interfaces.Services
         }
     }
 }
+
+

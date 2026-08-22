@@ -258,7 +258,29 @@
 </div>
 </div>
 
+<!-- Personal Finance Chart -->
+<div class="mb-12">
+    <div class="flex items-center gap-2 mb-6">
+        <svg class="text-gold" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+        <h2 class="font-serif text-2xl font-medium text-obsidian">Gastos del Mes</h2>
+    </div>
+    
+    <div class="bg-panel abp-glass-card abp-glow-border border border-obsidian/10 rounded-xl p-6 flex justify-center" style="height: 400px;">
+        @if (ViewBag.ChartData != null && ((Dictionary<string, decimal>)ViewBag.ChartData).Count > 0)
+        {
+            <canvas id="financeChart"></canvas>
+        }
+        else
+        {
+            <div class="flex items-center justify-center h-full text-obsidian/50 text-sm">
+                No hay gastos registrados este mes.
+            </div>
+        }
+    </div>
+</div>
+
 @section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script>
         document.addEventListener('DOMContentLoaded', () => {
             anime({
@@ -269,6 +291,55 @@
                 easing: 'easeOutCubic',
                 duration: 600
             });
+
+            @if (ViewBag.ChartData != null && ((Dictionary<string, decimal>)ViewBag.ChartData).Count > 0)
+            {
+                <text>
+                const ctx = document.getElementById('financeChart').getContext('2d');
+                
+                // Assuming ViewBag.ChartData is serialized or we can map it via Razor
+                const labels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(((Dictionary<string, decimal>)ViewBag.ChartData).Keys));
+                const dataPoints = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(((Dictionary<string, decimal>)ViewBag.ChartData).Values));
+                
+                new Chart(ctx, {
+                    type: 'doughnut',
+                    data: {
+                        labels: labels,
+                        datasets: [{
+                            data: dataPoints,
+                            backgroundColor: [
+                                '#CBA358', // Gold
+                                '#1E1E1E', // Obsidian
+                                '#10B981', // Emerald
+                                '#F59E0B', // Amber
+                                '#3B82F6', // Blue
+                                '#8B5CF6', // Purple
+                                '#EF4444', // Red
+                                '#6B7280'  // Gray
+                            ],
+                            borderWidth: 0,
+                            hoverOffset: 4
+                        }]
+                    },
+                    options: {
+                        responsive: true,
+                        maintainAspectRatio: false,
+                        plugins: {
+                            legend: {
+                                position: 'right',
+                                labels: {
+                                    font: {
+                                        family: "'Inter', sans-serif",
+                                        size: 13
+                                    },
+                                    color: '#1E1E1E'
+                                }
+                            }
+                        }
+                    }
+                });
+                </text>
+            }
         });
     </script>
 }

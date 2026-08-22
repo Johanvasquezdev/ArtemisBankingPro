@@ -1,0 +1,74 @@
+@using ABP.Core.Application.DTOs.SavingsGoal
+@model List<SavingsGoalDto>
+
+@{
+    ViewData["Title"] = "Bolsillos de Ahorro";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-serif font-bold text-obsidian dark:text-ivory">Bolsillos de Ahorro</h1>
+        <button onclick="document.getElementById('createGoalModal').classList.remove('hidden')" class="bg-gold text-obsidian px-4 py-2 rounded-md font-semibold hover:bg-gold/80 transition-colors">Nuevo Bolsillo</button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @foreach (var goal in Model)
+        {
+            <div class="bg-white dark:bg-obsidian-light p-6 rounded-xl shadow-lg border border-gray-200 dark:border-white/10">
+                <div class="flex justify-between items-start mb-4">
+                    <h3 class="text-xl font-bold text-obsidian dark:text-ivory">@goal.Name</h3>
+                    <div class="w-4 h-4 rounded-full" style="background-color: @goal.ColorHex;"></div>
+                </div>
+                <div class="mb-4">
+                    <div class="flex justify-between text-sm mb-1 text-gray-500 dark:text-gray-400">
+                        <span>$@goal.CurrentAmount.ToString("N2")</span>
+                        <span>$@goal.TargetAmount.ToString("N2")</span>
+                    </div>
+                    <div class="w-full bg-gray-200 dark:bg-gray-700 rounded-full h-2.5">
+                        <div class="h-2.5 rounded-full" style="width: @(goal.Percentage > 100 ? 100 : goal.Percentage)%; background-color: @goal.ColorHex;"></div>
+                    </div>
+                </div>
+                @if (goal.AutoRoundupEnabled)
+                {
+                    <span class="inline-block bg-emerald/20 text-emerald text-xs px-2 py-1 rounded-full mb-4">Redondeo Automático Activo</span>
+                }
+                <form asp-action="Deposit" method="post" class="flex gap-2">
+                    <input type="hidden" name="goalId" value="@goal.Id" />
+                    <input type="number" name="amount" step="0.01" min="1" class="flex-1 bg-gray-50 dark:bg-obsidian border border-gray-300 dark:border-white/10 text-obsidian dark:text-ivory rounded-md px-3 py-2 text-sm" placeholder="Monto" required />
+                    <button type="submit" class="bg-obsidian dark:bg-ivory text-ivory dark:text-obsidian px-3 py-2 rounded-md text-sm font-semibold">Abonar</button>
+                </form>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Create Modal -->
+<div id="createGoalModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div class="bg-white dark:bg-obsidian-light p-6 rounded-xl w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-4 text-obsidian dark:text-ivory">Nuevo Bolsillo</h2>
+        <form asp-action="Create" method="post" class="space-y-4">
+            <input type="hidden" name="SavingsAccountId" value="@ViewBag.MainAccountId" />
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nombre de la Meta</label>
+                <input type="text" name="Name" class="w-full bg-gray-50 dark:bg-obsidian border border-gray-300 dark:border-white/10 rounded-md px-3 py-2 text-obsidian dark:text-ivory" required />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monto Objetivo ($)</label>
+                <input type="number" name="TargetAmount" step="0.01" min="1" class="w-full bg-gray-50 dark:bg-obsidian border border-gray-300 dark:border-white/10 rounded-md px-3 py-2 text-obsidian dark:text-ivory" required />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Color</label>
+                <input type="color" name="ColorHex" value="#C5A059" class="w-full h-10 rounded-md cursor-pointer" />
+            </div>
+            <div class="flex items-center gap-2">
+                <input type="checkbox" name="AutoRoundupEnabled" value="true" id="autoRoundup" class="rounded text-gold focus:ring-gold bg-gray-50 dark:bg-obsidian border-gray-300 dark:border-white/10" />
+                <label for="autoRoundup" class="text-sm text-gray-700 dark:text-gray-300">Activar redondeo automático en compras</label>
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" onclick="document.getElementById('createGoalModal').classList.add('hidden')" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-obsidian dark:hover:text-white">Cancelar</button>
+                <button type="submit" class="bg-gold text-obsidian px-4 py-2 rounded-md font-semibold">Crear</button>
+            </div>
+        </form>
+    </div>
+</div>
