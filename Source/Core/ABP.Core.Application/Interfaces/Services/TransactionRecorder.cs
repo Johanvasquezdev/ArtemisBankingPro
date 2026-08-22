@@ -57,6 +57,24 @@ namespace ABP.Core.Application.Interfaces.Services
                 Status = entry.Status,
                 PerformedByUserId = entry.PerformedByUserId
             });
+
+            // Auto-roundup: for outbound transactions, round up to next 100 and deposit difference into active SavingsGoal
+            if ((entry.Type == Domain.Enums.TransactionType.Debit || entry.Type == Domain.Enums.TransactionType.Payment)
+                && !string.IsNullOrEmpty(entry.SourceAccountNumber))
+            {
+                try
+                {
+                    var savingsGoalService = _serviceProvider.GetService(typeof(ISavingsGoalService)) as ISavingsGoalService;
+                    if (savingsGoalService != null)
+                    {
+                        await savingsGoalService.AutoRoundupAsync(entry.SourceAccountNumber, entry.Amount);
+                    }
+                }
+                catch
+                {
+                    // Roundup is best-effort; don't fail the main transaction
+                }
+            }
         }
 
         public async Task RecordDoubleEntryAsync(TransactionEntry debit, TransactionEntry credit)

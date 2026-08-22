@@ -22,7 +22,7 @@ public class VirtualCardsController : Controller
 
     public async Task<IActionResult> Index()
     {
-        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+        var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
         var accounts = await _savingsAccountService.GetByClientIdAsync(userId);
         var virtualCards = new List<VirtualCardDto>();
 
@@ -48,8 +48,7 @@ public class VirtualCardsController : Controller
     [HttpPost]
     public async Task<IActionResult> ToggleFreeze(int id)
     {
-        // Implement toggle freeze logic (we can add a toggle method or just get and update)
-        // For now, let's assume IVirtualCardService has Freeze/Unfreeze, or we can just fetch and check
+        await _virtualCardService.ToggleFreezeAsync(id);
         TempData["SuccessMessage"] = "Estado de la tarjeta actualizado.";
         return RedirectToAction("Index");
     }
@@ -71,7 +70,7 @@ public class VirtualCardsController : Controller
 
 public class CvvRequest
 {
-    public string Assertion { get; set; }
+    public string Assertion { get; set; } = string.Empty;
 }
 
 

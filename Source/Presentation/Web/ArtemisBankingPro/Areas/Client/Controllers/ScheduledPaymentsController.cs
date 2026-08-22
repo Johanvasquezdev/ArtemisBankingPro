@@ -18,7 +18,7 @@ namespace ArtemisBankingPro.Areas.Client.Controllers
 
         public async Task<IActionResult> Index()
         {
-            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = User.FindFirstValue(ClaimTypes.NameIdentifier) ?? string.Empty;
             var accounts = await _savingsAccountService.GetByClientIdAsync(userId);
             var account = accounts.FirstOrDefault(a => a.Type == ABP.Core.Domain.Enums.AccountType.Primary);
             if (account == null) account = accounts.FirstOrDefault();
