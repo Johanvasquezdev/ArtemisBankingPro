@@ -1,0 +1,80 @@
+@using ABP.Core.Application.DTOs.ScheduledPayment
+@model List<ScheduledPaymentDto>
+
+@{
+    ViewData["Title"] = "Pagos Programados";
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<div class="container mx-auto px-4 py-8">
+    <div class="flex justify-between items-center mb-8">
+        <h1 class="text-3xl font-serif font-bold text-obsidian dark:text-ivory">Pagos Programados</h1>
+        <button onclick="document.getElementById('createPaymentModal').classList.remove('hidden')" class="bg-gold text-obsidian px-4 py-2 rounded-md font-semibold hover:bg-gold/80 transition-colors">Nuevo Pago</button>
+    </div>
+
+    <div class="bg-white dark:bg-obsidian-light rounded-xl shadow-lg border border-gray-200 dark:border-white/10 overflow-hidden">
+        <table class="min-w-full divide-y divide-gray-200 dark:divide-white/10">
+            <thead class="bg-gray-50 dark:bg-obsidian">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Servicio</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Contrato</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Monto</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Día de Cobro</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Estado</th>
+                    <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider">Acción</th>
+                </tr>
+            </thead>
+            <tbody class="divide-y divide-gray-200 dark:divide-white/10">
+                @foreach(var payment in Model)
+                {
+                    <tr>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-obsidian dark:text-ivory">@payment.ServiceName</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">@payment.ContractNumber</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-obsidian dark:text-ivory font-semibold">$@payment.Amount.ToString("N2")</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 dark:text-gray-400">@payment.ExecutionDay</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            @if (payment.IsActive) { <span class="text-emerald bg-emerald/10 px-2 py-1 rounded-full text-xs">Activo</span> }
+                            else { <span class="text-red-500 bg-red-500/10 px-2 py-1 rounded-full text-xs">Pausado</span> }
+                        </td>
+                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                            <form asp-action="Toggle" method="post">
+                                <input type="hidden" name="id" value="@payment.Id" />
+                                <button type="submit" class="text-gold hover:text-gold/80">@(payment.IsActive ? "Pausar" : "Reanudar")</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="createPaymentModal" class="hidden fixed inset-0 bg-black/50 backdrop-blur-sm z-50 flex items-center justify-center">
+    <div class="bg-white dark:bg-obsidian-light p-6 rounded-xl w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-4 text-obsidian dark:text-ivory">Programar Pago</h2>
+        <form asp-action="Create" method="post" class="space-y-4">
+            <input type="hidden" name="SavingsAccountId" value="@ViewBag.MainAccountId" />
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Servicio (Ej. Luz, Agua, Netflix)</label>
+                <input type="text" name="ServiceName" class="w-full bg-gray-50 dark:bg-obsidian border border-gray-300 dark:border-white/10 rounded-md px-3 py-2 text-obsidian dark:text-ivory" required />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Número de Contrato</label>
+                <input type="text" name="ContractNumber" class="w-full bg-gray-50 dark:bg-obsidian border border-gray-300 dark:border-white/10 rounded-md px-3 py-2 text-obsidian dark:text-ivory" required />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Monto ($)</label>
+                <input type="number" name="Amount" step="0.01" min="1" class="w-full bg-gray-50 dark:bg-obsidian border border-gray-300 dark:border-white/10 rounded-md px-3 py-2 text-obsidian dark:text-ivory" required />
+            </div>
+            <div>
+                <label class="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Día de Cobro (1-28)</label>
+                <input type="number" name="ExecutionDay" min="1" max="28" class="w-full bg-gray-50 dark:bg-obsidian border border-gray-300 dark:border-white/10 rounded-md px-3 py-2 text-obsidian dark:text-ivory" required />
+            </div>
+            <div class="flex justify-end gap-3 mt-6">
+                <button type="button" onclick="document.getElementById('createPaymentModal').classList.add('hidden')" class="px-4 py-2 text-gray-600 dark:text-gray-400 hover:text-obsidian dark:hover:text-white">Cancelar</button>
+                <button type="submit" class="bg-gold text-obsidian px-4 py-2 rounded-md font-semibold">Programar</button>
+            </div>
+        </form>
+    </div>
+</div>

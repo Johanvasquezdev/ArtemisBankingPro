@@ -74,7 +74,7 @@
                     <option value="">-- Seleccione una cuenta --</option>
                     @if(accounts != null) {
                         foreach(var acc in accounts) {
-                            <option value="@acc.Id">@acc.AccountNumber - RD$ @acc.Amount.ToString("N2")</option>
+                            <option value="@acc.Id">@acc.AccountNumber - RD$ @acc.Balance.ToString("N2")</option>
                         }
                     }
                 </select>
@@ -141,4 +141,6 @@
         }
     </script>
 }
+
+
 

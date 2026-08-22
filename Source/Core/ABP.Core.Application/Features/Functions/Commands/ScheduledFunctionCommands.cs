@@ -94,3 +94,16 @@ public sealed class EmailQueueMessage
     public string Subject { get; set; } = string.Empty;
     public string Body { get; set; } = string.Empty;
 }
+
+public sealed record RunScheduledPaymentsCommand : IRequest<bool>;
+
+public sealed class RunScheduledPaymentsCommandHandler(IScheduledPaymentService scheduledPaymentService)
+    : IRequestHandler<RunScheduledPaymentsCommand, bool>
+{
+    public async Task<bool> Handle(RunScheduledPaymentsCommand request, CancellationToken cancellationToken)
+    {
+        await scheduledPaymentService.ExecuteDuePaymentsAsync(DateTime.UtcNow.Day);
+        return true;
+    }
+}
+
