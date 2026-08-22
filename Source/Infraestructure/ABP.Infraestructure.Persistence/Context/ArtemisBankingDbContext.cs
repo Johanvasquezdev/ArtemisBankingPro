@@ -17,11 +17,30 @@ namespace ABP.Infraestructure.Persistence.Context
         public DbSet<ExternalPaymentTransaction> ExternalPayments { get; set; }
         public DbSet<IdentityVerificationDocument> VerificationDocuments { get; set; }
         public DbSet<UserBiometricCredential> BiometricCredentials { get; set; }
+        public DbSet<VirtualCard> VirtualCards { get; set; }
+        public DbSet<SavingsGoal> SavingsGoals { get; set; }
+        public DbSet<ScheduledPayment> ScheduledPayments { get; set; }
 
         protected override void OnModelCreating(ModelBuilder mb)
         {
             base.OnModelCreating(mb);
             mb.HasDefaultSchema("artemisBankingPro");
+
+            mb.Entity<VirtualCard>()
+                .HasOne(v => v.SavingsAccount)
+                .WithMany()
+                .HasForeignKey(v => v.SavingsAccountId);
+
+            mb.Entity<SavingsGoal>()
+                .HasOne(s => s.SavingsAccount)
+                .WithMany()
+                .HasForeignKey(s => s.SavingsAccountId);
+
+            mb.Entity<ScheduledPayment>()
+                .HasOne(s => s.SavingsAccount)
+                .WithMany()
+                .HasForeignKey(s => s.SavingsAccountId);
+
             mb.ApplyConfigurationsFromAssembly(Assembly.GetExecutingAssembly());
         }
     }

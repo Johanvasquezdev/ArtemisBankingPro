@@ -1,0 +1,143 @@
+@using ABP.Core.Application.DTOs.VirtualCard
+@model List<VirtualCardDto>
+@{
+    ViewData["Title"] = "Tarjetas Virtuales";
+    var accounts = ViewBag.Accounts as IEnumerable<ABP.Core.Application.DTOs.SavingsAccount.SavingsAccountDto>;
+}
+
+<div class="space-y-8">
+    <div class="flex items-center justify-between">
+        <div>
+            <h2 class="text-2xl font-bold abp-heading-xl tracking-tight">Tarjetas Virtuales</h2>
+            <p class="text-sm abp-text-muted mt-1">Tus tarjetas digitales atadas a tus cuentas de ahorro.</p>
+        </div>
+        <button type="button" onclick="document.getElementById('createCardModal').classList.remove('hidden')" class="abp-btn abp-btn-gold flex items-center gap-2">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+            Crear Nueva
+        </button>
+    </div>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        @foreach(var card in Model)
+        {
+            <div class="abp-glass-card rounded-2xl p-6 relative overflow-hidden transition-all duration-300 hover:translate-y-[-4px]">
+                <div class="absolute -right-12 -top-12 w-32 h-32 bg-gold/10 rounded-full blur-2xl"></div>
+                
+                <div class="flex justify-between items-start mb-8">
+                    <div class="flex items-center gap-2">
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="text-gold"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"></rect><line x1="1" y1="10" x2="23" y2="10"></line></svg>
+                        <span class="font-semibold tracking-wider text-sm">VIRTUAL</span>
+                    </div>
+                    <div class="text-right">
+                        <form asp-action="ToggleFreeze" asp-route-id="@card.Id" method="post">
+                            <button type="submit" class="text-xs font-medium px-2 py-1 rounded-full border @(card.IsFrozen ? "border-blue-400 text-blue-500 bg-blue-500/10" : "border-green-400 text-green-500 bg-green-500/10")">
+                                @(card.IsFrozen ? "?? Congelada" : "Activa")
+                            </button>
+                        </form>
+                    </div>
+                </div>
+
+                <div class="mb-6">
+                    <p class="text-[22px] tracking-[0.2em] font-mono font-medium drop-shadow-sm">
+                        @card.CardNumber.Substring(0,4) **** **** @card.CardNumber.Substring(12,4)
+                    </p>
+                </div>
+
+                <div class="flex justify-between items-end">
+                    <div>
+                        <p class="text-xs abp-text-muted mb-1">VÁLIDA HASTA</p>
+                        <p class="font-mono text-sm">@card.ExpirationDate.ToString("MM/yy")</p>
+                    </div>
+                    <div>
+                        <button type="button" onclick="verifyBiometricForCvv(@card.Id)" class="flex items-center gap-2 text-gold hover:text-gold-light transition-colors text-sm font-medium">
+                            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            <span id="cvv-display-@card.Id">Ver CVV</span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<!-- Create Modal -->
+<div id="createCardModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+    <div class="abp-panel rounded-2xl p-8 max-w-md w-full relative animate-fade-in-up">
+        <button onclick="this.closest('#createCardModal').classList.add('hidden')" class="absolute top-4 right-4 text-obsidian/40 hover:text-obsidian dark:text-ivory/40 dark:hover:text-ivory">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+        </button>
+        <h3 class="text-xl font-bold mb-6">Crear Tarjeta Virtual</h3>
+        <form asp-action="Create" method="post">
+            <div class="mb-6">
+                <label class="form-label">Seleccionar Cuenta de Ahorro</label>
+                <select name="savingsAccountId" class="form-control abp-select w-full mt-2" required>
+                    <option value="">-- Seleccione una cuenta --</option>
+                    @if(accounts != null) {
+                        foreach(var acc in accounts) {
+                            <option value="@acc.Id">@acc.AccountNumber - RD$ @acc.Amount.ToString("N2")</option>
+                        }
+                    }
+                </select>
+            </div>
+            <button type="submit" class="abp-btn abp-btn-gold w-full">Generar Tarjeta</button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        async function verifyBiometricForCvv(cardId) {
+            try {
+                // 1. Simular el request a WebAuthn (navigator.credentials.get)
+                // En produccion aqui se usaria fido2-net-lib y las credenciales registradas.
+                // Para el proposito de la demostracion, activaremos el biometria del navegador:
+                
+                const publicKeyCredentialRequestOptions = {
+                    challenge: new Uint8Array(32),
+                    timeout: 60000,
+                    userVerification: "required"
+                };
+
+                // Si el dispositivo soporta WebAuthn, pedira huella/FaceID:
+                let assertion = null;
+                try {
+                    assertion = await navigator.credentials.get({
+                        publicKey: publicKeyCredentialRequestOptions
+                    });
+                } catch (e) {
+                    console.log("WebAuthn cancelado o no soportado: ", e);
+                    // Fallback para demo si cancelan o no tienen hardware
+                    if(!confirm("¿Deseas confirmar tu identidad con tu PIN de seguridad?")) return;
+                    assertion = { id: "fallback_demo_assertion" };
+                }
+
+                if (assertion) {
+                    // 2. Enviar assertion al backend
+                    const response = await fetch(/Client/VirtualCards/GetCvv/, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ assertion: assertion.id })
+                    });
+
+                    if (response.ok) {
+                        const data = await response.json();
+                        const display = document.getElementById("cvv-display-" + cardId);
+                        display.innerText = data.cvv;
+                        display.classList.add('text-green-500');
+                        
+                        // Ocultar despues de 10 segundos
+                        setTimeout(() => {
+                            display.innerText = "Ver CVV";
+                            display.classList.remove('text-green-500');
+                        }, 10000);
+                    } else {
+                        alert("Error al verificar identidad.");
+                    }
+                }
+            } catch (err) {
+                console.error(err);
+                alert("Error procesando biometria.");
+            }
+        }
+    </script>
+}

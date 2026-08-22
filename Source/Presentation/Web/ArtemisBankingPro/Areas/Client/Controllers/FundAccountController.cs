@@ -1,4 +1,5 @@
 using ABP.Core.Application.Interfaces.Services;
+using ABP.Core.Application.Interfaces.IServices;
 using ABP.Core.Domain.Enums;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +23,7 @@ public class FundAccountController : Controller
     public async Task<IActionResult> Index()
     {
         var userId = User.FindFirstValue(ClaimTypes.NameIdentifier);
-        var accounts = await _savingsService.GetByUserIdAsync(userId);
+        var accounts = await _savingsService.GetByClientIdAsync(userId!);
         ViewBag.Accounts = accounts;
         return View();
     }

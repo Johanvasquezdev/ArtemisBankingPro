@@ -13,6 +13,7 @@ namespace ABP.Core.Domain.Entities
         //transaction origin
         public string Origin { get; set; } = string.Empty;
         public TransactionStatus Status { get; set; }
+        public TransactionCategory Category { get; set; } = TransactionCategory.Other;
 
         // Navigation properties
         public int SavingAccountId { get; set; }

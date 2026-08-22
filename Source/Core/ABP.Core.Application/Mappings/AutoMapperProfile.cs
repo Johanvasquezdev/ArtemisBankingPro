@@ -37,6 +37,7 @@ namespace ABP.Core.Application.Mappings
             CreateMap<Commerce, CommerceDto>().ReverseMap();
             CreateMap<CreditCardConsumption, CreditCardConsumptionDto>().ReverseMap();
             CreateMap<LoanInstallment, LoanInstallmentDto>().ReverseMap();
+            CreateMap<VirtualCard, ABP.Core.Application.DTOs.VirtualCard.VirtualCardDto>().ReverseMap();
         }
     }
 }

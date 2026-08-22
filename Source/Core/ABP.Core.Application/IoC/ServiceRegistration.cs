@@ -53,6 +53,7 @@ namespace ABP.Core.Application.IoC
             services.AddTransient<ILoanInstallmentService, LoanInstallmentService>();
             services.AddTransient<IDashboardService, DashboardService>();
             services.AddTransient<IPaymentProcessorService, PaymentProcessorService>();
+            services.AddTransient<IVirtualCardService, VirtualCardService>();
 
             services.AddScoped<ITransactionRecorder, TransactionRecorder>();
             services.AddScoped<IOverpaymentCalculator, AntiOverpaymentCalculator>();

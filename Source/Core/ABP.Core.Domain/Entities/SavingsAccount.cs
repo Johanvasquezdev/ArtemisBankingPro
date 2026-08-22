@@ -10,6 +10,7 @@ namespace ABP.Core.Domain.Entities
         public AccountType Type { get; set; }
         public AccountStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
+        public bool IsFrozen { get; set; } = false;
         public ICollection<Transaction> Transactions { get; set; } = [];
 
         // Foreign key to User

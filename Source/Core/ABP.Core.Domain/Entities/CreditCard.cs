@@ -13,6 +13,7 @@ namespace ABP.Core.Domain.Entities
         public string CVCHash { get; set; } = string.Empty;
         public CardStatus Status { get; set; }
         public DateTime CreatedAt { get; set; }
+        public bool IsFrozen { get; set; } = false;
         public ICollection<CreditCardConsumption> Consumptions { get; set; } = [];
 
         // foreign key to the associated account
