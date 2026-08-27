@@ -14,8 +14,8 @@
     var loans = ViewBag.Loans as IEnumerable<LoanDto> ?? new List<LoanDto>();
     
     decimal totalAssets = accounts.Sum(a => a.Balance);
-    decimal totalDebtCards = cards.Sum(c => c.Debt);
-    decimal totalDebtLoans = loans.Where(l => l.Status == ABP.Core.Domain.Enums.LoanStatus.Active || l.Status == ABP.Core.Domain.Enums.LoanStatus.Overdue).Sum(l => l.Amount - (l.AmountPaid ?? 0));
+    decimal totalDebtCards = cards.Sum(c => c.AmountOwed);
+    decimal totalDebtLoans = loans.Where(l => l.Status == ABP.Core.Domain.Enums.LoanStatus.Active).Sum(l => l.PendingAmount);
     decimal totalLiabilities = totalDebtCards + totalDebtLoans;
 }
 
@@ -119,10 +119,10 @@
                         <div class="p-4 border border-obsidian/10 rounded-xl bg-white hover:border-gold/50 transition-colors flex flex-col justify-between">
                             <div>
                                 <p class="text-xs text-obsidian/50 font-mono mb-1">**** @card.CardNumber.Substring(12)</p>
-                                <p class="text-sm font-medium text-obsidian mb-2">Deuda: @card.Debt.ToString("C2", culture)</p>
+                                <p class="text-sm font-medium text-obsidian mb-2">Deuda: @card.AmountOwed.ToString("C2", culture)</p>
                             </div>
                             <div class="w-full bg-obsidian/10 rounded-full h-1.5 overflow-hidden">
-                                <div class="bg-gradient-to-r from-red-400 to-red-600 h-1.5 rounded-full" style="width: @(card.Limit > 0 ? (card.Debt / card.Limit * 100).ToString("0", CultureInfo.InvariantCulture) : "0")%"></div>
+                                <div class="bg-gradient-to-r from-red-400 to-red-600 h-1.5 rounded-full" style="width: @(card.CreditLimit > 0 ? (card.AmountOwed / card.CreditLimit * 100).ToString("0", CultureInfo.InvariantCulture) : "0")%"></div>
                             </div>
                         </div>
                     }
@@ -140,14 +140,14 @@
                 </div>
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     @foreach(var loan in loans) {
-                        var statusColor = loan.Status == ABP.Core.Domain.Enums.LoanStatus.Active ? "text-emerald-600" : loan.Status == ABP.Core.Domain.Enums.LoanStatus.Paid ? "text-blue-600" : "text-red-600";
-                        var statusText = loan.Status == ABP.Core.Domain.Enums.LoanStatus.Active ? "Activo" : loan.Status == ABP.Core.Domain.Enums.LoanStatus.Paid ? "Pagado" : "Atrasado";
+                        var statusColor = loan.Status == ABP.Core.Domain.Enums.LoanStatus.Active ? "text-emerald-600" : loan.Status == ABP.Core.Domain.Enums.LoanStatus.Completed ? "text-blue-600" : "text-red-600";
+                        var statusText = loan.Status == ABP.Core.Domain.Enums.LoanStatus.Active ? "Activo" : loan.Status == ABP.Core.Domain.Enums.LoanStatus.Completed ? "Pagado" : "Atrasado";
                         <div class="p-4 border border-obsidian/10 rounded-xl bg-white hover:border-gold/50 transition-colors">
                             <div class="flex justify-between items-start mb-2">
                                 <p class="text-lg font-bold text-obsidian">@loan.Amount.ToString("C2", culture)</p>
                                 <span class="text-xs font-bold @statusColor bg-@statusColor.Replace("text-", "").Replace("600", "50") px-2 py-0.5 rounded-full">@statusText</span>
                             </div>
-                            <p class="text-xs text-obsidian/50">Pagado: @((loan.AmountPaid ?? 0).ToString("C2", culture))</p>
+                            <p class="text-xs text-obsidian/50">Pagado: @(((loan.Amount - loan.PendingAmount)).ToString("C2", culture))</p>
                         </div>
                     }
                     @if(!loans.Any()) {

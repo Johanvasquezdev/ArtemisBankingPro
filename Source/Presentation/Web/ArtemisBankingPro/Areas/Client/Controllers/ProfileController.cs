@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ABP.Core.Application.Interfaces.IServices;
 using System.Security.Claims;
@@ -34,8 +34,8 @@ public class ProfileController : Controller
         if (user == null) return NotFound();
 
         var accounts = await _savingsService.GetByClientIdAsync(userId);
-        var creditCards = await _creditCardService.GetByClientIdAsync(userId);
-        var loans = await _loanService.GetByClientIdAsync(userId);
+        var creditCards = await _creditCardService.GetActiveByClientIdAsync(userId);
+        var loans = await _loanService.GetActiveByClientIdAsync(userId);
 
         ViewBag.Accounts = accounts;
         ViewBag.CreditCards = creditCards;
