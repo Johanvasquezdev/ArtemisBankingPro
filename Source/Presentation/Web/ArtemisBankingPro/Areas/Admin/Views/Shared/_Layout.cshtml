@@ -69,9 +69,9 @@
     </aside>
 
     <!-- Main Content -->
-    <div class="flex min-h-screen flex-col lg:ml-64">
+    <div class="flex min-h-screen flex-col w-full lg:w-[calc(100%-16rem)] lg:ml-64">
         
-        <header class="abp-topbar bg-panel border-b border-obsidian/5 px-4 lg:px-8 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
+        <header class="abp-topbar w-full bg-panel border-b border-obsidian/5 px-4 lg:px-8 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
             <div class="flex items-center gap-4">
                 <button type="button" onclick="toggleSidebar()" class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-obsidian/5 text-obsidian/70 hover:bg-gold/10 hover:text-gold lg:hidden" aria-label="Abrir menú"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg></button>
                 <div>
@@ -90,7 +90,7 @@
             </div>
         </header>
 
-        <main class="abp-main flex-1 p-4 lg:p-8">
+        <main class="abp-main w-full flex-1 p-4 lg:p-8">
             @if (TempData["SuccessMessage"] is string success && !string.IsNullOrEmpty(success))
             {
                 <div class="flex items-center justify-between p-4 mb-6 bg-panel text-obsidian border border-gold/30 rounded-lg shadow-sm">
@@ -125,5 +125,7 @@
     @await RenderSectionAsync("Scripts", required: false)
 <script>function toggleSidebar(){var s=document.getElementById("main-sidebar");var b=document.getElementById("sidebar-backdrop");if(s.classList.contains("-translate-x-full")){s.classList.remove("-translate-x-full");b.classList.remove("hidden");setTimeout(()=>b.classList.remove("opacity-0"),10);}else{s.classList.add("-translate-x-full");b.classList.add("opacity-0");setTimeout(()=>b.classList.add("hidden"),300);}}</script></body>
 </html>
+
+
 
 
