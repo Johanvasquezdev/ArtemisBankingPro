@@ -1,0 +1,27 @@
+@model ArtemisBankingPro.Models.MarketingPortalViewModel
+@{
+    ViewData["Title"] = Model.Name;
+    Layout = "~/Views/Shared/_MarketingLayout.cshtml";
+}
+
+<section class="marketing-detail-hero">
+    <p class="landing-eyebrow">Ecosistema Artemis <span></span> @Model.Name</p>
+    <div class="marketing-detail-grid">
+        <div>
+            <h1>@Model.Title</h1>
+            <p class="marketing-detail-lede">@Model.Description</p>
+            <a asp-controller="Login" asp-action="Index" class="landing-primary">@Model.ActionLabel <span aria-hidden="true">→</span></a>
+        </div>
+        <aside class="marketing-detail-aside">
+            <span>Enfoque</span>
+            <strong>@Model.Focus</strong>
+            <p>@Model.Detail</p>
+        </aside>
+    </div>
+</section>
+
+<section class="marketing-detail-notes" aria-label="Características">
+    <article><span>01</span><h2>Información clara</h2><p>Las vistas muestran información relevante para orientar cada acción y consulta.</p></article>
+    <article><span>02</span><h2>Estados visibles</h2><p>Las operaciones y productos conservan su estado para una lectura inmediata.</p></article>
+    <article><span>03</span><h2>Acceso protegido</h2><p>La plataforma aplica autenticación y permisos según la responsabilidad del usuario.</p></article>
+</section>

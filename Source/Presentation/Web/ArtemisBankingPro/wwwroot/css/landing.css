@@ -1,0 +1,120 @@
+:root {
+    --mk-bg: #111212;
+    --mk-surface: #1b1c1d;
+    --mk-text: #f7f3ea;
+    --mk-muted: #aaa79f;
+    --mk-line: rgba(247, 243, 234, .16);
+    --mk-gold: #cfab5b;
+    --mk-gold-deep: #9f7a2a;
+}
+
+html[data-theme="light"] {
+    --mk-bg: #f7f5f0;
+    --mk-surface: #fffdf8;
+    --mk-text: #1b1b19;
+    --mk-muted: #6e6b64;
+    --mk-line: rgba(37, 33, 27, .15);
+}
+
+.marketing-body { background: var(--mk-bg); color: var(--mk-text); font-family: "DM Sans", sans-serif; }
+.marketing-shell { min-height: 100vh; background: radial-gradient(circle at 75% 0%, rgba(207,171,91,.10), transparent 28rem), var(--mk-bg); overflow: hidden; }
+.marketing-header, .marketing-main, .marketing-footer { width: min(1320px, calc(100% - 4rem)); margin-inline: auto; }
+.marketing-header { min-height: 92px; display: grid; grid-template-columns: 190px 1fr auto; align-items: center; gap: 2rem; border-bottom: 1px solid var(--mk-line); }
+.marketing-brand { display: block; width: 158px; }
+.marketing-brand .brand-logo { max-width: 158px; }
+.marketing-nav { display: flex; justify-content: center; gap: clamp(1rem, 2.4vw, 2.5rem); font-size: .78rem; letter-spacing: .06em; text-transform: uppercase; }
+.marketing-nav a, .marketing-footer a { color: var(--mk-muted); text-decoration: none; transition: color .2s ease; }
+.marketing-nav a:hover, .marketing-footer a:hover { color: var(--mk-gold); }
+.marketing-actions { display: flex; align-items: center; gap: .85rem; }
+.marketing-actions .theme-toggle { border: 1px solid var(--mk-line); color: var(--mk-text); }
+.marketing-login, .landing-primary { display: inline-flex; align-items: center; justify-content: center; gap: .8rem; border-radius: .35rem; background: var(--mk-gold); color: #171510; font-weight: 700; text-decoration: none; transition: transform .2s ease, background .2s ease; }
+.marketing-login { min-height: 42px; padding: 0 1.1rem; text-transform: uppercase; letter-spacing: .05em; font-size: .75rem; }
+.marketing-login:hover, .landing-primary:hover { background: #e0bd70; transform: translateY(-2px); }
+
+.landing-hero { position: relative; display: grid; grid-template-columns: minmax(0, 1.5fr) minmax(260px, .6fr); gap: 4rem; align-items: end; min-height: 680px; padding: clamp(6rem, 13vw, 11rem) 4.5rem 5rem; isolation: isolate; border-bottom: 1px solid var(--mk-line); background-image: radial-gradient(circle at 1px 1px, color-mix(in srgb, var(--mk-text) 52%, transparent) 1px, transparent 0); background-size: 30px 30px; }
+.landing-hero::after { content: ""; position: absolute; inset: 0; z-index: -1; background: linear-gradient(90deg, var(--mk-bg) 2%, transparent 55%, var(--mk-bg) 100%), linear-gradient(0deg, var(--mk-bg), transparent 40%); }
+.landing-orbit { position: absolute; z-index: -1; border: 1px solid color-mix(in srgb, var(--mk-gold) 42%, transparent); border-radius: 50%; pointer-events: none; }
+.landing-orbit-one { width: 48rem; height: 48rem; top: -23rem; right: 5%; }
+.landing-orbit-two { width: 27rem; height: 27rem; bottom: -20rem; left: 38%; }
+.landing-eyebrow { display: flex; align-items: center; gap: .65rem; color: var(--mk-gold); font-size: .7rem; letter-spacing: .16em; text-transform: uppercase; font-weight: 700; }
+.landing-eyebrow span { width: 2.6rem; height: 1px; background: currentColor; opacity: .7; }
+.landing-hero h1, .landing-index h2, .landing-principles h2, .landing-closing h2, .marketing-detail-hero h1, .legal-page h1, .contact-page h1 { margin: 1.25rem 0; font-family: "Cormorant Garamond", Georgia, serif; font-weight: 600; letter-spacing: -.035em; line-height: .93; color: var(--mk-text); }
+.landing-hero h1 { max-width: 850px; font-size: clamp(4.1rem, 8vw, 8.5rem); }
+.landing-hero h1 em, .landing-closing h2 em { color: var(--mk-gold); font-weight: 600; }
+.landing-lede, .landing-section-heading > p:last-child, .landing-closing > p, .marketing-detail-lede, .legal-intro { color: var(--mk-muted); line-height: 1.7; max-width: 630px; font-size: 1.03rem; }
+.landing-hero-actions { display: flex; align-items: center; gap: 1.5rem; margin-top: 2.1rem; }
+.landing-primary { min-height: 52px; padding: 0 1.4rem; }
+.landing-text-link { color: var(--mk-text); text-decoration: none; border-bottom: 1px solid var(--mk-line); padding-bottom: .25rem; font-size: .9rem; }
+.landing-hero-card { border: 1px solid var(--mk-line); padding: 1.6rem; background: color-mix(in srgb, var(--mk-surface) 82%, transparent); backdrop-filter: blur(18px); box-shadow: 0 22px 45px rgba(0,0,0,.13); }
+.landing-card-index, .landing-card-kicker, .landing-hero-card small { display: block; color: var(--mk-muted); font-size: .7rem; letter-spacing: .12em; text-transform: uppercase; }
+.landing-card-kicker { margin-top: 4.5rem; color: var(--mk-gold); }
+.landing-hero-card strong { display: block; margin: .65rem 0; color: var(--mk-text); font-family: "Cormorant Garamond", Georgia, serif; font-size: 2rem; line-height: 1.02; }
+.landing-hero-card p { color: var(--mk-muted); line-height: 1.55; font-size: .86rem; }
+.landing-card-rule { width: 100%; height: 1px; background: var(--mk-line); margin: 2.5rem 0 1rem; }
+
+.landing-index { padding: 8rem 4.5rem; }
+.landing-section-heading { display: grid; grid-template-columns: 1fr 1.2fr; gap: 1rem 3rem; align-items: end; margin-bottom: 4rem; }
+.landing-section-heading .landing-eyebrow { grid-column: 1 / -1; }
+.landing-index h2, .landing-principles h2 { margin: 0; font-size: clamp(3rem, 5vw, 5.6rem); max-width: 680px; }
+.landing-section-heading > p:last-child { margin: 0 0 .6rem; max-width: 430px; }
+.landing-portal-list { border-top: 1px solid var(--mk-line); }
+.landing-portal { display: grid; grid-template-columns: 4rem minmax(180px, 1fr) minmax(250px, 1.3fr) 2rem; gap: 1.5rem; align-items: center; min-height: 128px; padding: 1.6rem 0; border-bottom: 1px solid var(--mk-line); color: var(--mk-text); text-decoration: none; transition: transform .25s ease, background .25s ease; }
+.landing-portal:hover { transform: translateX(.65rem); background: color-mix(in srgb, var(--mk-gold) 7%, transparent); }
+.landing-portal-number { color: var(--mk-gold); font: 600 .85rem "Cormorant Garamond", Georgia, serif; }
+.landing-portal p { margin: 0 0 .3rem; color: var(--mk-muted); font-size: .68rem; letter-spacing: .14em; text-transform: uppercase; }
+.landing-portal h3 { margin: 0; font: 600 2.15rem "Cormorant Garamond", Georgia, serif; }
+.landing-portal-copy { color: var(--mk-muted); line-height: 1.5; font-size: .9rem; }
+.landing-portal-arrow { color: var(--mk-gold); font-size: 1.65rem; }
+
+.landing-principles { padding: 7rem 4.5rem; display: grid; grid-template-columns: .8fr 1.2fr; gap: 5rem; border-top: 1px solid var(--mk-line); background: color-mix(in srgb, var(--mk-surface) 43%, transparent); }
+.landing-principle-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--mk-line); border: 1px solid var(--mk-line); }
+.landing-principle-grid article { min-height: 260px; padding: 1.8rem; background: var(--mk-bg); }
+.landing-principle-grid span { color: var(--mk-gold); font-size: .75rem; }
+.landing-principle-grid h3 { margin: 3.3rem 0 .8rem; font: 600 1.7rem/1 "Cormorant Garamond", Georgia, serif; }
+.landing-principle-grid p { color: var(--mk-muted); font-size: .85rem; line-height: 1.6; }
+.landing-closing { padding: 9rem 2rem; text-align: center; border-top: 1px solid var(--mk-line); }
+.landing-closing .landing-eyebrow { justify-content: center; }
+.landing-closing h2 { font-size: clamp(3.5rem, 7vw, 7.4rem); }
+.landing-closing > p { margin: 0 auto 2rem; }
+
+.marketing-detail-hero, .legal-page, .contact-page { padding: 9rem 4.5rem 6rem; border-bottom: 1px solid var(--mk-line); }
+.marketing-detail-grid { display: grid; grid-template-columns: 1.2fr .55fr; gap: 5rem; align-items: end; margin-top: 1.6rem; }
+.marketing-detail-hero h1, .legal-page h1, .contact-page h1 { max-width: 750px; font-size: clamp(4rem, 7vw, 7rem); }
+.marketing-detail-lede { margin-bottom: 2.2rem; font-size: 1.1rem; }
+.marketing-detail-aside { padding: 1.7rem; border-left: 1px solid var(--mk-gold); background: color-mix(in srgb, var(--mk-surface) 82%, transparent); }
+.marketing-detail-aside span { text-transform: uppercase; letter-spacing: .14em; color: var(--mk-gold); font-size: .65rem; }
+.marketing-detail-aside strong { display: block; margin: .65rem 0; font: 600 2rem/1 "Cormorant Garamond", Georgia, serif; }
+.marketing-detail-aside p { color: var(--mk-muted); font-size: .87rem; line-height: 1.6; }
+.marketing-detail-notes { display: grid; grid-template-columns: repeat(3, 1fr); gap: 1px; background: var(--mk-line); border-bottom: 1px solid var(--mk-line); }
+.marketing-detail-notes article, .legal-grid article { padding: 2.5rem 4.5rem; background: var(--mk-bg); }
+.marketing-detail-notes span { color: var(--mk-gold); }
+.marketing-detail-notes h2, .legal-grid h2 { font: 600 2rem "Cormorant Garamond", Georgia, serif; margin: 3rem 0 .6rem; }
+.marketing-detail-notes p, .legal-grid p { color: var(--mk-muted); line-height: 1.65; font-size: .9rem; }
+.legal-page h1, .contact-page h1 { font-size: clamp(3.6rem, 6.3vw, 6.5rem); }
+.legal-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 1px; margin-top: 4rem; border: 1px solid var(--mk-line); background: var(--mk-line); }
+.legal-grid article { padding: 2rem; }
+.legal-grid h2 { margin: 0 0 1rem; }
+.contact-actions { margin-top: 4rem; border-top: 1px solid var(--mk-line); }
+.contact-actions a { display: grid; grid-template-columns: 4rem 1fr 2rem; align-items: center; min-height: 100px; color: var(--mk-text); text-decoration: none; border-bottom: 1px solid var(--mk-line); transition: transform .2s ease, background .2s ease; }
+.contact-actions a:hover { transform: translateX(.65rem); background: color-mix(in srgb, var(--mk-gold) 7%, transparent); }
+.contact-actions span { color: var(--mk-gold); }.contact-actions strong { font: 600 2rem "Cormorant Garamond", Georgia, serif; }.contact-actions em { color: var(--mk-gold); font-style: normal; font-size: 1.5rem; }
+.marketing-footer { display: grid; grid-template-columns: 1.5fr 1fr auto; gap: 2rem; padding: 2.4rem 0; align-items: end; border-top: 1px solid var(--mk-line); color: var(--mk-muted); font-size: .75rem; }
+.marketing-wordmark { color: var(--mk-text); font: 600 1.25rem "Cormorant Garamond", Georgia, serif; }.marketing-footer p { margin: .35rem 0 0; }.marketing-footer-links { display: flex; gap: 1.4rem; }
+
+@media (max-width: 960px) {
+    .marketing-header, .marketing-main, .marketing-footer { width: min(100% - 2rem, 1320px); }
+    .marketing-header { grid-template-columns: 1fr auto; }.marketing-nav { display: none; }
+    .landing-hero, .landing-index, .landing-principles, .marketing-detail-hero, .legal-page, .contact-page { padding-inline: 1.5rem; }
+    .landing-hero { grid-template-columns: 1fr; min-height: unset; padding-top: 7rem; }.landing-hero-card { max-width: 420px; }.landing-card-kicker { margin-top: 2rem; }
+    .landing-section-heading, .landing-principles, .marketing-detail-grid { grid-template-columns: 1fr; gap: 2rem; }.landing-section-heading > p:last-child { grid-column: auto; }
+    .landing-principle-grid { grid-template-columns: 1fr; }.landing-principle-grid article { min-height: unset; }.landing-principle-grid h3 { margin-top: 1.5rem; }
+    .marketing-detail-notes { grid-template-columns: 1fr; }.marketing-detail-notes article { padding: 2rem 1.5rem; }.marketing-footer { grid-template-columns: 1fr; }
+}
+@media (max-width: 640px) {
+    .marketing-header { min-height: 76px; }.marketing-brand { width: 135px; }.marketing-brand .brand-logo { max-width: 135px; }.marketing-login { padding-inline: .8rem; }.marketing-actions { gap: .45rem; }
+    .landing-hero { padding: 5rem 1.5rem 3rem; }.landing-hero h1 { font-size: clamp(3.5rem, 17vw, 5.2rem); }.landing-hero-actions { align-items: flex-start; flex-direction: column; gap: 1rem; }
+    .landing-index, .landing-principles { padding-top: 5rem; padding-bottom: 5rem; }.landing-section-heading { margin-bottom: 2rem; }.landing-portal { grid-template-columns: 2rem 1fr 1.5rem; gap: .8rem; }.landing-portal-copy { grid-column: 2 / -1; }.landing-portal h3 { font-size: 1.8rem; }
+    .legal-grid { grid-template-columns: 1fr; }.marketing-detail-hero, .legal-page, .contact-page { padding-top: 5rem; }.marketing-detail-aside { margin-top: 1rem; }.contact-actions strong { font-size: 1.6rem; }.marketing-footer { padding: 2rem 0; }
+}
+
+@media (prefers-reduced-motion: reduce) { *, *::before, *::after { scroll-behavior: auto !important; transition-duration: .01ms !important; animation-duration: .01ms !important; } }

@@ -1,0 +1,15 @@
+@{
+    ViewData["Title"] = "Contacto";
+    Layout = "~/Views/Shared/_MarketingLayout.cshtml";
+}
+
+<section class="contact-page">
+    <p class="landing-eyebrow">Asistencia</p>
+    <h1>Una consulta, en el canal correcto.</h1>
+    <p class="legal-intro">Para probar o administrar un perfil, inicia sesión con una cuenta autorizada. Para validar una identidad nueva, utiliza el registro con cédula y verificación OCR.</p>
+    <div class="contact-actions">
+        <a asp-controller="Login" asp-action="Index"><span>01</span><strong>Acceder a mi cuenta</strong><em>→</em></a>
+        <a asp-controller="AdvancedRegistration" asp-action="Step1"><span>02</span><strong>Iniciar mi registro</strong><em>→</em></a>
+        <a href="~/Home/HermesPay"><span>03</span><strong>Conocer Hermes Pay</strong><em>→</em></a>
+    </div>
+</section>
