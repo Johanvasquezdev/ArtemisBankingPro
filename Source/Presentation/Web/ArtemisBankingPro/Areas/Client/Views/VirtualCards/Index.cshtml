@@ -1,97 +1,125 @@
-﻿@using ABP.Core.Application.DTOs.VirtualCard
-@using System.Globalization
-@model List<VirtualCardDto>
+﻿@using System.Globalization
+@model IEnumerable<ABP.Core.Application.DTOs.VirtualCard.VirtualCardDto>
 @{
     ViewData["Title"] = "Tarjetas Virtuales";
     Layout = "~/Views/Shared/_Layout.cshtml";
+    var culture = new CultureInfo("es-DO");
     var accounts = ViewBag.Accounts as IEnumerable<ABP.Core.Application.DTOs.SavingsAccount.SavingsAccountDto>;
-    var culture = CultureInfo.GetCultureInfo("es-DO");
 }
 
-<div class="space-y-8">
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
-        <div>
-            <div class="flex items-center gap-2 mb-2">
-                <svg class="text-gold" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-                <h2 class="text-2xl font-serif font-medium text-obsidian tracking-tight">Tarjetas Virtuales Desechables</h2>
-            </div>
-            <p class="text-sm text-obsidian/60">Gestiona tarjetas virtuales temporales atadas a tus cuentas locales para compras seguras.</p>
-        </div>
-        <button type="button" onclick="document.getElementById('createCardModal').classList.remove('hidden')" class="bg-obsidian text-ivory hover:bg-gold px-5 py-2.5 rounded-lg font-medium transition-colors shadow-md flex items-center gap-2 text-sm shrink-0">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            Nueva Tarjeta
-        </button>
+<div class="mb-10 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center animate-fade-in-up">
+    <div>
+        <h1 class="font-serif text-3xl font-bold text-obsidian mb-2">Tarjetas Virtuales</h1>
+        <p class="text-obsidian/60 max-w-2xl text-sm leading-relaxed">Genera tarjetas desechables para proteger tus datos en compras online. Control total sobre tus suscripciones con congelamiento instantneo.</p>
     </div>
+    <button onclick="document.getElementById('createCardModal').classList.remove('hidden')" class="shrink-0 rounded-full bg-obsidian px-6 py-3 text-sm font-semibold text-white shadow-xl shadow-obsidian/20 transition-all hover:-translate-y-1 hover:bg-gold hover:shadow-gold/20 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        Generar Tarjeta
+    </button>
+</div>
 
-    @if (Model == null || !Model.Any())
+<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8 relative z-10">
+    @if (!Model.Any())
     {
-        <div class="p-12 bg-panel abp-glass-card abp-glow-border border border-obsidian/10 rounded-xl text-center">
-            <div class="w-16 h-16 rounded-full bg-obsidian/5 flex items-center justify-center mx-auto mb-4 text-gold">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        <div class="col-span-full py-16 flex flex-col items-center justify-center text-center bg-panel border border-obsidian/10 rounded-3xl shadow-sm">
+            <div class="w-24 h-24 bg-gold/10 rounded-full flex items-center justify-center text-gold mb-6">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="5" width="20" height="14" rx="2" ry="2"></rect><line x1="2" y1="10" x2="22" y2="10"></line></svg>
             </div>
-            <h3 class="font-serif text-xl font-medium text-obsidian mb-2">Sin Tarjetas Activas</h3>
-            <p class="text-obsidian/60 text-sm max-w-sm mx-auto mb-6">Genera una tarjeta virtual gratuita al instante para proteger tus datos reales al comprar en internet.</p>
-            <button type="button" onclick="document.getElementById('createCardModal').classList.remove('hidden')" class="text-gold font-semibold hover:text-gold-light transition-colors">Crear primera tarjeta &rarr;</button>
+            <h2 class="text-xl font-bold font-serif text-obsidian mb-2">No tienes tarjetas virtuales activas</h2>
+            <p class="text-obsidian/60 max-w-sm mb-6">Protege tus compras online generando una tarjeta digital al instante.</p>
+            <button onclick="document.getElementById('createCardModal').classList.remove('hidden')" class="text-gold font-bold hover:text-obsidian transition-colors underline underline-offset-4">Generar ahora</button>
         </div>
     }
     else
     {
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            @foreach(var card in Model)
+        <div class="col-span-full grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-8">
+            @foreach (var card in Model)
             {
-                <article class="abp-credit-card relative group @(card.IsFrozen ? "opacity-75 grayscale-[50%]" : "")" aria-label="Tarjeta Virtual">
-                    <div class="abp-credit-card-glow" aria-hidden="true"></div>
-                    
-                    <div class="abp-credit-card-content">
-                        <div class="abp-credit-card-header">
-                            <img class="abp-credit-card-logo" src="@Url.Content("~/images/artemis-banking-logo-light.svg")" alt="Artemis Banking Pro" />
-                            <div class="flex flex-col items-end gap-1">
-                                <svg class="abp-credit-card-nfc" viewBox="0 0 32 32">
-                                    <path d="M7.5 12.5a7 7 0 0 0 0 7" /><path d="M12 9a11.5 11.5 0 0 0 0 14" /><path d="M16.5 5.5a16.5 16.5 0 0 0 0 21" /><path d="M22 12.5a7 7 0 0 1 0 7" />
-                                </svg>
-                                <span class="text-[0.65rem] font-bold tracking-widest text-white/50 uppercase">Virtual</span>
+                <article class="group relative w-full aspect-[1.586] rounded-3xl overflow-hidden shadow-2xl transition-all duration-500 hover:-translate-y-2 hover:shadow-gold/20">
+                    <!-- Premium Glassmorphism Background -->
+                    <div class="absolute inset-0 bg-gradient-to-br from-[#111] via-obsidian to-[#222]"></div>
+                    <!-- Mesh Gradient / Noise -->
+                    <div class="absolute inset-0 bg-[url('/images/noise.png')] opacity-20 mix-blend-overlay pointer-events-none"></div>
+                    <!-- Holographic Glow -->
+                    <div class="absolute -top-32 -right-32 w-64 h-64 bg-gold/20 rounded-full blur-[80px] pointer-events-none group-hover:bg-gold/40 transition-colors duration-700"></div>
+                    <div class="absolute -bottom-32 -left-32 w-64 h-64 bg-blue-500/20 rounded-full blur-[80px] pointer-events-none group-hover:bg-blue-400/40 transition-colors duration-700"></div>
+
+                    @if (card.IsFrozen)
+                    {
+                        <!-- Frost Effect if frozen -->
+                        <div class="absolute inset-0 bg-white/10 backdrop-blur-[2px] z-20 transition-all duration-300"></div>
+                    }
+
+                    <div class="relative z-30 h-full p-8 flex flex-col justify-between">
+                        <!-- Top: Logo & Network -->
+                        <div class="flex justify-between items-start">
+                            <span class="font-serif font-bold text-white text-xl tracking-widest drop-shadow-md">ARTEMIS</span>
+                            <svg class="w-12 h-8" viewBox="0 0 36 24" fill="none">
+                                <circle cx="12" cy="12" r="12" fill="#EA001B" fill-opacity="0.8"/>
+                                <circle cx="24" cy="12" r="12" fill="#F79E1B" fill-opacity="0.8"/>
+                                <path d="M18 20.47a11.97 11.97 0 004.24-8.47A11.97 11.97 0 0018 3.53a11.97 11.97 0 00-4.24 8.47A11.97 11.97 0 0018 20.47z" fill="#FF5F00"/>
+                            </svg>
+                        </div>
+
+                        <!-- Middle: Chip & Contactless -->
+                        <div class="flex flex-col gap-6">
+                            <div class="w-12 h-10 rounded bg-gradient-to-br from-[#F5D76E] to-[#CBA358] opacity-90 shadow-sm overflow-hidden relative">
+                                <div class="absolute inset-0 border border-black/20 rounded"></div>
+                                <div class="absolute inset-y-0 left-1/2 w-px bg-black/10"></div>
+                                <div class="absolute inset-x-0 top-1/2 h-px bg-black/10"></div>
+                            </div>
+                            
+                            <!-- Card Number -->
+                            <div class="font-mono text-white text-2xl tracking-[0.15em] drop-shadow-md">
+                                @string.Join(" ", Enumerable.Range(0, 4).Select(i => card.CardNumber.Substring(i * 4, 4)))
                             </div>
                         </div>
 
-                        <div class="abp-credit-card-number mt-4 mb-2 text-xl tracking-[0.15em] font-mono drop-shadow-md relative">
-                            @card.CardNumber.Substring(0,4) •••• •••• @card.CardNumber.Substring(12,4)
-                        </div>
-
-                        <div class="abp-credit-card-footer mt-auto flex justify-between items-end border-t border-white/10 pt-4">
+                        <!-- Bottom: Details -->
+                        <div class="flex justify-between items-end">
                             <div>
-                                <span class="abp-credit-card-label">Expira</span>
-                                <strong>@card.ExpirationDate.ToString("MM/yy")</strong>
+                                <span class="block text-[8px] text-white/50 uppercase tracking-widest mb-1">Titular</span>
+                                <span class="font-bold text-white tracking-widest uppercase drop-shadow-md text-sm">CLIENTE PRIVADO</span>
                             </div>
-                            <div class="text-center relative">
-                                <span class="abp-credit-card-label">CVV</span>
-                                <strong id="cvv-display-@card.Id" class="text-transparent bg-white/20 rounded px-3 cursor-pointer select-none blur-sm hover:blur-none transition-all duration-300 relative z-10" onclick="verifyBiometricForCvv(@card.Id)">•••</strong>
-                                <div class="absolute inset-0 flex items-center justify-center opacity-0 hover:opacity-100 pointer-events-none transition-opacity">
-                                    <svg class="w-4 h-4 text-white drop-shadow-md" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"/></svg>
+                            <div class="flex gap-6">
+                                <div>
+                                    <span class="block text-[8px] text-white/50 uppercase tracking-widest mb-1">Vence</span>
+                                    <span class="font-mono text-white text-sm">@card.ExpirationDate.ToString("MM/yy")</span>
+                                </div>
+                                <div class="relative group/cvv">
+                                    <span class="block text-[8px] text-white/50 uppercase tracking-widest mb-1">CVV</span>
+                                    <button type="button" class="font-mono text-gold bg-white/10 px-2 py-0.5 rounded text-sm hover:bg-gold hover:text-obsidian transition-colors focus:outline-none" onclick="verifyBiometricForCvv(@card.Id, this)">
+                                        VER
+                                    </button>
                                 </div>
                             </div>
                         </div>
                     </div>
-                    
-                    <!-- Actions Overlay -->
-                    <div class="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-obsidian/90 to-transparent opacity-0 translate-y-4 group-hover:opacity-100 group-hover:translate-y-0 transition-all duration-300 flex justify-end gap-2 rounded-b-2xl">
-                        <form asp-action="ToggleFreeze" asp-route-id="@card.Id" method="post" class="m-0">
-                            <button type="submit" class="bg-white/10 backdrop-blur-md border border-white/20 text-white text-xs px-4 py-2 rounded-lg hover:bg-gold hover:border-gold transition-colors flex items-center gap-1.5 shadow-lg">
-                                @if(card.IsFrozen) {
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"></path></svg>
-                                    <span>Descongelar</span>
-                                } else {
-                                    <svg class="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z"></path></svg>
-                                    <span>Congelar</span>
-                                }
-                            </button>
-                        </form>
-                    </div>
-                    @if(card.IsFrozen) {
-                        <div class="absolute top-4 right-4 bg-obsidian/80 backdrop-blur-md border border-white/10 text-white text-[0.65rem] uppercase tracking-wider font-bold px-3 py-1.5 rounded-full shadow-lg flex items-center gap-1.5 z-10">
-                            <svg class="w-3 h-3 text-gold" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z"></path></svg>
-                            Congelada
+
+                    <!-- Overlay Actions (Hover) -->
+                    <div class="absolute inset-0 bg-obsidian/80 backdrop-blur-sm z-40 opacity-0 group-hover:opacity-100 transition-opacity duration-300 flex items-center justify-center p-6">
+                        <div class="flex flex-col gap-3 w-full max-w-[200px] translate-y-4 group-hover:translate-y-0 transition-transform duration-500">
+                            <form asp-action="ToggleFreeze" asp-route-id="@card.Id" method="post" class="w-full">
+                                <button type="submit" class="w-full bg-white text-obsidian text-sm font-bold px-4 py-3 rounded-xl hover:bg-gold transition-colors flex items-center justify-center gap-2 shadow-lg">
+                                    @if(card.IsFrozen) {
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 11c0 3.517-1.009 6.799-2.753 9.571m-3.44-2.04l.054-.09A13.916 13.916 0 008 11a4 4 0 118 0c0 1.017-.07 2.019-.203 3m-2.118 6.844A21.88 21.88 0 0015.171 17m3.839 1.132c.645-2.266.99-4.659.99-7.132A8 8 0 008 4.07M3 15.364c.64-1.319 1-2.8 1-4.364 0-1.457.39-2.823 1.07-4"></path></svg>
+                                        <span>Descongelar</span>
+                                    } else {
+                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                        <span>Congelar Tarjeta</span>
+                                    }
+                                </button>
+                            </form>
+                            @if(card.IsFrozen) {
+                                <div class="text-center">
+                                    <span class="inline-flex items-center justify-center gap-1.5 text-xs text-white uppercase tracking-widest font-bold">
+                                        <svg class="w-3 h-3 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8V7a4 4 0 00-8 0v4h8z"></path></svg>
+                                        Congelada
+                                    </span>
+                                </div>
+                            }
                         </div>
-                    }
+                    </div>
                 </article>
             }
         </div>
@@ -99,22 +127,22 @@
 </div>
 
 <!-- Create Modal -->
-<div id="createCardModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-obsidian/60 backdrop-blur-sm p-4">
-    <div class="bg-panel border border-obsidian/10 rounded-2xl p-8 max-w-md w-full relative shadow-2xl animate-fade-in-up">
-        <button onclick="this.closest('#createCardModal').classList.add('hidden')" class="absolute top-4 right-4 text-obsidian/40 hover:text-obsidian transition-colors">
+<div id="createCardModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-obsidian/80 backdrop-blur-md p-4">
+    <div class="bg-panel border border-white/10 rounded-3xl p-8 max-w-md w-full relative shadow-2xl animate-fade-in-up">
+        <button onclick="this.closest('#createCardModal').classList.add('hidden')" class="absolute top-6 right-6 text-obsidian/40 hover:text-obsidian transition-colors">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
-        <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center text-gold">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+        <div class="flex items-center gap-4 mb-8">
+            <div class="w-12 h-12 rounded-2xl bg-gold/10 flex items-center justify-center text-gold shadow-inner">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
             </div>
             <h3 class="font-serif text-2xl font-bold text-obsidian">Nueva Tarjeta</h3>
         </div>
         <form asp-action="Create" method="post" class="space-y-6">
             <div>
-                <label class="block text-sm font-medium text-obsidian mb-2">Cuenta de Ahorro Vinculada</label>
+                <label class="block text-xs font-bold text-obsidian/70 uppercase tracking-wider mb-2">Cuenta de Origen</label>
                 <div class="relative">
-                    <select name="savingsAccountId" class="w-full bg-white border border-obsidian/20 rounded-lg pl-4 pr-10 py-3 text-obsidian focus:ring-2 focus:ring-gold focus:border-transparent outline-none appearance-none" required>
+                    <select name="savingsAccountId" class="w-full bg-transparent border-b-2 border-obsidian/20 px-0 py-3 text-lg text-obsidian focus:border-gold outline-none appearance-none transition-colors cursor-pointer" required>
                         <option value="">-- Seleccione una cuenta --</option>
                         @if(accounts != null) {
                             foreach(var acc in accounts) {
@@ -122,70 +150,83 @@
                             }
                         }
                     </select>
-                    <div class="absolute inset-y-0 right-0 flex items-center pr-3 pointer-events-none text-obsidian/50">
+                    <div class="absolute inset-y-0 right-0 flex items-center pointer-events-none text-obsidian/50">
                         <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
                     </div>
                 </div>
-                <p class="text-xs text-obsidian/50 mt-2">Los fondos se deducirán directamente de esta cuenta al procesar compras.</p>
+                <p class="text-xs text-obsidian/50 mt-3 leading-relaxed">Los fondos se deducirn directamente de esta cuenta al procesar compras. La tarjeta es desechable y puede eliminarse o congelarse en cualquier momento.</p>
             </div>
-            <button type="submit" class="w-full bg-obsidian text-ivory hover:bg-gold py-3.5 rounded-lg font-semibold transition-colors shadow-md flex justify-center items-center gap-2">
+            <button type="submit" class="w-full bg-obsidian text-ivory hover:bg-gold py-4 rounded-xl font-bold transition-colors shadow-xl shadow-obsidian/10 mt-8 text-lg flex justify-center items-center gap-2">
                 Generar y Activar Tarjeta
             </button>
         </form>
     </div>
 </div>
 
-@section Scripts {
-    <script>
-        async function verifyBiometricForCvv(cardId) {
-            try {
-                // 1. Simular el request a WebAuthn
-                const publicKeyCredentialRequestOptions = {
-                    challenge: new Uint8Array(32),
-                    timeout: 60000,
-                    userVerification: "required"
-                };
+<script>
+    async function verifyBiometricForCvv(cardId, buttonElement) {
+        try {
+            // Animacion de carga simple
+            const originalText = buttonElement.innerText;
+            buttonElement.innerText = "...";
+            buttonElement.disabled = true;
 
-                let assertion = null;
-                try {
+            const publicKeyCredentialRequestOptions = {
+                challenge: new Uint8Array(32),
+                timeout: 60000,
+                userVerification: "required"
+            };
+
+            let assertion = null;
+            try {
+                if (navigator.credentials && navigator.credentials.get) {
                     assertion = await navigator.credentials.get({
                         publicKey: publicKeyCredentialRequestOptions
                     });
-                } catch (e) {
-                    console.log("WebAuthn cancelado o no soportado: ", e);
-                    if(!confirm("No se detectó biometría. ¿Deseas usar tu PIN de seguridad (Modo Demo)?")) return;
-                    assertion = { id: "fallback_demo_assertion" };
+                } else {
+                    throw new Error("WebAuthn not supported");
                 }
-
-                if (assertion) {
-                    // Added cardId to the query string so the controller receives the id
-                    const response = await fetch('/Client/VirtualCards/GetCvv?id=' + cardId, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ assertion: assertion.id })
-                    });
-
-                    if (response.ok) {
-                        const data = await response.json();
-                        const display = document.getElementById("cvv-display-" + cardId);
-                        display.innerText = data.cvv;
-                        display.classList.remove('text-transparent', 'bg-white/20', 'blur-sm');
-                        display.classList.add('text-white');
-                        
-                        // Ocultar despues de 10 segundos
-                        setTimeout(() => {
-                            display.innerText = "•••";
-                            display.classList.add('text-transparent', 'bg-white/20', 'blur-sm');
-                            display.classList.remove('text-white');
-                        }, 10000);
-                    } else {
-                        alert("Error al verificar identidad.");
-                    }
+            } catch (e) {
+                console.log("WebAuthn fallback: ", e);
+                if(!confirm("No se detect biometra. Deseas usar tu PIN de seguridad (Modo Demo)?")) {
+                    buttonElement.innerText = originalText;
+                    buttonElement.disabled = false;
+                    return;
                 }
-            } catch (err) {
-                console.error(err);
-                alert("Error procesando biometría.");
+                assertion = { id: "fallback_demo_assertion" };
             }
+
+            if (assertion) {
+                const response = await fetch('/Client/VirtualCards/GetCvv?id=' + cardId, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ assertion: assertion.id })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    buttonElement.innerText = data.cvv;
+                    buttonElement.classList.remove('bg-white/10', 'text-gold');
+                    buttonElement.classList.add('bg-white', 'text-obsidian');
+                    
+                    setTimeout(() => {
+                        buttonElement.innerText = originalText;
+                        buttonElement.classList.remove('bg-white', 'text-obsidian');
+                        buttonElement.classList.add('bg-white/10', 'text-gold');
+                        buttonElement.disabled = false;
+                    }, 5000);
+                } else {
+                    alert("Error al verificar identidad.");
+                    buttonElement.innerText = originalText;
+                    buttonElement.disabled = false;
+                }
+            }
+        } catch (err) {
+            console.error(err);
+            alert("Error procesando biometra.");
+            buttonElement.innerText = "VER";
+            buttonElement.disabled = false;
         }
-    </script>
-}
+    }
+</script>
+

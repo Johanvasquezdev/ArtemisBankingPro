@@ -1,9 +1,9 @@
-@model ABP.Core.Application.ViewModels.Client.ClientHomeViewModel
+﻿@model ABP.Core.Application.ViewModels.Client.ClientHomeViewModel
 @{
     ViewData["Title"] = "Inicio";
     var culture = CultureInfo.GetCultureInfo("es-DO");
     string MaskCard(string cardNumber)
-        => cardNumber.Length >= 4 ? $"•••• •••• •••• {cardNumber[^4..]}" : cardNumber;
+        => cardNumber.Length >= 4 ? $"â€¢â€¢â€¢â€¢ â€¢â€¢â€¢â€¢ â€¢â€¢â€¢â€¢ {cardNumber[^4..]}" : cardNumber;
 }
 
 <!-- Welcome Section -->
@@ -20,7 +20,7 @@
         <svg class="mt-0.5 shrink-0" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
         </svg>
-        <span class="text-sm font-medium">Tiene préstamo(s) en mora. Le recomendamos realizar el pago de sus cuotas pendientes lo antes posible para mantener su estatus de élite.</span>
+        <span class="text-sm font-medium">Tiene prÃ©stamo(s) en mora. Le recomendamos realizar el pago de sus cuotas pendientes lo antes posible para mantener su estatus de Ã©lite.</span>
     </div>
 }
 
@@ -122,7 +122,7 @@
         <div class="bg-panel abp-glass-card abp-glow-border border border-obsidian/10 rounded-xl p-1 overflow-hidden">
             @if (Model.RecentTransactions.Count == 0)
             {
-                <div class="p-8 text-center text-sm text-obsidian/60">Aún no tiene transacciones.</div>
+                <div class="p-8 text-center text-sm text-obsidian/60">AÃºn no tiene transacciones.</div>
             }
             else
             {
@@ -133,7 +133,7 @@
                         <div class="p-4 grid grid-cols-[minmax(0,1fr)_auto] items-start gap-4 hover:bg-obsidian/[0.02] transition-colors">
                             <div class="min-w-0">
                                 <div class="abp-transaction-description font-semibold text-base leading-snug text-obsidian mb-1" title="@TransactionDisplayText.LocalizeDescription(txn.Description)">@TransactionDisplayText.LocalizeDescription(txn.Description)</div>
-                                <div class="text-sm text-obsidian/70 leading-snug">@txn.TransactionDate.ToString("dd/MM/yyyy") · @txn.Beneficiary</div>
+                                <div class="text-sm text-obsidian/70 leading-snug">@txn.TransactionDate.ToString("dd/MM/yyyy") Â· @txn.Beneficiary</div>
                             </div>
                             <div class="shrink-0 text-right whitespace-nowrap">
                                 <div class="font-semibold text-lg leading-tight @(isDebit ? "text-obsidian" : "text-green-600")">
@@ -158,19 +158,19 @@
     <div>
         <div class="flex items-center gap-2 mb-6">
             <svg class="text-gold opacity-70" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2" ry="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
-            <h2 class="font-serif text-xl font-medium text-obsidian/80">Tarjetas de Crédito</h2>
+            <h2 class="font-serif text-xl font-medium text-obsidian/80">Tarjetas de CrÃ©dito</h2>
         </div>
         
         @if (Model.CreditCards.Count == 0)
         {
-            <div class="text-sm text-obsidian/50">No posee tarjetas de crédito.</div>
+            <div class="text-sm text-obsidian/50">No posee tarjetas de crÃ©dito.</div>
         }
         else
         {
             <div class="space-y-4">
                 @foreach (var card in Model.CreditCards)
                 {
-                    <article class="abp-credit-card" aria-label="Tarjeta de crédito terminada en @(card.CardNumber.Length >= 4 ? card.CardNumber[^4..] : card.CardNumber)">
+                    <article class="abp-credit-card" aria-label="Tarjeta de crÃ©dito terminada en @(card.CardNumber.Length >= 4 ? card.CardNumber[^4..] : card.CardNumber)">
                         <div class="abp-credit-card-glow" aria-hidden="true"></div>
                         
                         <div class="abp-credit-card-content">
@@ -212,12 +212,12 @@
     <div>
         <div class="flex items-center gap-2 mb-6">
             <svg class="text-gold opacity-70" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            <h2 class="font-serif text-2xl font-medium text-obsidian/80">Préstamos</h2>
+            <h2 class="font-serif text-2xl font-medium text-obsidian/80">PrÃ©stamos</h2>
         </div>
         
         @if (Model.Loans.Count == 0)
         {
-            <div class="text-sm text-obsidian/50">No posee préstamos activos.</div>
+            <div class="text-sm text-obsidian/50">No posee prÃ©stamos activos.</div>
         }
         else
         {
@@ -226,10 +226,10 @@
                 {
                     <div class="bg-panel abp-glass-card abp-glow-border border border-obsidian/10 rounded-xl p-6">
                         <div class="flex justify-between items-center mb-3">
-                            <span class="font-serif text-lg font-medium text-obsidian">Préstamo @loan.LoanNumber</span>
+                            <span class="font-serif text-lg font-medium text-obsidian">PrÃ©stamo @loan.LoanNumber</span>
                             @if (loan.IsOnTime)
                             {
-                                <span class="px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-green-50 text-green-700 rounded-full border border-green-200">Al día</span>
+                                <span class="px-3 py-1 text-xs font-semibold uppercase tracking-wider bg-green-50 text-green-700 rounded-full border border-green-200">Al dÃ­a</span>
                             }
                             else
                             {
@@ -303,7 +303,7 @@
                 const getChartTextColor = () => document.documentElement.dataset.theme === 'dark' ? '#F4F4F5' : '#1E1E1E';
                 
                 const financeChart = new Chart(ctx, {
-                    type: 'doughnut',
+                    type: 'bar',
                     data: {
                         labels: labels,
                         datasets: [{
@@ -325,7 +325,7 @@
                     },
                     options: {
                         responsive: true,
-                        maintainAspectRatio: false,
+                        maintainAspectRatio: false, scales: { x: { ticks: { color: getChartTextColor() } }, y: { ticks: { color: getChartTextColor() } } },
                         plugins: {
                             legend: {
                                 position: 'right',
@@ -358,3 +358,4 @@
         });
     </script>
 }
+

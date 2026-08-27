@@ -1,68 +1,66 @@
-﻿@using ABP.Core.Application.DTOs.SavingsGoal
-@using System.Globalization
-@model List<SavingsGoalDto>
+﻿@using System.Globalization
+@model IEnumerable<ABP.Core.Application.DTOs.SavingsGoal.SavingsGoalDto>
 @{
     ViewData["Title"] = "Bolsillos de Ahorro";
     Layout = "~/Views/Shared/_Layout.cshtml";
-    var culture = CultureInfo.GetCultureInfo("es-DO");
+    var culture = new CultureInfo("es-DO");
 }
 
-<div class="space-y-8">
-    <div class="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6">
-        <div>
-            <div class="flex items-center gap-2 mb-2">
-                <svg class="text-gold" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
-                <h2 class="text-2xl font-serif font-medium text-obsidian tracking-tight">Bolsillos de Ahorro</h2>
-            </div>
-            <p class="text-sm text-obsidian/60">Organiza tus metas financieras y ahorra automáticamente con el redondeo de compras.</p>
-        </div>
-        <button type="button" onclick="document.getElementById('createGoalModal').classList.remove('hidden')" class="bg-obsidian text-ivory hover:bg-gold px-5 py-2.5 rounded-lg font-medium transition-colors shadow-md flex items-center gap-2 text-sm shrink-0">
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
-            Nuevo Bolsillo
-        </button>
+<div class="mb-10 flex flex-col items-start justify-between gap-6 sm:flex-row sm:items-center animate-fade-in-up">
+    <div>
+        <h1 class="font-serif text-3xl font-bold text-obsidian mb-2">Bolsillos Inteligentes</h1>
+        <p class="text-obsidian/60 max-w-2xl text-sm leading-relaxed">Organiza tus finanzas separando dinero para objetivos especficos. Activa el redondeo automtico para ahorrar sin darte cuenta con cada compra.</p>
     </div>
+    <button onclick="document.getElementById('createGoalModal').classList.remove('hidden')" class="shrink-0 rounded-full bg-obsidian px-6 py-3 text-sm font-semibold text-white shadow-xl shadow-obsidian/20 transition-all hover:-translate-y-1 hover:bg-gold hover:shadow-gold/20 flex items-center gap-2">
+        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path></svg>
+        Nuevo Bolsillo
+    </button>
+</div>
 
-    @if (Model == null || !Model.Any())
+<div class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 relative z-10">
+    @if (!Model.Any())
     {
-        <div class="p-12 bg-panel abp-glass-card abp-glow-border border border-obsidian/10 rounded-xl text-center">
-            <div class="w-16 h-16 rounded-full bg-obsidian/5 flex items-center justify-center mx-auto mb-4 text-gold">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg>
+        <div class="col-span-full py-16 flex flex-col items-center justify-center text-center bg-panel border border-obsidian/10 rounded-3xl shadow-sm">
+            <div class="w-24 h-24 bg-gold/10 rounded-full flex items-center justify-center text-gold mb-6">
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
             </div>
-            <h3 class="font-serif text-xl font-medium text-obsidian mb-2">Aún no tienes bolsillos</h3>
-            <p class="text-obsidian/60 text-sm max-w-sm mx-auto mb-6">Crea metas de ahorro separadas de tu cuenta principal para organizar mejor tus finanzas.</p>
-            <button type="button" onclick="document.getElementById('createGoalModal').classList.remove('hidden')" class="text-gold font-semibold hover:text-gold-light transition-colors">Crear primer bolsillo &rarr;</button>
+            <h2 class="text-xl font-bold font-serif text-obsidian mb-2">No tienes bolsillos activos</h2>
+            <p class="text-obsidian/60 max-w-sm mb-6">Empieza a ahorrar para tus metas de forma inteligente y automatizada.</p>
+            <button onclick="document.getElementById('createGoalModal').classList.remove('hidden')" class="text-gold font-bold hover:text-obsidian transition-colors underline underline-offset-4">Crear mi primer bolsillo</button>
         </div>
     }
     else
     {
-        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            @foreach (var goal in Model)
-            {
-                <div class="bg-panel abp-glass-card abp-glow-border border border-obsidian/10 rounded-2xl p-6 relative overflow-hidden group hover:shadow-lg transition-all">
-                    <!-- Color accent line -->
-                    <div class="absolute top-0 left-0 w-full h-1" style="background-color: @goal.ColorHex;"></div>
-                    
+        @foreach (var goal in Model)
+        {
+            <div class="group relative overflow-hidden rounded-3xl bg-panel p-6 shadow-sm border border-obsidian/5 hover:border-gold/30 hover:shadow-xl transition-all duration-300">
+                <!-- Color Background Gradient -->
+                <div class="absolute inset-0 opacity-[0.03] pointer-events-none" style="background: radial-gradient(circle at top right, @goal.ColorHex, transparent 70%);"></div>
+                
+                <div class="relative z-10">
                     <div class="flex justify-between items-start mb-6">
-                        <div>
-                            <h3 class="font-serif text-xl font-bold text-obsidian mb-1">@goal.Name</h3>
-                            @if (goal.AutoRoundupEnabled)
-                            {
-                                <span class="inline-flex items-center gap-1 bg-green-50/50 text-green-600 border border-green-100 text-[10px] uppercase tracking-wider font-bold px-2 py-0.5 rounded-full">
-                                    <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
-                                    Redondeo Activo
-                                </span>
-                            }
-                        </div>
-                        <div class="w-10 h-10 rounded-full flex items-center justify-center opacity-20" style="background-color: @goal.ColorHex;">
-                            <svg class="w-5 h-5 text-obsidian" fill="none" stroke="currentColor" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"/><path d="M12 8v8"/><path d="M8 12h8"/></svg>
+                        <div class="flex items-center gap-3">
+                            <div class="w-12 h-12 rounded-2xl flex items-center justify-center shadow-inner" style="background-color: @goal.ColorHex; color: #fff;">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v8m-4-4h8"></path></svg>
+                            </div>
+                            <div>
+                                <h3 class="font-serif text-lg font-bold text-obsidian leading-tight">@goal.Name</h3>
+                                @if (goal.AutoRoundupEnabled)
+                                {
+                                    <span class="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider font-bold text-gold mt-1">
+                                        <svg class="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path></svg>
+                                        Redondeo Activo
+                                    </span>
+                                }
+                            </div>
                         </div>
                     </div>
 
-                    <div class="mb-6">
-                        <div class="flex justify-between items-end mb-2">
+                    <div class="mb-6 bg-obsidian/5 rounded-2xl p-4 border border-obsidian/5">
+                        <div class="flex justify-between items-end mb-4">
                             <div>
                                 <span class="text-xs text-obsidian/50 font-medium uppercase tracking-wider block mb-1">Acumulado</span>
-                                <span class="text-2xl font-mono text-obsidian">@goal.CurrentAmount.ToString("C2", culture)</span>
+                                <span class="text-2xl font-mono text-obsidian font-bold">@goal.CurrentAmount.ToString("C2", culture)</span>
                             </div>
                             <div class="text-right">
                                 <span class="text-xs text-obsidian/50 font-medium uppercase tracking-wider block mb-1">Meta</span>
@@ -70,82 +68,84 @@
                             </div>
                         </div>
                         
-                        <div class="w-full bg-obsidian/5 rounded-full h-2 overflow-hidden">
-                            <div class="h-2 rounded-full transition-all duration-1000 ease-out relative" style="width: @(goal.Percentage > 100 ? 100 : goal.Percentage)%; background-color: @goal.ColorHex;">
-                                <div class="absolute inset-0 bg-white/20 w-full animate-[shimmer_2s_infinite]"></div>
+                        <div class="w-full bg-obsidian/10 rounded-full h-2.5 overflow-hidden shadow-inner">
+                            <div class="h-full rounded-full transition-all duration-1000 ease-out relative" style="width: @(goal.Percentage > 100 ? 100 : goal.Percentage)%; background-color: @goal.ColorHex;">
+                                <div class="absolute inset-0 bg-white/30 w-full animate-[shimmer_2s_infinite]"></div>
                             </div>
                         </div>
-                        <div class="text-right mt-1">
-                            <span class="text-xs font-bold text-obsidian/40">@(Math.Round(goal.Percentage, 1))% completado</span>
+                        <div class="flex justify-between items-center mt-2">
+                            <span class="text-[10px] font-bold text-obsidian/40 uppercase tracking-wider">Progreso</span>
+                            <span class="text-xs font-bold" style="color: @goal.ColorHex;">@(Math.Round(goal.Percentage, 1))%</span>
                         </div>
                     </div>
                     
-                    <form asp-action="Deposit" method="post" class="mt-4 pt-4 border-t border-obsidian/10">
+                    <form asp-action="Deposit" method="post" class="mt-4">
                         <input type="hidden" name="goalId" value="@goal.Id" />
                         <div class="flex gap-2">
                             <div class="relative flex-1">
                                 <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                                     <span class="text-obsidian/40 font-mono text-sm">$</span>
                                 </div>
-                                <input type="number" name="amount" step="0.01" min="1" class="w-full bg-white border border-obsidian/20 rounded-lg pl-8 pr-3 py-2 text-sm text-obsidian focus:ring-2 focus:ring-gold focus:border-transparent outline-none transition-all" placeholder="Abonar al bolsillo" required />
+                                <input type="number" name="amount" step="0.01" min="1" class="w-full bg-transparent border-b-2 border-obsidian/10 pl-8 pr-3 py-2 text-sm text-obsidian focus:border-gold outline-none transition-colors" placeholder="Monto a abonar" required />
                             </div>
-                            <button type="submit" class="bg-obsidian/5 hover:bg-gold hover:text-white text-obsidian px-4 py-2 rounded-lg text-sm font-semibold transition-colors shrink-0 border border-obsidian/10 hover:border-gold">
+                            <button type="submit" class="bg-obsidian/5 hover:bg-gold hover:text-white text-obsidian px-5 py-2 rounded-xl text-sm font-bold transition-all shrink-0">
                                 Abonar
                             </button>
                         </div>
                     </form>
                 </div>
-            }
-        </div>
+            </div>
+        }
     }
 </div>
 
 <!-- Create Modal -->
-<div id="createGoalModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-obsidian/60 backdrop-blur-sm p-4">
-    <div class="bg-panel border border-obsidian/10 rounded-2xl p-8 max-w-md w-full relative shadow-2xl animate-fade-in-up">
-        <button onclick="this.closest('#createGoalModal').classList.add('hidden')" class="absolute top-4 right-4 text-obsidian/40 hover:text-obsidian transition-colors">
+<div id="createGoalModal" class="hidden fixed inset-0 z-[100] flex items-center justify-center bg-obsidian/80 backdrop-blur-md p-4">
+    <div class="bg-panel border border-white/10 rounded-3xl p-8 max-w-md w-full relative shadow-2xl animate-fade-in-up">
+        <button onclick="this.closest('#createGoalModal').classList.add('hidden')" class="absolute top-6 right-6 text-obsidian/40 hover:text-obsidian transition-colors">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
         </button>
-        <div class="flex items-center gap-3 mb-6">
-            <div class="w-10 h-10 rounded-full bg-gold/10 flex items-center justify-center text-gold">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg>
+        <div class="flex items-center gap-4 mb-8">
+            <div class="w-12 h-12 rounded-2xl bg-gold/10 flex items-center justify-center text-gold shadow-inner">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/></svg>
             </div>
             <h3 class="font-serif text-2xl font-bold text-obsidian">Nuevo Bolsillo</h3>
         </div>
-        <form asp-action="Create" method="post" class="space-y-5">
+        <form asp-action="Create" method="post" class="space-y-6">
             <input type="hidden" name="SavingsAccountId" value="@ViewBag.MainAccountId" />
             
             <div>
-                <label class="block text-sm font-medium text-obsidian mb-1">Nombre de la Meta</label>
-                <input type="text" name="Name" class="w-full bg-white border border-obsidian/20 rounded-lg px-4 py-2.5 text-obsidian focus:ring-2 focus:ring-gold focus:border-transparent outline-none transition-all" placeholder="Ej: Viaje a Punta Cana" required />
+                <label class="block text-xs font-bold text-obsidian/70 uppercase tracking-wider mb-2">Nombre de la Meta</label>
+                <input type="text" name="Name" class="w-full bg-transparent border-b-2 border-obsidian/20 px-0 py-2 text-lg text-obsidian focus:border-gold outline-none transition-colors placeholder-obsidian/20" placeholder="Ej: Viaje a Punta Cana" required />
             </div>
             
-            <div class="grid grid-cols-2 gap-4">
+            <div class="grid grid-cols-2 gap-6">
                 <div>
-                    <label class="block text-sm font-medium text-obsidian mb-1">Monto Objetivo (RD$)</label>
-                    <input type="number" name="TargetAmount" step="0.01" min="1" class="w-full bg-white border border-obsidian/20 rounded-lg px-4 py-2.5 text-obsidian focus:ring-2 focus:ring-gold focus:border-transparent outline-none transition-all" placeholder="0.00" required />
+                    <label class="block text-xs font-bold text-obsidian/70 uppercase tracking-wider mb-2">Monto (RD$)</label>
+                    <input type="number" name="TargetAmount" step="0.01" min="1" class="w-full bg-transparent border-b-2 border-obsidian/20 px-0 py-2 text-lg text-obsidian font-mono focus:border-gold outline-none transition-colors placeholder-obsidian/20" placeholder="0.00" required />
                 </div>
                 <div>
-                    <label class="block text-sm font-medium text-obsidian mb-1">Color Distintivo</label>
-                    <input type="color" name="ColorHex" value="#CBA358" class="w-full h-11 rounded-lg cursor-pointer border border-obsidian/20 p-1 bg-white" />
+                    <label class="block text-xs font-bold text-obsidian/70 uppercase tracking-wider mb-2">Color</label>
+                    <input type="color" name="ColorHex" value="#CBA358" class="w-full h-11 rounded-xl cursor-pointer border-2 border-obsidian/10 p-1 bg-transparent" />
                 </div>
             </div>
             
-            <div class="mt-4 p-4 bg-gold/5 border border-gold/20 rounded-xl">
-                <label class="flex items-start gap-3 cursor-pointer">
-                    <div class="flex-shrink-0 mt-0.5">
-                        <input type="checkbox" name="AutoRoundupEnabled" value="true" class="w-5 h-5 rounded border-obsidian/30 text-gold focus:ring-gold bg-white" />
+            <div class="mt-6 p-5 bg-gold/5 border border-gold/20 rounded-2xl">
+                <label class="flex items-start gap-4 cursor-pointer">
+                    <div class="flex-shrink-0 mt-1">
+                        <input type="checkbox" name="AutoRoundupEnabled" value="true" class="w-5 h-5 rounded border-gold/30 text-gold focus:ring-gold bg-transparent" />
                     </div>
                     <div>
-                        <span class="block text-sm font-bold text-obsidian mb-0.5">Activar Redondeo Automático</span>
-                        <span class="block text-xs text-obsidian/70 leading-snug">Cada vez que pagues con tu tarjeta, redondearemos el monto al próximo entero y enviaremos la diferencia a este bolsillo.</span>
+                        <span class="block text-sm font-bold text-obsidian mb-1">Redondeo Automtico</span>
+                        <span class="block text-xs text-obsidian/60 leading-relaxed">Con cada compra que hagas, redondearemos el monto al prximo entero y transferiremos la diferencia a este bolsillo automticamente.</span>
                     </div>
                 </label>
             </div>
             
-            <button type="submit" class="w-full bg-obsidian text-ivory hover:bg-gold py-3.5 rounded-lg font-semibold transition-colors shadow-md mt-6">
+            <button type="submit" class="w-full bg-obsidian text-ivory hover:bg-gold py-4 rounded-xl font-bold transition-colors shadow-xl shadow-obsidian/10 mt-8 text-lg">
                 Crear Bolsillo
             </button>
         </form>
     </div>
 </div>
+

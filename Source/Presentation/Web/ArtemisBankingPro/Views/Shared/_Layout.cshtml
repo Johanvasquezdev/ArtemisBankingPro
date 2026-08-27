@@ -1,4 +1,4 @@
-@using Microsoft.AspNetCore.Identity
+﻿@using Microsoft.AspNetCore.Identity
 @{
     var currentController = ViewContext.RouteData.Values["controller"]?.ToString();
     var currentAction = ViewContext.RouteData.Values["action"]?.ToString();
@@ -8,7 +8,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>@ViewData["Title"] — Artemis Banking Pro</title>
+    <title>@ViewData["Title"] â€” Artemis Banking Pro</title>
     <link rel="icon" type="image/svg+xml" href="~/favicon.svg" />
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
@@ -29,7 +29,7 @@
         })();
     </script>
     <!-- Sidebar desktop -->
-    <aside class="abp-sidebar fixed inset-y-0 left-0 z-20 hidden h-screen w-64 flex-col bg-obsidian text-ivory shadow-xl lg:flex">
+    <!-- Sidebar Backdrop --><div id="sidebar-backdrop" class="fixed inset-0 bg-obsidian/60 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity opacity-0" onclick="toggleSidebar()"></div><aside id="main-sidebar" class="abp-sidebar fixed inset-y-0 left-0 z-50 flex h-screen w-64 flex-col bg-obsidian text-ivory shadow-xl transition-transform duration-300 transform -translate-x-full lg:translate-x-0">
         <div class="flex h-20 items-center border-b border-white/10 px-4">
                 <a asp-area="Client" asp-controller="Home" asp-action="Index" class="flex items-center gap-3 no-underline">
                 <span class="abp-brand-lockup block w-56 shrink-0">
@@ -38,7 +38,7 @@
             </a>
         </div>
 
-        <nav class="flex-1 overflow-y-auto px-3 py-6" aria-label="Navegación principal">
+        <nav class="flex-1 overflow-y-auto px-3 py-6" aria-label="NavegaciÃ³n principal">
             <div class="mb-4 px-3 text-xs font-semibold uppercase tracking-wider text-ivory/40">Operaciones</div>
             <div class="flex flex-col gap-1">
                 <a asp-area="Client" asp-controller="Profile" asp-action="Index"
@@ -95,7 +95,7 @@
         <div class="border-t border-white/10 p-4">
             <a asp-area="" asp-controller="Login" asp-action="Logout" class="flex w-full items-center justify-center gap-2 rounded-md px-4 py-2.5 text-sm font-medium text-ivory/70 no-underline transition-colors hover:bg-white/5 hover:text-ivory">
                 <svg class="h-4 w-4 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-                Cerrar sesión
+                Cerrar sesiÃ³n
             </a>
         </div>
     </aside>
@@ -104,22 +104,7 @@
         <header class="abp-topbar sticky top-0 z-10 border-b border-obsidian/5 bg-panel px-6 py-4 shadow-sm lg:px-8">
             <div class="flex items-center justify-between gap-4">
                 <div class="flex items-center gap-3">
-                    <details class="relative lg:hidden">
-                        <summary class="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-full bg-obsidian/5 text-obsidian/70 hover:bg-gold/10 hover:text-gold" aria-label="Abrir menú">
-                            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
-                        </summary>
-                        <nav class="abp-mobile-nav absolute left-0 top-12 z-30 w-56 rounded-xl border border-obsidian/10 bg-panel p-2 shadow-xl" aria-label="Navegación móvil">
-                            <a asp-area="Client" asp-controller="Home" asp-action="Index" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Inicio</a>
-                            <a asp-area="Client" asp-controller="Transactions" asp-action="Express" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Transacciones</a>
-                            <a asp-area="Client" asp-controller="CashAdvance" asp-action="Index" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Avances</a>
-                            <a asp-area="Client" asp-controller="Transfer" asp-action="Index" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Transferir</a>
-                            <a asp-area="Client" asp-controller="Beneficiaries" asp-action="Index" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Beneficiarios</a>
-                            <hr class="my-1 border-obsidian/10">
-                            <a asp-area="Client" asp-controller="VirtualCards" asp-action="Index" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Tarjetas Virtuales</a>
-                            <a asp-area="Client" asp-controller="SavingsGoals" asp-action="Index" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Bolsillos de Ahorro</a>
-                            <a asp-area="Client" asp-controller="ScheduledPayments" asp-action="Index" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Pagos Programados</a>
-                        </nav>
-                    </details>
+                    <button type="button" onclick="toggleSidebar()" class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-obsidian/5 text-obsidian/70 hover:bg-gold/10 hover:text-gold lg:hidden" aria-label="Abrir menú"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg></button>
                     <div class="client-mobile-brand lg:hidden w-48 shrink-0">
                         <div class="client-mobile-logo-dark">
                             <partial name="_BrandLogo" model='"dark"' />
@@ -136,7 +121,7 @@
 
                 <div class="flex items-center gap-3">
                     <partial name="_ThemeToggle" />
-                    <a asp-area="" asp-controller="Login" asp-action="Logout" class="flex h-9 w-9 items-center justify-center rounded-full bg-obsidian/5 text-obsidian transition-colors hover:bg-gold hover:text-white" title="Cerrar sesión" aria-label="Cerrar sesión">
+                    <a asp-area="" asp-controller="Login" asp-action="Logout" class="flex h-9 w-9 items-center justify-center rounded-full bg-obsidian/5 text-obsidian transition-colors hover:bg-gold hover:text-white" title="Cerrar sesiÃ³n" aria-label="Cerrar sesiÃ³n">
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
                     </a>
                 </div>
@@ -153,7 +138,7 @@
                         </div>
                         <span class="text-sm font-medium">@success</span>
                     </div>
-                    <button class="text-obsidian/40 transition-colors hover:text-gold focus:outline-none" onclick="this.parentElement.remove()" aria-label="Cerrar mensaje">×</button>
+                    <button class="text-obsidian/40 transition-colors hover:text-gold focus:outline-none" onclick="this.parentElement.remove()" aria-label="Cerrar mensaje">Ã—</button>
                 </div>
             }
             @if (TempData["ErrorMessage"] is string error && !string.IsNullOrEmpty(error))
@@ -163,7 +148,7 @@
                         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>
                         <span class="text-sm font-medium">@error</span>
                     </div>
-                    <button class="text-red-600 transition-colors hover:text-red-800 focus:outline-none" onclick="this.parentElement.remove()" aria-label="Cerrar mensaje">×</button>
+                    <button class="text-red-600 transition-colors hover:text-red-800 focus:outline-none" onclick="this.parentElement.remove()" aria-label="Cerrar mensaje">Ã—</button>
                 </div>
             }
 
@@ -171,7 +156,7 @@
         </main>
 
         <footer class="mt-auto flex items-center justify-between border-t border-obsidian/10 px-6 py-6 text-xs text-obsidian/40 lg:px-8">
-            <span>© 2026 Artemis Banking Pro</span>
+            <span>Â© 2026 Artemis Banking Pro</span>
             <span class="hidden uppercase tracking-widest sm:inline">Private Wealth Management</span>
         </footer>
     </div>
@@ -181,8 +166,9 @@
     <script src="~/js/site.js" asp-append-version="true"></script>
     <script src="~/js/spa.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
-</body>
+<script>function toggleSidebar(){var s=document.getElementById("main-sidebar");var b=document.getElementById("sidebar-backdrop");if(s.classList.contains("-translate-x-full")){s.classList.remove("-translate-x-full");b.classList.remove("hidden");setTimeout(()=>b.classList.remove("opacity-0"),10);}else{s.classList.add("-translate-x-full");b.classList.add("opacity-0");setTimeout(()=>b.classList.add("hidden"),300);}}</script></body>
 </html>
+
 
 
 

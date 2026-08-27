@@ -1,4 +1,4 @@
-@using System.Globalization
+﻿@using System.Globalization
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -66,7 +66,7 @@
                     <polyline points="16 17 21 12 16 7"></polyline>
                     <line x1="21" y1="12" x2="9" y2="12"></line>
                 </svg>
-                Cerrar Sesión
+                Cerrar SesiÃ³n
             </a>
         </div>
     </aside>
@@ -100,11 +100,11 @@
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                         </div>
                         <div>
-                            <div class="text-sm font-semibold text-green-800">Éxito</div>
+                            <div class="text-sm font-semibold text-green-800">Ã‰xito</div>
                             <div class="text-sm text-green-700">@TempData["SuccessMessage"]</div>
                         </div>
                     </div>
-                    <button class="text-green-600 hover:text-green-800 focus:outline-none transition-colors" onclick="this.parentElement.remove()">×</button>
+                    <button class="text-green-600 hover:text-green-800 focus:outline-none transition-colors" onclick="this.parentElement.remove()">Ã—</button>
                 </div>
             }
             @if (TempData["ErrorMessage"] != null)
@@ -119,7 +119,7 @@
                             <div class="text-sm text-red-700">@TempData["ErrorMessage"]</div>
                         </div>
                     </div>
-                    <button class="text-red-600 hover:text-red-800 focus:outline-none transition-colors" onclick="this.parentElement.remove()">×</button>
+                    <button class="text-red-600 hover:text-red-800 focus:outline-none transition-colors" onclick="this.parentElement.remove()">Ã—</button>
                 </div>
             }
             
@@ -148,6 +148,7 @@
         }
     </script>
     @await RenderSectionAsync("Scripts", required: false)
-</body>
+<script>function toggleSidebar(){var s=document.getElementById("main-sidebar");var b=document.getElementById("sidebar-backdrop");if(s.classList.contains("-translate-x-full")){s.classList.remove("-translate-x-full");b.classList.remove("hidden");setTimeout(()=>b.classList.remove("opacity-0"),10);}else{s.classList.add("-translate-x-full");b.classList.add("opacity-0");setTimeout(()=>b.classList.add("hidden"),300);}}</script></body>
 </html>
+
 

@@ -1,4 +1,4 @@
-@using System.Globalization
+﻿@using System.Globalization
 <!DOCTYPE html>
 <html lang="es">
 <head>
@@ -26,7 +26,7 @@
         })();
     </script>
     <!-- Sidebar desktop -->
-    <aside class="abp-sidebar fixed inset-y-0 left-0 z-20 hidden h-screen w-64 flex-col bg-obsidian text-ivory shadow-xl lg:flex">
+    <!-- Sidebar Backdrop --><div id="sidebar-backdrop" class="fixed inset-0 bg-obsidian/60 backdrop-blur-sm z-40 hidden lg:hidden transition-opacity opacity-0" onclick="toggleSidebar()"></div><aside id="main-sidebar" class="abp-sidebar fixed inset-y-0 left-0 z-50 flex h-screen w-64 flex-col bg-obsidian text-ivory shadow-xl transition-transform duration-300 transform -translate-x-full lg:translate-x-0">
         <div class="flex h-20 items-center border-b border-white/10 px-4">
             <div class="abp-brand-lockup w-56 shrink-0">
                 <partial name="_BrandLogo" model='"light"' />
@@ -51,7 +51,7 @@
                         <line x1="12" y1="5" x2="12" y2="19"></line>
                         <line x1="5" y1="12" x2="19" y2="12"></line>
                     </svg>
-                    Depósito
+                    DepÃ³sito
                 </a>
                 <a href="/Cashier/CashierHome/Withdraw" class="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors @(action == "Withdraw" ? "bg-gold/10 text-gold" : "text-ivory/70 hover:bg-white/5 hover:text-ivory")">
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -71,7 +71,7 @@
                         <line x1="12" y1="1" x2="12" y2="23"></line>
                         <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                     </svg>
-                    Pago Préstamo
+                    Pago PrÃ©stamo
                 </a>
                 <a href="/Cashier/CashierHome/TransferToThirdParty" class="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium transition-colors @(action == "TransferToThirdParty" ? "bg-gold/10 text-gold" : "text-ivory/70 hover:bg-white/5 hover:text-ivory")">
                     <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
@@ -99,7 +99,7 @@
                     <polyline points="16 17 21 12 16 7"></polyline>
                     <line x1="21" y1="12" x2="9" y2="12"></line>
                 </svg>
-                Cerrar Sesión
+                Cerrar SesiÃ³n
             </a>
         </div>
     </aside>
@@ -109,22 +109,7 @@
         
         <header class="abp-topbar bg-panel border-b border-obsidian/5 px-4 lg:px-8 py-4 flex items-center justify-between sticky top-0 z-10 shadow-sm">
             <div class="flex items-center gap-4">
-                <details class="relative lg:hidden">
-                    <summary class="flex h-10 w-10 cursor-pointer list-none items-center justify-center rounded-full bg-obsidian/5 text-obsidian/70 hover:bg-gold/10 hover:text-gold" aria-label="Abrir menú">
-                        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
-                    </summary>
-                    <nav class="abp-mobile-nav absolute left-0 top-12 z-30 w-56 rounded-xl border border-obsidian/10 bg-panel p-2 shadow-xl">
-                        <a href="/Cashier/CashierHome" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Dashboard</a>
-                        <a href="/Cashier/CashierHome/Deposit" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Depósito</a>
-                        <a href="/Cashier/CashierHome/Withdraw" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Retiro</a>
-                        <a href="/Cashier/CashierHome/PayCreditCard" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Pago Tarjeta</a>
-                        <a href="/Cashier/CashierHome/PayLoan" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Pago Préstamo</a>
-                        <a href="/Cashier/CashierHome/TransferToThirdParty" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Transferencia</a>
-                        <a href="/Cashier/CashierHome/History" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Historial</a>
-                        <hr class="my-1 border-obsidian/10">
-                        <a href="/Login/Logout" class="block rounded-lg px-3 py-2 text-sm text-obsidian/80 hover:bg-gold/10 hover:text-gold">Cerrar Sesión</a>
-                    </nav>
-                </details>
+                <button type="button" onclick="toggleSidebar()" class="flex h-10 w-10 cursor-pointer items-center justify-center rounded-full bg-obsidian/5 text-obsidian/70 hover:bg-gold/10 hover:text-gold lg:hidden" aria-label="Abrir menú"><svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg></button>
                 <div>
                     <div class="text-[10px] lg:text-xs font-semibold tracking-wider text-gold uppercase mb-0.5 lg:mb-1">Portal del Cajero</div>
                     <h1 class="text-lg lg:text-3xl font-serif font-bold text-obsidian tracking-tight">Hola, @(User.Identity?.Name ?? "Cajero")</h1>
@@ -147,11 +132,11 @@
                             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                         </div>
                         <div>
-                            <div class="text-sm font-semibold text-green-800">Éxito</div>
+                            <div class="text-sm font-semibold text-green-800">Ã‰xito</div>
                             <div class="text-sm text-green-700">@TempData["SuccessMessage"]</div>
                         </div>
                     </div>
-                    <button class="text-green-600 hover:text-green-800 focus:outline-none transition-colors" onclick="this.parentElement.remove()">×</button>
+                    <button class="text-green-600 hover:text-green-800 focus:outline-none transition-colors" onclick="this.parentElement.remove()">Ã—</button>
                 </div>
             }
             @if (TempData["ErrorMessage"] != null)
@@ -166,7 +151,7 @@
                             <div class="text-sm text-red-700">@TempData["ErrorMessage"]</div>
                         </div>
                     </div>
-                    <button class="text-red-600 hover:text-red-800 focus:outline-none transition-colors" onclick="this.parentElement.remove()">×</button>
+                    <button class="text-red-600 hover:text-red-800 focus:outline-none transition-colors" onclick="this.parentElement.remove()">Ã—</button>
                 </div>
             }
             
@@ -180,6 +165,7 @@
     <script src="~/lib/animejs/anime.min.js" asp-append-version="true"></script>
     <script src="~/js/site.js" asp-append-version="true"></script>
     @await RenderSectionAsync("Scripts", required: false)
-</body>
+<script>function toggleSidebar(){var s=document.getElementById("main-sidebar");var b=document.getElementById("sidebar-backdrop");if(s.classList.contains("-translate-x-full")){s.classList.remove("-translate-x-full");b.classList.remove("hidden");setTimeout(()=>b.classList.remove("opacity-0"),10);}else{s.classList.add("-translate-x-full");b.classList.add("opacity-0");setTimeout(()=>b.classList.add("hidden"),300);}}</script></body>
 </html>
+
 
