@@ -297,11 +297,12 @@
                 <text>
                 const ctx = document.getElementById('financeChart').getContext('2d');
                 
-                // Assuming ViewBag.ChartData is serialized or we can map it via Razor
                 const labels = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(((Dictionary<string, decimal>)ViewBag.ChartData).Keys));
                 const dataPoints = @Html.Raw(Newtonsoft.Json.JsonConvert.SerializeObject(((Dictionary<string, decimal>)ViewBag.ChartData).Values));
                 
-                new Chart(ctx, {
+                const getChartTextColor = () => document.documentElement.dataset.theme === 'dark' ? '#F4F4F5' : '#1E1E1E';
+                
+                const financeChart = new Chart(ctx, {
                     type: 'doughnut',
                     data: {
                         labels: labels,
@@ -309,15 +310,16 @@
                             data: dataPoints,
                             backgroundColor: [
                                 '#CBA358', // Gold
-                                '#1E1E1E', // Obsidian
+                                '#3B82F6', // Blue
                                 '#10B981', // Emerald
                                 '#F59E0B', // Amber
-                                '#3B82F6', // Blue
                                 '#8B5CF6', // Purple
                                 '#EF4444', // Red
+                                '#06B6D4', // Cyan
                                 '#6B7280'  // Gray
                             ],
-                            borderWidth: 0,
+                            borderWidth: 2,
+                            borderColor: document.documentElement.dataset.theme === 'dark' ? '#1E1E1E' : '#FFFFFF',
                             hoverOffset: 4
                         }]
                     },
@@ -332,12 +334,25 @@
                                         family: "'Inter', sans-serif",
                                         size: 13
                                     },
-                                    color: '#1E1E1E'
+                                    color: getChartTextColor()
                                 }
                             }
                         }
                     }
                 });
+
+                // Observe theme changes
+                const observer = new MutationObserver((mutations) => {
+                    mutations.forEach((mutation) => {
+                        if (mutation.attributeName === 'data-theme') {
+                            const isDark = document.documentElement.dataset.theme === 'dark';
+                            financeChart.options.plugins.legend.labels.color = getChartTextColor();
+                            financeChart.data.datasets[0].borderColor = isDark ? '#1E1E1E' : '#FFFFFF';
+                            financeChart.update();
+                        }
+                    });
+                });
+                observer.observe(document.documentElement, { attributes: true });
                 </text>
             }
         });

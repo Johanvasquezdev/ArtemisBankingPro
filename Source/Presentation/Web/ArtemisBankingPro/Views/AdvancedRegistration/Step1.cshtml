@@ -1,56 +1,59 @@
 @{
-    ViewData["Title"] = "Identity Verification - Step 1";
+    ViewData["Title"] = "Verificación de Identidad - Paso 1";
+    Layout = "~/Views/Shared/_AuthLayout.cshtml";
 }
 
-<div class="flex items-center justify-center min-h-[80vh] py-10">
-    <div class="abp-glass-card w-full max-w-lg p-8 rounded-2xl shadow-xl">
+<div class="flex items-center justify-center min-h-[80vh] py-10 relative">
+    <div class="absolute -top-20 -right-20 w-64 h-64 bg-gold/10 rounded-full blur-3xl pointer-events-none"></div>
+
+    <div class="abp-glass-card w-full max-w-lg p-8 rounded-2xl shadow-xl border border-white/20 relative z-10">
         <div class="mb-8">
-            <div class="flex justify-between items-center mb-2">
-                <span class="text-xs font-bold text-blue-400 uppercase tracking-wider">Step 1 of 3</span>
-                <span class="text-xs font-medium text-gray-400">Personal Info</span>
+            <div class="flex justify-between items-center mb-3">
+                <span class="text-xs font-bold text-gold uppercase tracking-wider">Paso 1 de 3</span>
+                <span class="text-xs font-medium text-obsidian/50">Datos Personales</span>
             </div>
-            <div class="w-full bg-gray-700 rounded-full h-1.5 overflow-hidden">
-                <div class="bg-gradient-to-r from-blue-500 to-cyan-400 h-1.5 rounded-full" style="width: 33%"></div>
+            <div class="w-full bg-obsidian/10 rounded-full h-1.5 overflow-hidden">
+                <div class="bg-gradient-to-r from-gold to-yellow-600 h-1.5 rounded-full" style="width: 33%"></div>
             </div>
         </div>
 
-        <h2 class="text-3xl font-bold text-white mb-2">Verify Your Identity</h2>
-        <p class="text-gray-300 text-sm mb-8">Please provide your Cedula number and a clear photo of your ID card to continue your registration.</p>
+        <h2 class="font-serif text-3xl font-bold text-obsidian mb-3">Verifica tu Identidad</h2>
+        <p class="text-obsidian/70 text-sm mb-8 leading-relaxed">Por favor, ingresa tu número de Cédula y sube una foto clara de tu documento de identidad para continuar con el registro seguro.</p>
 
         <form action="/AdvancedRegistration/Step1" method="post" enctype="multipart/form-data" class="space-y-6">
             <div>
-                <label for="cedula" class="block text-sm font-medium text-gray-200 mb-2">Cedula (ID Number)</label>
+                <label for="cedula" class="block text-sm font-semibold text-obsidian mb-2">Cédula de Identidad</label>
                 <div class="relative">
                     <div class="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
-                        <svg class="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path></svg>
+                        <svg class="w-5 h-5 text-obsidian/40" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M10 6H5a2 2 0 00-2 2v9a2 2 0 002 2h14a2 2 0 002-2V8a2 2 0 00-2-2h-5m-4 0V5a2 2 0 114 0v1m-4 0a2 2 0 104 0m-5 8a2 2 0 100-4 2 2 0 000 4zm0 0c1.306 0 2.417.835 2.83 2M9 14a3.001 3.001 0 00-2.83 2M15 11h3m-3 4h2"></path></svg>
                     </div>
-                    <input type="text" id="cedula" name="cedula" class="w-full bg-white/5 border border-white/10 rounded-xl pl-11 pr-4 py-3 text-white placeholder-gray-500 focus:ring-2 focus:ring-blue-500 focus:border-transparent outline-none transition-all" placeholder="000-0000000-0" required />
+                    <input type="text" id="cedula" name="cedula" class="w-full bg-white border border-obsidian/10 rounded-xl pl-11 pr-4 py-3 text-obsidian placeholder-obsidian/40 focus:ring-2 focus:ring-gold focus:border-transparent outline-none transition-all shadow-sm" placeholder="000-0000000-0" required />
                 </div>
             </div>
 
             <div>
-                <label for="idPhoto" class="block text-sm font-medium text-gray-200 mb-2">ID Card Photo</label>
-                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-white/20 border-dashed rounded-xl hover:border-blue-400 hover:bg-white/5 transition-all group cursor-pointer" onclick="document.getElementById('idPhoto').click()">
+                <label for="idPhoto" class="block text-sm font-semibold text-obsidian mb-2">Foto de tu Cédula (Frente)</label>
+                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-obsidian/10 border-dashed rounded-xl hover:border-gold hover:bg-gold/5 transition-all group cursor-pointer bg-white" onclick="document.getElementById('idPhoto').click()">
                     <div class="space-y-2 text-center">
-                        <div class="w-12 h-12 rounded-full bg-white/5 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
-                            <svg class="h-6 w-6 text-blue-400" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
+                        <div class="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
+                            <svg class="h-6 w-6 text-gold" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
                                 <path d="M28 8H12a4 4 0 00-4 4v20m32-12v8m0 0v8a4 4 0 01-4 4H12a4 4 0 01-4-4v-4m32-4l-3.172-3.172a4 4 0 00-5.656 0L28 28M8 32l9.172-9.172a4 4 0 015.656 0L28 28m0 0l4 4m4-24h8m-4-4v8m-12 4h.02" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
                             </svg>
                         </div>
-                        <div class="flex text-sm text-gray-300 justify-center items-center">
-                            <span class="relative font-medium text-blue-400 focus-within:outline-none">
-                                <span>Upload a file</span>
+                        <div class="flex text-sm text-obsidian/70 justify-center items-center">
+                            <span class="relative font-medium text-gold focus-within:outline-none">
+                                <span>Sube un archivo</span>
                                 <input id="idPhoto" name="idPhoto" type="file" accept="image/*" class="sr-only" required>
                             </span>
-                            <p class="pl-1">or drag and drop</p>
+                            <p class="pl-1">o arrástralo aquí</p>
                         </div>
-                        <p class="text-xs text-gray-500">PNG, JPG up to 10MB</p>
+                        <p class="text-xs text-obsidian/50">PNG, JPG hasta 10MB</p>
                     </div>
                 </div>
             </div>
 
-            <button type="submit" class="w-full flex items-center justify-center bg-blue-600 hover:bg-blue-700 text-white font-semibold py-3.5 px-4 rounded-xl transition-all duration-200 shadow-lg shadow-blue-500/20 group mt-4">
-                Continue to Verification
+            <button type="submit" class="w-full flex items-center justify-center bg-obsidian hover:bg-gold text-ivory font-semibold py-3.5 px-4 rounded-xl transition-colors duration-300 shadow-md group mt-6">
+                Continuar a Verificación
                 <svg class="w-5 h-5 ml-2 group-hover:translate-x-1 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M14 5l7 7m0 0l-7 7m7-7H3"></path>
                 </svg>

@@ -20,9 +20,11 @@ public class AdvancedRegistrationController : Controller
     public IActionResult Step1() => View();
 
     [HttpPost]
-    public async Task<IActionResult> Step1(string cedula, string imagePath)
+    public async Task<IActionResult> Step1(string cedula, IFormFile idPhoto)
     {
-        var isValid = await _ocrService.ValidateCedulaMatchAsync(imagePath, cedula);
+        // Simulando el procesamiento del archivo
+        string dummyPath = idPhoto != null ? idPhoto.FileName : "dummy.jpg";
+        var isValid = await _ocrService.ValidateCedulaMatchAsync(dummyPath, cedula);
         if (!isValid) return View("Error");
         return RedirectToAction("Step2");
     }
