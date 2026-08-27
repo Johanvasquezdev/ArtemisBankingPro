@@ -1,4 +1,4 @@
-@{
+﻿@{
     ViewData["Title"] = "Verificación de Identidad - Paso 1";
     Layout = "~/Views/Shared/_AuthLayout.cshtml";
 }
@@ -33,7 +33,9 @@
 
             <div>
                 <label for="idPhoto" class="block text-sm font-semibold text-obsidian mb-2">Foto de tu Cédula (Frente)</label>
-                <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-obsidian/10 border-dashed rounded-xl hover:border-gold hover:bg-gold/5 transition-all group cursor-pointer bg-white" onclick="document.getElementById('idPhoto').click()">
+                
+                <!-- Contenedor original del input (se oculta cuando hay imagen) -->
+                <div id="uploadContainer" class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-obsidian/10 border-dashed rounded-xl hover:border-gold hover:bg-gold/5 transition-all group cursor-pointer bg-white relative" onclick="document.getElementById('idPhoto').click()">
                     <div class="space-y-2 text-center">
                         <div class="w-12 h-12 rounded-full bg-gold/10 flex items-center justify-center mx-auto group-hover:scale-110 transition-transform">
                             <svg class="h-6 w-6 text-gold" stroke="currentColor" fill="none" viewBox="0 0 48 48" aria-hidden="true">
@@ -43,13 +45,29 @@
                         <div class="flex text-sm text-obsidian/70 justify-center items-center">
                             <span class="relative font-medium text-gold focus-within:outline-none">
                                 <span>Sube un archivo</span>
-                                <input id="idPhoto" name="idPhoto" type="file" accept="image/*" class="sr-only" required>
                             </span>
                             <p class="pl-1">o arrástralo aquí</p>
                         </div>
                         <p class="text-xs text-obsidian/50">PNG, JPG hasta 10MB</p>
                     </div>
                 </div>
+
+                <!-- Preview container (oculto por defecto) -->
+                <div id="previewContainer" class="hidden mt-1 relative w-full h-48 border border-obsidian/10 rounded-xl overflow-hidden bg-white shadow-sm">
+                    <img id="imagePreview" src="#" alt="Vista previa de cédula" class="w-full h-full object-cover" />
+                    
+                    <button type="button" onclick="clearPreview()" class="absolute top-2 right-2 bg-obsidian/80 hover:bg-red-500 text-white rounded-full p-2 transition-colors shadow-md flex items-center justify-center">
+                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+                    </button>
+                    
+                    <div class="absolute bottom-0 inset-x-0 bg-obsidian/70 backdrop-blur-sm px-3 py-2 flex items-center gap-2">
+                        <svg class="w-4 h-4 text-green-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                        <span class="text-xs text-white truncate font-medium" id="fileNameText">documento.jpg</span>
+                    </div>
+                </div>
+
+                <!-- Input real oculto -->
+                <input id="idPhoto" name="idPhoto" type="file" accept="image/*" class="hidden" required onchange="previewFile()">
             </div>
 
             <button type="submit" class="w-full flex items-center justify-center bg-obsidian hover:bg-gold text-ivory font-semibold py-3.5 px-4 rounded-xl transition-colors duration-300 shadow-md group mt-6">
@@ -61,3 +79,41 @@
         </form>
     </div>
 </div>
+
+<script>
+    function previewFile() {
+        const previewContainer = document.getElementById('previewContainer');
+        const uploadContainer = document.getElementById('uploadContainer');
+        const preview = document.getElementById('imagePreview');
+        const fileInput = document.getElementById('idPhoto');
+        const fileNameText = document.getElementById('fileNameText');
+        const file = fileInput.files[0];
+
+        if (file) {
+            const reader = new FileReader();
+
+            reader.onloadend = function () {
+                preview.src = reader.result;
+                fileNameText.textContent = file.name;
+                uploadContainer.classList.add('hidden');
+                previewContainer.classList.remove('hidden');
+            }
+
+            reader.readAsDataURL(file);
+        } else {
+            clearPreview();
+        }
+    }
+
+    function clearPreview() {
+        const previewContainer = document.getElementById('previewContainer');
+        const uploadContainer = document.getElementById('uploadContainer');
+        const preview = document.getElementById('imagePreview');
+        const fileInput = document.getElementById('idPhoto');
+        
+        preview.src = "";
+        fileInput.value = "";
+        uploadContainer.classList.remove('hidden');
+        previewContainer.classList.add('hidden');
+    }
+</script>

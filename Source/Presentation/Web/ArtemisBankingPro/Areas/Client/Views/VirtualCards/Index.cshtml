@@ -3,6 +3,7 @@
 @model List<VirtualCardDto>
 @{
     ViewData["Title"] = "Tarjetas Virtuales";
+    Layout = "~/Views/Shared/_Layout.cshtml";
     var accounts = ViewBag.Accounts as IEnumerable<ABP.Core.Application.DTOs.SavingsAccount.SavingsAccountDto>;
     var culture = CultureInfo.GetCultureInfo("es-DO");
 }
@@ -157,7 +158,8 @@
                 }
 
                 if (assertion) {
-                    const response = await fetch(/Client/VirtualCards/GetCvv, {
+                    // Added cardId to the query string so the controller receives the id
+                    const response = await fetch('/Client/VirtualCards/GetCvv?id=' + cardId, {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
                         body: JSON.stringify({ assertion: assertion.id })

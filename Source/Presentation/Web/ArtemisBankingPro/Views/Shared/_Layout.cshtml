@@ -41,6 +41,11 @@
         <nav class="flex-1 overflow-y-auto px-3 py-6" aria-label="Navegación principal">
             <div class="mb-4 px-3 text-xs font-semibold uppercase tracking-wider text-ivory/40">Operaciones</div>
             <div class="flex flex-col gap-1">
+                <a asp-area="Client" asp-controller="Profile" asp-action="Index"
+                   class="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium no-underline transition-colors @(currentController == "Profile" ? "bg-gold/10 text-gold" : "text-ivory/70 hover:bg-white/5 hover:text-ivory")">
+                    <svg class="h-5 w-5 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
+                    Mi Perfil
+                </a>
                 <a asp-area="Client" asp-controller="Home" asp-action="Index"
                    class="flex items-center gap-3 rounded-md px-3 py-2.5 text-sm font-medium no-underline transition-colors @(currentController == "Home" && currentAction == "Index" ? "bg-gold/10 text-gold" : "text-ivory/70 hover:bg-white/5 hover:text-ivory")">
                     <svg class="h-5 w-5 opacity-80" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
