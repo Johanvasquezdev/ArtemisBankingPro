@@ -1,136 +1,132 @@
 # Artemis Banking Pro
 
-![.NET](https://img.shields.io/badge/.NET-9.0-512BD4?logo=dotnet&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-336791?logo=postgresql&logoColor=white)
-![Entity Framework Core](https://img.shields.io/badge/EF_Core-9.0-512BD4?logo=nuget&logoColor=white)
-![Swagger](https://img.shields.io/badge/Swagger-API-85EA2D?logo=swagger&logoColor=black)
-![Architecture](https://img.shields.io/badge/Architecture-Clean%2FOnion-brightgreen)
-![Testing](https://img.shields.io/badge/Tests-225_Passing-success)
+Artemis Banking Pro es un proyecto académico de banca digital que reúne un portal web, una API REST y procesos en segundo plano. El sistema contempla distintos perfiles —administración, caja, clientes y comercios— e incluye una integración de pagos para comercios llamada **Hermes Pay**.
 
-Artemis Banking Pro es una solución integral para servicios bancarios y transaccionales, diseñada con los más altos estándares de calidad y seguridad. La plataforma sirve a tres tipos principales de usuarios: administradores, cajeros y clientes, además de ofrecer una integración externa (Hermes Pay) para comercios electrónicos.
+> **Aviso:** este repositorio es una demostración académica, no un servicio bancario listo para manejar dinero o datos reales. No uses credenciales reales ni información personal en pruebas o capturas.
 
-El sistema está construido bajo los principios de **Arquitectura Limpia (Onion Architecture)**, utilizando **CQRS** con MediatR, **Entity Framework Core**, **Azure Functions** y **Identity** para la gestión de usuarios, garantizando escalabilidad, mantenibilidad y un acoplamiento débil entre sus capas.
+## Funcionalidades
 
----
+- Portal web para las operaciones bancarias del sistema.
+- API REST para operaciones e integración con comercios.
+- Autenticación y autorización con ASP.NET Core Identity y JWT.
+- Gestión de roles y acceso según el tipo de usuario.
+- Integración Hermes Pay con protección de idempotencia para solicitudes de pago.
+- Consultas paginadas del historial de transacciones.
+- Procesamiento asíncrono de tareas mediante Azure Storage Queues y Azure Functions.
+- Documentación de la API con Swagger/OpenAPI.
 
-## 🏗️ Arquitectura y Diseño
+## Arquitectura
 
-El proyecto sigue una estructura de capas estricta basada en Clean Architecture:
+La solución sigue una arquitectura por capas inspirada en Clean Architecture y Onion Architecture, con CQRS y MediatR para separar operaciones de lectura y escritura.
 
-* **Core (Dominio y Aplicación):** Contiene la lógica de negocio pura, entidades, interfaces, DTOs y casos de uso estructurados con el patrón CQRS (Commands/Queries) usando MediatR. Depende exclusivamente de sí misma.
-* **Infrastructure:**
-  * **Persistence:** Implementación de Entity Framework Core, DbContexts y repositorios genéricos/específicos.
-  * **Identity:** Gestión de autenticación, autorización y roles usando ASP.NET Core Identity y JWT.
-  * **Shared:** Implementaciones de servicios externos (ej. Email con colas de Azure).
-* **Presentation:**
-  * **ABP.API:** Endpoints RESTFul documentados con Swagger, responsables de la comunicación de servicios de terceros (Hermes Pay) y frontends externos.
-  * **ArtemisBankingPro (Web):** Aplicación MVC para la interacción directa de los usuarios (portal bancario).
-  * **ABP.Functions:** Azure Functions utilizadas como consumidores de colas para procesamiento asíncrono (ej. envío de correos).
-
-### Patrones Implementados
-- **CQRS:** Separación estricta de lecturas (Queries) y escrituras (Commands).
-- **Repository Pattern & Unit of Work:** Abstracción del acceso a datos.
-- **Dependency Injection:** Configurado de forma nativa en .NET.
-- **Idempotency:** Protección contra pagos duplicados en Hermes Pay.
-
----
-
-## 💻 Tecnologías
-
-* **Framework:** .NET 9.0
-* **Base de Datos:** PostgreSQL (Alojada en Supabase)
-* **ORM:** Entity Framework Core (Npgsql)
-* **Seguridad:** ASP.NET Core Identity, JWT (JSON Web Tokens)
-* **Validaciones:** FluentValidation
-* **Mapeo:** AutoMapper
-* **Procesamiento Asíncrono:** Azure Storage Queues, Azure Functions (Isolated Worker)
-* **Documentación:** Swagger (OpenAPI 3.0)
-* **Testing:** xUnit, Moq, FluentAssertions, FluentValidation.TestHelper
-
----
-
-## 📋 Requisitos Previos
-
-Antes de ejecutar el proyecto, asegúrese de tener instalado:
-1. [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
-2. **PostgreSQL** (No requerido localmente si se usa la conexión en la nube provista en el archivo de configuración).
-3. **Azurite** (Emulador local de Azure Storage). Requerido para el funcionamiento de las Azure Functions y el envío de correos. [Instalación vía npm](https://learn.microsoft.com/en-us/azure/storage/common/storage-use-azurite): 
-```bash
-npm install -g azurite
+```text
+Source/
+├── Core/
+│   ├── ABP.Core.Domain/
+│   └── ABP.Core.Application/
+├── Infraestructure/
+│   ├── ABP.Infraestructure.identity/
+│   ├── ABP.Infraestructure.Persistence/
+│   └── ABP.Infraestructure.Shared/
+├── Presentation/
+│   ├── Api/ABP.API/
+│   ├── Functions/ABP.Functions/
+│   └── Web/ArtemisBankingPro/
+└── Tests/
+    ├── ABP.Unit.Tests/
+    └── ABP.Integration.Tests/
 ```
-4. CLI de EF Core: 
+
+## Tecnologías
+
+- **.NET 9 / ASP.NET Core MVC**
+- **PostgreSQL** y **Entity Framework Core**
+- **ASP.NET Core Identity** y **JWT**
+- **MediatR**, **CQRS**, Repository y Unit of Work
+- **FluentValidation** y **AutoMapper**
+- **Azure Storage Queues** y **Azure Functions**
+- **Swagger/OpenAPI**
+- **Docker**
+- **xUnit**, **Moq** y **FluentAssertions**
+
+## Requisitos
+
+- [.NET 9 SDK](https://dotnet.microsoft.com/download/dotnet/9.0)
+- PostgreSQL accesible desde tu entorno, o una instancia de Supabase configurada para el proyecto
+- [Azurite](https://learn.microsoft.com/azure/storage/common/storage-use-azurite) para ejecutar localmente los procesos que usan Azure Storage Queues
+- Entity Framework Core CLI:
+
 ```bash
 dotnet tool install --global dotnet-ef
 ```
 
----
+## Configuración local
 
-## ⚙️ Configuración y Base de Datos
+Configura las claves que requiere la aplicación —por ejemplo, la conexión a PostgreSQL, JWT, correo y Azure Storage— mediante **.NET User Secrets** o variables de entorno. Los nombres exactos de las claves deben coincidir con los que consume cada proyecto.
 
-Las configuraciones base y cadenas de conexión residen en los archivos `appsettings.json` en ABP.API y la Web App MVC.
-*Nota: Para facilitar la evaluación del proyecto por parte del profesor, las credenciales reales de Supabase, JWT y SMTP se han dejado configuradas directamente en los archivos .json correspondientes. Por favor no las mueva a User Secrets para la revisión.*
+No añadas contraseñas, tokens, cadenas de conexión ni archivos de configuración con secretos a Git. Si una credencial ya se publicó en el repositorio, considérala expuesta y rótala antes de volver a usarla. No uses datos bancarios reales.
 
-### Migraciones
-El sistema utiliza dos contextos separados. **Las migraciones no se aplican automáticamente** y deben ser ejecutadas la primera vez. Abra una terminal en la raíz de la solución:
+## Preparar la base de datos
+
+Desde la raíz del repositorio, aplica las migraciones de identidad y de datos bancarios:
 
 ```bash
-# Identidad
-dotnet ef database update --project Source/Infraestructure/ABP.Infraestructure.identity --startup-project Source/Presentation/Api/ABP.API -c IdentityContext
+dotnet ef database update \
+  --project Source/Infraestructure/ABP.Infraestructure.identity \
+  --startup-project Source/Presentation/Api/ABP.API \
+  --context IdentityContext
 
-# Banca
-dotnet ef database update --project Source/Infraestructure/ABP.Infraestructure.Persistence --startup-project Source/Presentation/Api/ABP.API -c ArtemisBankingDbContext
+dotnet ef database update \
+  --project Source/Infraestructure/ABP.Infraestructure.Persistence \
+  --startup-project Source/Presentation/Api/ABP.API \
+  --context ArtemisBankingDbContext
 ```
 
----
+## Ejecutar localmente
 
-## 🚀 Ejecución del Sistema
+1. Inicia Azurite en una terminal:
 
-El ecosistema completo requiere 3 procesos en marcha:
+   ```bash
+   azurite
+   ```
 
-1. **Azurite** (Emulador de colas):
-   Abra una terminal y ejecute `azurite`.
-2. **Azure Functions** (Procesador asíncrono de correos):
-```bash
-dotnet run --project Source/Presentation/Functions/ABP.Functions/ABP.Functions.csproj
-```
-3. **Web API y MVC:**
-   Configure Visual Studio para "Múltiples Proyectos de Inicio" (Multiple Startup Projects) arrancando simultáneamente ABP.API y ArtemisBankingPro.
+2. Inicia Azure Functions:
 
-   Si usa la CLI:
-```bash
-dotnet run --project Source/Presentation/Api/ABP.API/ABP.API.csproj
-dotnet run --project Source/Presentation/Web/ArtemisBankingPro/ArtemisBankingPro.csproj
-```
+   ```bash
+   dotnet run --project Source/Presentation/Functions/ABP.Functions/ABP.Functions.csproj
+   ```
 
-### 👤 Usuarios Por Defecto
-Al iniciar por primera vez, el sistema ejecutará un Seed y creará:
-* **Admin:** adminUser / 123Pa! / admin@artemisbanking.local
-* **Hermes Pay:** Un comercio por defecto se siembra de forma inactiva. Un admin debe activarlo desde la aplicación antes de recibir pagos.
+3. Inicia la API y el portal web en terminales separadas:
 
----
+   ```bash
+   dotnet run --project Source/Presentation/Api/ABP.API/ABP.API.csproj
+   dotnet run --project Source/Presentation/Web/ArtemisBankingPro/ArtemisBankingPro.csproj
+   ```
 
-## 🧪 Pruebas (Tests)
+La API muestra la dirección local de Swagger/OpenAPI en su salida de inicio. En desarrollo, normalmente está disponible en `/swagger`.
 
-El sistema cuenta con una cobertura estricta de **225 pruebas (164 unitarias y 61 de integración)** asegurando la robustez de las validaciones, paginación, control de concurrencia y rechazos lógicos (Cuentas inactivas, límites de crédito, etc).
+## Pruebas
 
-Para ejecutarlas:
+Ejecuta la suite desde la raíz de la solución:
+
 ```bash
 dotnet test
 ```
 
----
+La solución incluye proyectos de pruebas unitarias y de integración.
 
-## 📖 Documentación de APIs (Swagger / Hermes Pay)
+## Hermes Pay
 
-La API cuenta con Swagger (OpenAPI 3.0) habilitado automáticamente en entornos de Desarrollo con lectura de comentarios XML completos y actualizados.
-URL: `https://localhost:<puerto>/swagger`
+La API expone endpoints para procesar pagos y consultar transacciones de un comercio. La integración valida el comercio y el acceso de la solicitud; el procesamiento de pagos utiliza una clave de idempotencia para reducir el riesgo de ejecutar dos veces la misma operación.
 
-### Integración Hermes Pay (Comercios)
-Los comercios pueden procesar pagos mediante el ecosistema Hermes Pay integrándose a los endpoints:
-* **POST /api/v1/pay/process-payment/{commerceId}**: Realiza el débito a tarjetas. Requiere Idempotency Key, claim válido de tipo commerceId en el JWT, validación de estado activo del comercio y cuenta de destino.
-* **GET /api/v1/pay/get-transactions/{commerceId}**: Obtiene el histórico paginado (ej. ?page=1&pageSize=20). Soporta un máximo de 20 por página (Arroja HTTP 400 en caso de límites excedidos o parámetros inválidos).
+Consulta los endpoints y sus esquemas en Swagger cuando ejecutes la API en modo de desarrollo.
 
-Para testear en Swagger, use el endpoint de `/api/v1/Account/login` para obtener el JWT e ingréselo en el botón *Authorize* con el prefijo `Bearer `.
+## Demo
 
----
-*Artemis Banking Pro - 2026*
+[Artemis Banking Pro en Railway](https://artemisbankingpro-production.up.railway.app)
+
+## Equipo
+
+- Johan Gabriel Vásquez
+- Ana Z. Santana
+- Gregori Evangelista Jiménez
